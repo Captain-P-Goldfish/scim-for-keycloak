@@ -1,3 +1,7 @@
+|  Branch | Travis CI Status |
+| :------ | :--------------- | 
+| master  | [![Build Status](https://travis-ci.com/Captain-P-Goldfish/scim-for-keycloak.svg?branch=master)](https://travis-ci.com/Captain-P-Goldfish/scim-for-keycloak)
+
 # What is SCIM-for-keycloak?
 
 It is a full fleshed SCIM implementation that is easily integrated into keycloak and is also easily configurable within
