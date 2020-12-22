@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet author="pascal knueppel" id="scim-sdk-1.0">
+
+        <createTable tableName="SCIM_SERVICE_PROVIDER">
+            <column name="ID" type="VARCHAR(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SCIM_SERVICE_PROVIDER_ID"/>
+            </column>
+            <column name="VERSION" type="BIGINT"/>
+            <column name="REALM_ID" type="VARCHAR(36)">
+                <constraints unique="true" uniqueConstraintName="SCIM_SP_REALM_UNIQUE"/>
+            </column>
+            <column name="ENABLED" type="BOOLEAN"/>
+            <column name="FILTER_SUPPORTED" type="BOOLEAN"/>
+            <column name="FILTER_MAX_RESULTS" type="INTEGER"/>
+            <column name="SORT_SUPPORTED" type="BOOLEAN"/>
+            <column name="PATCH_SUPPORTED" type="BOOLEAN"/>
+            <column name="CHANGE_PASSWORD_SUPPORTED" type="BOOLEAN"/>
+            <column name="BULK_SUPPORTED" type="BOOLEAN"/>
+            <column name="BULK_MAX_OPERATIONS" type="INTEGER"/>
+            <column name="BULK_MAX_PAYLOAD_SIZE" type="BIGINT"/>
+            <column name="ETAG_SUPPORTED" type="BOOLEAN"/>
+            <column name="CREATED" type="DATETIME"/>
+            <column name="LAST_MODIFIED" type="DATETIME"/>
+        </createTable>
+
+        <createTable tableName="SCIM_RESOURCE_TYPE">
+            <column name="ID" type="VARCHAR(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SCIM_RESOURCE_TYPE_ID"/>
+            </column>
+            <column name="VERSION" type="BIGINT"/>
+            <column name="REALM_ID" type="VARCHAR(36)"/>
+            <column name="NAME" type="VARCHAR(50)"/>
+            <column name="DESCRIPTION" type="VARCHAR(255)"/>
+            <column name="ENABLED" type="BOOLEAN"/>
+            <column name="AUTO_FILTERING" type="BOOLEAN"/>
+            <column name="AUTO_SORTING" type="BOOLEAN"/>
+            <column name="ETAG_ENABLED" type="BOOLEAN"/>
+            <column name="DISABLE_CREATE" type="BOOLEAN"/>
+            <column name="DISABLE_GET" type="BOOLEAN"/>
+            <column name="DISABLE_LIST" type="BOOLEAN"/>
+            <column name="DISABLE_UPDATE" type="BOOLEAN"/>
+            <column name="DISABLE_DELETE" type="BOOLEAN"/>
+            <column name="REQUIRE_AUTHENTICATION" type="BOOLEAN"/>
+            <column name="CREATED" type="DATETIME"/>
+            <column name="LAST_MODIFIED" type="DATETIME"/>
+        </createTable>
+
+        <addUniqueConstraint tableName="SCIM_RESOURCE_TYPE" columnNames="REALM_ID,NAME"
+                             constraintName="SCIM_RESOURCE_TYPE_UQ"/>
+
+        <createTable tableName="SCIM_ENDPOINT_ROLES">
+            <column name="SCIM_RESOURCE_TYPE_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_ENDPOINT_ROLE_FK"
+                             referencedTableName="SCIM_RESOURCE_TYPE"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="ROLE_ID" type="VARCHAR(36)"/>
+        </createTable>
+
+        <createIndex tableName="SCIM_ENDPOINT_ROLES" indexName="SCIM_ENDPOINT_ROLES_IDX">
+            <column name="SCIM_RESOURCE_TYPE_ID" type="VARCHAR(36)"/>
+        </createIndex>
+
+        <createTable tableName="SCIM_ENDPOINT_CREATE_ROLES">
+            <column name="SCIM_RESOURCE_TYPE_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_ENDPOINT_CREATE_ROLE_FK"
+                             referencedTableName="SCIM_RESOURCE_TYPE"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="ROLE_ID" type="VARCHAR(36)"/>
+        </createTable>
+
+        <createIndex tableName="SCIM_ENDPOINT_CREATE_ROLES" indexName="SCIM_ENDPOINT_CREATE_ROLES_IDX">
+            <column name="SCIM_RESOURCE_TYPE_ID" type="VARCHAR(36)"/>
+        </createIndex>
+
+        <createTable tableName="SCIM_ENDPOINT_GET_ROLES">
+            <column name="SCIM_RESOURCE_TYPE_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_ENDPOINT_GET_ROLE_FK"
+                             referencedTableName="SCIM_RESOURCE_TYPE"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="ROLE_ID" type="VARCHAR(36)"/>
+        </createTable>
+
+        <createIndex tableName="SCIM_ENDPOINT_GET_ROLES" indexName="SCIM_ENDPOINT_GET_ROLES_IDX">
+            <column name="SCIM_RESOURCE_TYPE_ID" type="VARCHAR(36)"/>
+        </createIndex>
+
+        <createTable tableName="SCIM_ENDPOINT_UPDATE_ROLES">
+            <column name="SCIM_RESOURCE_TYPE_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_ENDPOINT_UPDATE_ROLE_FK"
+                             referencedTableName="SCIM_RESOURCE_TYPE"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="ROLE_ID" type="VARCHAR(36)"/>
+        </createTable>
+
+        <createIndex tableName="SCIM_ENDPOINT_UPDATE_ROLES" indexName="SCIM_ENDPOINT_UPDATE_ROLES_IDX">
+            <column name="SCIM_RESOURCE_TYPE_ID" type="VARCHAR(36)"/>
+        </createIndex>
+
+        <createTable tableName="SCIM_ENDPOINT_DELETE_ROLES">
+            <column name="SCIM_RESOURCE_TYPE_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_ENDPOINT_DELETE_ROLE_FK"
+                             referencedTableName="SCIM_RESOURCE_TYPE"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="ROLE_ID" type="VARCHAR(36)"/>
+        </createTable>
+
+        <createIndex tableName="SCIM_ENDPOINT_DELETE_ROLES" indexName="SCIM_ENDPOINT_DELETE_ROLES_IDX">
+            <column name="SCIM_RESOURCE_TYPE_ID" type="VARCHAR(36)"/>
+        </createIndex>
+
+        <createTable tableName="SCIM_SP_AUTHORIZED_CLIENTS">
+            <column name="SCIM_SERVICE_PROVIDER_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_SP_AUTHORIZED_CLIENT_FK"
+                             referencedTableName="SCIM_SERVICE_PROVIDER"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="CLIENT_ID" type="VARCHAR(36)"/>
+        </createTable>
+
+        <createIndex tableName="SCIM_SP_AUTHORIZED_CLIENTS" indexName="SCIM_SP_AUTHORIZED_CLIENT_IDX">
+            <column name="SCIM_SERVICE_PROVIDER_ID" type="VARCHAR(36)"/>
+        </createIndex>
+
+    </changeSet>
+
+</databaseChangeLog>

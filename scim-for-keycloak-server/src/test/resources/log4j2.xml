@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="5">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout
+                    pattern="%d{DATE} [%t] %highlight{%-5level}{FATAL=bright red, ERROR=red, WARN=yellow, INFO=white, DEBUG=bright blue, TRACE=green } %logger{36} (%F:%L) - %highlight{%msg%n%throwable}{FATAL=bright red, ERROR=red, WARN=yellow, INFO=white, DEBUG=bright blue, TRACE=green }"
+                    disableAnsi="false"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="org.hibernate" level="info" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="org.hibernate.SQL" level="info" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="de.captaingoldfish" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

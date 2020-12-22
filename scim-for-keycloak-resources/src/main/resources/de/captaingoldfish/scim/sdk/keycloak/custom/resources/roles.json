@@ -1,0 +1,187 @@
+{
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:Schema"
+  ],
+  "id": "urn:gold:params:scim:schemas:keycloak:2.0:RealmRole",
+  "name": "RealmRole",
+  "description": "Representation of a keycloak realm role",
+  "attributes": [
+    {
+      "name": "id",
+      "type": "string",
+      "description": "Unique identifier for the SCIM Resource as defined by the Service Provider.",
+      "mutability": "readOnly",
+      "returned": "always",
+      "uniqueness": "server",
+      "multiValued": false,
+      "required": true,
+      "caseExact": true
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "description": "The name of the role.",
+      "mutability": "immutable",
+      "returned": "always",
+      "uniqueness": "server",
+      "multiValued": false,
+      "required": true,
+      "caseExact": true
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "description": "A human readable description of the role.",
+      "mutability": "readWrite",
+      "returned": "always",
+      "uniqueness": "server",
+      "multiValued": false,
+      "required": false,
+      "caseExact": false
+    },
+    {
+      "name": "associates",
+      "type": "complex",
+      "description": "A list of groups or users that are associated with this role.",
+      "mutability": "readWrite",
+      "returned": "default",
+      "uniqueness": "none",
+      "multiValued": true,
+      "required": false,
+      "caseExact": false,
+      "subAttributes": [
+        {
+          "name": "value",
+          "type": "string",
+          "description": "Id value of the associate that is either a user or a group.",
+          "mutability": "immutable",
+          "returned": "default",
+          "uniqueness": "none",
+          "multiValued": false,
+          "required": true,
+          "caseExact": false
+        },
+        {
+          "name": "$ref",
+          "type": "reference",
+          "description": "The location URL of the corresponding associate.",
+          "mutability": "immutable",
+          "returned": "default",
+          "uniqueness": "none",
+          "multiValued": false,
+          "required": false,
+          "caseExact": false,
+          "referenceTypes": [
+            "resource"
+          ]
+        },
+        {
+          "name": "display",
+          "type": "string",
+          "description": "The name of the associate",
+          "mutability": "readWrite",
+          "returned": "default",
+          "uniqueness": "none",
+          "multiValued": false,
+          "required": false,
+          "caseExact": false
+        },
+        {
+          "name": "type",
+          "type": "string",
+          "description": "A label indicating the type of resource. In this case it must point either to 'User' or 'Group'",
+          "mutability": "readWrite",
+          "returned": "default",
+          "uniqueness": "none",
+          "canonicalValues": [
+            "User",
+            "Group"
+          ],
+          "multiValued": false,
+          "required": true,
+          "caseExact": false
+        }
+      ]
+    },
+    {
+      "name": "children",
+      "type": "complex",
+      "description": "a set of roles that are associated with this role which makes this role a composite role",
+      "mutability": "readWrite",
+      "returned": "default",
+      "uniqueness": "none",
+      "multiValued": true,
+      "required": false,
+      "caseExact": false,
+      "subAttributes": [
+        {
+          "name": "value",
+          "type": "string",
+          "description": "Id value of the role member.",
+          "mutability": "immutable",
+          "returned": "default",
+          "uniqueness": "none",
+          "multiValued": false,
+          "required": true,
+          "caseExact": false
+        },
+        {
+          "name": "$ref",
+          "type": "reference",
+          "description": "The location URL of the corresponding role.",
+          "mutability": "immutable",
+          "returned": "default",
+          "uniqueness": "none",
+          "multiValued": false,
+          "required": false,
+          "caseExact": false,
+          "referenceTypes": [
+            "resource"
+          ]
+        },
+        {
+          "name": "display",
+          "type": "string",
+          "description": "The name of the role",
+          "mutability": "readWrite",
+          "returned": "default",
+          "uniqueness": "none",
+          "multiValued": false,
+          "required": false,
+          "caseExact": false
+        },
+        {
+          "name": "type",
+          "type": "string",
+          "description": "A label indicating the type of resource. In this case it must be always 'RealmRole'",
+          "mutability": "readWrite",
+          "returned": "default",
+          "uniqueness": "none",
+          "canonicalValues": [
+            "RealmRole"
+          ],
+          "multiValued": false,
+          "required": false,
+          "caseExact": false
+        },
+        {
+          "name": "clientRole",
+          "type": "boolean",
+          "description": "if this child role is a client role or not",
+          "mutability": "readWrite",
+          "returned": "default",
+          "uniqueness": "none",
+          "multiValued": false,
+          "required": false,
+          "caseExact": false
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "resourceType": "Schema",
+    "created": "2019-10-18T14:51:11+02:00",
+    "lastModified": "2019-10-18T14:51:11+02:00",
+    "location": "/Schemas/RealmRole"
+  }
+}

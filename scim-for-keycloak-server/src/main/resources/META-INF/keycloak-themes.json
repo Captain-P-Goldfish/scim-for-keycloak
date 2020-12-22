@@ -1,0 +1,10 @@
+{
+  "themes": [
+    {
+      "name": "scim",
+      "types": [
+        "admin"
+      ]
+    }
+  ]
+}

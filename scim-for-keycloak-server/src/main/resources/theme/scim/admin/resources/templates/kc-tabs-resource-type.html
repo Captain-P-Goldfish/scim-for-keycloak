@@ -1,0 +1,15 @@
+<div>
+    <ul class="nav nav-tabs">
+        <li data-ng-class="{active: path[3] == 'resource-type' && path[4] == resource.name}">
+            <a href="#/realms/{{realm.realm}}/scim/resource-type/{{resource.name}}">
+                {{:: 'resource.type.tabs.settings' | translate}}
+            </a>
+        </li>
+        <li data-ng-class="{active: path[3] == 'resource-type' && path[4] == 'roles'}"
+            data-ng-show="!features.disabled">
+            <a href="#/realms/{{realm.realm}}/scim/resource-type/roles/{{resource.name}}">
+                {{:: 'resource.type.tabs.authorization' | translate}}
+            </a>
+        </li>
+    </ul>
+</div>

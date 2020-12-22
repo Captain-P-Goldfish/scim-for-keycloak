@@ -1,0 +1,15 @@
+<div>
+    <ul class="nav nav-tabs">
+        <li data-ng-class="{active: path[3] == 'service-provider' && path[4] == 'settings'}">
+            <a href="#/realms/{{realm.realm}}/scim/service-provider/settings">
+                {{:: 'service.provider.tab.settings' | translate}}
+            </a>
+        </li>
+        <li data-ng-class="{active: path[3] == 'service-provider' && path[4] == 'authorization'}"
+            data-ng-show="!features.disabled">
+            <a href="#/realms/{{realm.realm}}/scim/service-provider/authorization">
+                {{:: 'service.provider.tab.authorization' | translate}}
+            </a>
+        </li>
+    </ul>
+</div>

@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+
+    <groupId>de.captaingoldfish</groupId>
+    <artifactId>scim-for-keycloak</artifactId>
+    <version>kc-11-b1-SNAPSHOT</version>
+
+    <name>SCIM for Keycloak</name>
+    <description>A third party module that extends keycloak by SCIM functionality</description>
+    <url>https://github.com/Captain-P-Goldfish/scim-for-keycloak</url>
+
+    <licenses>
+        <license>
+            <name>BSD-3-Clause</name>
+            <url>https://opensource.org/licenses/BSD-3-Clause</url>
+        </license>
+    </licenses>
+
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>scim-for-keycloak-resources</module>
+        <module>scim-for-keycloak-server</module>
+        <module>scim-for-keycloak-deployment</module>
+        <module>scim-for-keycloak-client</module>
+    </modules>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!--suppress UnresolvedMavenProperty -->
+        <formatter-path>${project.parent.basedir}</formatter-path>
+
+        <version.keycloak>11.0.3</version.keycloak>
+        <version.scim.sdk>1.8.3</version.scim.sdk>
+
+        <version.sun.javax.activation>1.2.0</version.sun.javax.activation>
+        <version.javax.activation>1.1.1</version.javax.activation>
+
+        <!-- test dependencies -->
+        <version.h2>1.4.200</version.h2>
+
+        <!-- plugin versions -->
+        <version.maven.ear.plugin>3.1.0</version.maven.ear.plugin>
+        <version.maven.versions.plugin>2.8.1</version.maven.versions.plugin>
+        <version.maven.compiler.plugin>3.8.1</version.maven.compiler.plugin>
+        <version.maven.formatter.plugin>2.13.0</version.maven.formatter.plugin>
+        <version.maven.enforcer.plugin>3.0.0-M3</version.maven.enforcer.plugin>
+        <version.maven.surefire.plugin>3.0.0-M5</version.maven.surefire.plugin>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- base setup dependencies -->
+            <dependency>
+                <groupId>de.captaingoldfish</groupId>
+                <artifactId>scim-sdk-parent</artifactId>
+                <version>${version.scim.sdk}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- application dependencies -->
+            <dependency>
+                <groupId>de.captaingoldfish</groupId>
+                <artifactId>scim-for-keycloak-resources</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-parent</artifactId>
+                <version>${version.keycloak}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>de.captaingoldfish</groupId>
+                <artifactId>scim-for-keycloak-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>de.captaingoldfish</groupId>
+                <artifactId>scim-for-keycloak-client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.activation</groupId>
+                <artifactId>javax.activation</artifactId>
+                <version>${version.sun.javax.activation}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.activation</groupId>
+                <artifactId>activation</artifactId>
+                <version>${version.javax.activation}</version>
+            </dependency>
+
+            <!-- test dependencies -->
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>${version.h2}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
+        <!-- logging dependencies -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- test-dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${version.maven.compiler.plugin}</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${version.maven.surefire.plugin}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>${version.maven.formatter.plugin}</version>
+                <configuration>
+                    <configFile>${formatter-path}/formatter.xml</configFile>
+                    <lineEnding>LF</lineEnding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>validate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${version.maven.enforcer.plugin}</version>
+                <executions>
+                    <execution>
+                        <id>enforce</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <rules>
+                        <requireMavenVersion>
+                            <version>[3.3,)</version>
+                        </requireMavenVersion>
+
+                        <requireReleaseDeps>
+                            <message>No Snapshots Allowed on release!</message>
+                            <onlyWhenRelease>true</onlyWhenRelease>
+                        </requireReleaseDeps>
+
+                        <banDuplicatePomDependencyVersions/>
+
+                        <dependencyConvergence/>
+                    </rules>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>${version.maven.versions.plugin}</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>

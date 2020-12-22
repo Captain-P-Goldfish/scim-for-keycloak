@@ -1,0 +1,356 @@
+<div class="col-sm-9 col-md-10 col-sm-push-3 col-md-push-2">
+
+
+    <ol class="breadcrumb">
+        <li><a href="#/realms/{{realm.realm}}/scim/resource-type-list">
+            {{:: 'resource.type.tab.menu' | translate}}</a></li>
+        <li>{{resource.name}}</li>
+    </ol>
+
+    <kc-tabs-scim-list></kc-tabs-scim-list>
+
+    <div class="col-md-push-2">
+        <h1>{{:: 'Resource Type Configuration' | translate }}</h1>
+
+        <kc-tabs-resource-type></kc-tabs-resource-type>
+
+        <form class="form-horizontal" name="serviceProviderForm" novalidate>
+
+            <div class="form-group">
+                <label class="col-md-2 control-label ng-binding ng-scope"
+                       for="resourceTypeId">
+                    {{:: 'id' | translate }}
+                </label>
+                <div class="col-md-6">
+                    <input autofocus
+                           class="form-control"
+                           data-ng-value="resource.id"
+                           disabled
+                           id="resourceTypeId"
+                           name="resourceTypeId"
+                           type="text">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-2 control-label ng-binding ng-scope"
+                       for="resourceTypeName">
+                    {{:: 'name' | translate }}
+                </label>
+                <div class="col-md-6">
+                    <input class="form-control"
+                           data-ng-value="resource.name"
+                           disabled
+                           id="resourceTypeName"
+                           name="resourceTypeName"
+                           type="text">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-2 control-label ng-binding ng-scope"
+                       for="resourceTypeDescription">
+                    {{:: 'description' | translate }}
+                </label>
+                <div class="col-md-6">
+                    <input class="form-control"
+                           data-ng-model="resource.description"
+                           id="resourceTypeDescription"
+                           name="resourceTypeDescription"
+                           type="text">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-2 control-label ng-binding ng-scope"
+                       for="resourceTypeSchema">
+                    {{:: 'schema' | translate }}
+                </label>
+                <div class="col-md-6">
+                    <input class="form-control"
+                           data-ng-value="resource.schema"
+                           disabled
+                           id="resourceTypeSchema"
+                           name="resourceTypeSchema"
+                           type="text">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-2 control-label ng-binding ng-scope"
+                       for="resourceTypeEndpoint">
+                    {{:: 'endpoint' | translate }}
+                </label>
+                <div class="col-md-6">
+                    <input class="form-control"
+                           data-ng-value="resource.endpoint"
+                           disabled
+                           id="resourceTypeEndpoint"
+                           name="resourceTypeEndpoint"
+                           type="text">
+                </div>
+            </div>
+
+
+            <div class="form-group clearfix block">
+                <label class="col-md-2 control-label"
+                       for="schemaExtensionsTable">
+                    {{:: 'resource.type.extensions' | translate}}
+                </label>
+
+                <div class="col-sm-6">
+                    <table class="table table-striped table-bordered" id="schemaExtensionsTable">
+                        <thead>
+                        <tr>
+                            <th class="w-40">{{:: 'schema' | translate}}</th>
+                            <th class="w-15">{{:: 'required' | translate}}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr data-ng-repeat="(i, extension) in resource.schemaExtensions track by $index">
+                            <td class="clip">
+                                <input class="form-control"
+                                       data-ng-model="extension.schema"
+                                       disabled
+                                       id="schemaReference"
+                                       name="schemaReference">
+                            </td>
+                            <td class="clip">
+                                <input data-ng-disabled="true"
+                                       data-ng-model="extension.required"
+                                       id="extensionRequired"
+                                       name="extensionRequired"
+                                       off-text="{{:: 'offText' | translate}}"
+                                       on-text="{{:: 'onText' | translate}}"
+                                       onoffswitch/>
+                            </td>
+                        </tr>
+                        <tr data-ng-show="!resource.schemaExtensions || resource.schemaExtensions.length == 0">
+                            <td class="text-muted" data-ng-show="!users">{{:: 'no-results' | translate}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <kc-tooltip>{{:: 'resource.type.extensions.tooltip' | translate}}</kc-tooltip>
+            </div>
+
+            <fieldset class="border-top">
+                <div class="form-group clearfix block">
+                    <label class="col-md-2 control-label"
+                           for="resourceTypeEnabled">{{:: 'enabled' | translate }}</label>
+                    <div class="col-md-6">
+                        <input data-ng-model="enabled"
+                               id="resourceTypeEnabled"
+                               name="resourceTypeEnabled"
+                               off-text="{{:: 'offText' | translate}}"
+                               on-text="{{:: 'onText' | translate}}"
+                               onoffswitch/>
+                    </div>
+                    <kc-tooltip>{{:: 'resource.type.disable.tooltip' | translate}}</kc-tooltip>
+                </div>
+            </fieldset>
+
+            <fieldset class="border-top">
+                <div class="form-group clearfix block">
+                    <label class="col-md-2 control-label"
+                           for="autoFiltering">
+                        {{:: 'resource.type.features.auto.filtering' | translate }}</label>
+                    <div class="col-md-6">
+                        <input data-ng-disabled="features.disabled"
+                               data-ng-model="features.autoFiltering"
+                               id="autoFiltering"
+                               name="autoFiltering"
+                               off-text="{{:: 'offText' | translate}}"
+                               on-text="{{:: 'onText' | translate}}"
+                               onoffswitch/>
+                    </div>
+                    <kc-tooltip>{{:: 'resource.type.features.auto.filtering.tooltip' | translate}}</kc-tooltip>
+                </div>
+            </fieldset>
+
+            <fieldset class="border-top">
+                <div class="form-group clearfix block">
+                    <label class="col-md-2 control-label"
+                           for="autoSorting">
+                        {{:: 'resource.type.features.auto.sorting' | translate }}</label>
+                    <div class="col-md-6">
+                        <input data-ng-disabled="features.disabled"
+                               data-ng-model="features.autoSorting"
+                               id="autoSorting"
+                               name="autoSorting"
+                               off-text="{{:: 'offText' | translate}}"
+                               on-text="{{:: 'onText' | translate}}"
+                               onoffswitch/>
+                    </div>
+                    <kc-tooltip>{{:: 'resource.type.features.auto.sorting.tooltip' | translate}}</kc-tooltip>
+                </div>
+            </fieldset>
+
+            <fieldset class="border-top">
+                <div class="form-group clearfix block">
+                    <label class="col-md-2 control-label"
+                           for="etagEnabled">
+                        {{:: 'resource.type.features.etag.enabled' | translate }}</label>
+                    <div class="col-md-6">
+                        <input data-ng-disabled="features.disabled"
+                               data-ng-model="features.etag.enabled"
+                               id="etagEnabled"
+                               name="etagEnabled"
+                               off-text="{{:: 'offText' | translate}}"
+                               on-text="{{:: 'onText' | translate}}"
+                               onoffswitch/>
+                    </div>
+                    <kc-tooltip>{{:: 'resource.type.features.etag.enabled.tooltip' | translate}}</kc-tooltip>
+                </div>
+            </fieldset>
+
+            <div class="form-group">
+                <label class="col-md-2 control-label"
+                       for="endpointControl">
+                    {{:: 'resource.type.features.endpoint.control' | translate }}
+                </label>
+
+                <div class="col-md-6 time-selector" id="endpointControl">
+
+                    <div class="form-group">
+                        <label class="col-md-4 control-label"
+                               for="disableCreate">
+                            {{:: 'resource.type.features.endpoint.control.disable.create' | translate }}
+                        </label>
+                        <div class="col-md-6">
+                            <input data-ng-disabled="features.disabled"
+                                   data-ng-model="features.endpointControl.disableCreate"
+                                   id="disableCreate"
+                                   name="disableCreate"
+                                   off-text="{{:: 'offText' | translate}}"
+                                   on-text="{{:: 'onText' | translate}}"
+                                   onoffswitch/>
+                        </div>
+                        <kc-tooltip>
+                            {{:: 'resource.type.features.endpoint.control.disable.create.tooltip' | translate}}
+                        </kc-tooltip>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-4 control-label"
+                               for="disableGet">
+                            {{:: 'resource.type.features.endpoint.control.disable.get' | translate }}
+                        </label>
+                        <div class="col-md-6">
+                            <input data-ng-disabled="features.disabled"
+                                   data-ng-model="features.endpointControl.disableGet"
+                                   id="disableGet"
+                                   name="disableGet"
+                                   off-text="{{:: 'offText' | translate}}"
+                                   on-text="{{:: 'onText' | translate}}"
+                                   onoffswitch/>
+                        </div>
+                        <kc-tooltip>
+                            {{:: 'resource.type.features.endpoint.control.disable.get.tooltip' | translate}}
+                        </kc-tooltip>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-4 control-label"
+                               for="disableList">
+                            {{:: 'resource.type.features.endpoint.control.disable.list' | translate }}
+                        </label>
+                        <div class="col-md-6">
+                            <input data-ng-disabled="features.disabled"
+                                   data-ng-model="features.endpointControl.disableList"
+                                   id="disableList"
+                                   name="disableList"
+                                   off-text="{{:: 'offText' | translate}}"
+                                   on-text="{{:: 'onText' | translate}}"
+                                   onoffswitch/>
+                        </div>
+                        <kc-tooltip>
+                            {{:: 'resource.type.features.endpoint.control.disable.list.tooltip' | translate}}
+                        </kc-tooltip>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-4 control-label"
+                               for="disableUpdate">
+                            {{:: 'resource.type.features.endpoint.control.disable.update' | translate }}
+                        </label>
+                        <div class="col-md-6">
+                            <input data-ng-disabled="features.disabled"
+                                   data-ng-model="features.endpointControl.disableUpdate"
+                                   id="disableUpdate"
+                                   name="disableUpdate"
+                                   off-text="{{:: 'offText' | translate}}"
+                                   on-text="{{:: 'onText' | translate}}"
+                                   onoffswitch/>
+                        </div>
+                        <kc-tooltip>
+                            {{:: 'resource.type.features.endpoint.control.disable.update.tooltip' | translate}}
+                        </kc-tooltip>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-4 control-label"
+                               for="disableDelete">
+                            {{:: 'resource.type.features.endpoint.control.disable.delete' | translate }}
+                        </label>
+                        <div class="col-md-6">
+                            <input data-ng-disabled="features.disabled"
+                                   data-ng-model="features.endpointControl.disableDelete"
+                                   id="disableDelete"
+                                   name="disableDelete"
+                                   off-text="{{:: 'offText' | translate}}"
+                                   on-text="{{:: 'onText' | translate}}"
+                                   onoffswitch/>
+                        </div>
+                        <kc-tooltip>
+                            {{:: 'resource.type.features.endpoint.control.disable.delete.tooltip' | translate}}
+                        </kc-tooltip>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-2 control-label ng-binding"
+                       for="resourceTypeCreated">{{:: 'created' | translate}}</label>
+                <div class="col-md-6">
+                    <input autofocus=""
+                           class="form-control ng-pristine ng-valid ng-not-empty ng-valid-required ng-touched"
+                           data-ng-value="resource.meta.created | date:'dd.MM.yyyy HH:mm:ss Z'"
+                           disabled
+                           id="resourceTypeCreated"
+                           kc-no-reserved-chars=""
+                           name="resourceTypeCreated"
+                           type="text">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-2 control-label ng-binding"
+                       for="resourceTypeLastModified">{{:: 'last.modified' | translate}}</label>
+                <div class="col-md-6">
+                    <input autofocus=""
+                           class="form-control ng-pristine ng-valid ng-not-empty ng-valid-required ng-touched"
+                           data-ng-value="resource.meta.lastModified  | date:'dd.MM.yyyy HH:mm:ss Z'"
+                           disabled
+                           id="resourceTypeLastModified"
+                           kc-no-reserved-chars=""
+                           name="resourceTypeLastModified"
+                           type="text">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-10 col-md-offset-2" data-ng-show="access.viewScim">
+                    <button data-ng-disabled="!changed" kc-save>{{:: 'save' | translate}}</button>
+                    <button data-ng-disabled="!changed" kc-reset>{{:: 'cancel' | translate}}
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<kc-menu></kc-menu>
