@@ -3,7 +3,6 @@ package de.captaingoldfish.scim.sdk.keycloak.scim.handler;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.keycloak.models.GroupModel;
@@ -33,7 +32,7 @@ import de.captaingoldfish.scim.sdk.server.response.PartialListResponse;
 
 /**
  * the SCIM handler implementation for roles
- *
+ * 
  * @author Pascal Knueppel
  * @since 16.08.2020
  */
@@ -42,7 +41,7 @@ public class RealmRoleHandler extends ResourceHandler<RealmRole>
 
   /**
    * maps an associate into a SCIM representation
-   *
+   * 
    * @param roleMapperModel the associated resource
    * @return the SCIM representation of a resource reference
    */
@@ -92,7 +91,7 @@ public class RealmRoleHandler extends ResourceHandler<RealmRole>
   public RealmRole createResource(RealmRole resource, Authorization authorization)
   {
     KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
-    RoleModel roleModel = keycloakSession.realms()
+    RoleModel roleModel = keycloakSession.roles()
                                          .getRealmRole(keycloakSession.getContext().getRealm(), resource.getName());
     if (roleModel != null)
     {
@@ -128,12 +127,13 @@ public class RealmRoleHandler extends ResourceHandler<RealmRole>
                                                       Authorization authorization)
   {
     KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
-    Set<RoleModel> roleModelList = keycloakSession.realms().getRealmRoles(keycloakSession.getContext().getRealm());
+    List<RealmRole> roleModelList = keycloakSession.roles()
+                                                   .getRealmRolesStream(keycloakSession.getContext().getRealm())
+                                                   .map(roleModel -> toScimRole(keycloakSession, roleModel))
+                                                   .collect(Collectors.toList());
     return PartialListResponse.<RealmRole> builder()
                               .totalResults(roleModelList.size())
-                              .resources(roleModelList.stream()
-                                                      .map(roleModel -> toScimRole(keycloakSession, roleModel))
-                                                      .collect(Collectors.toList()))
+                              .resources(roleModelList)
                               .build();
   }
 
@@ -160,12 +160,12 @@ public class RealmRoleHandler extends ResourceHandler<RealmRole>
     {
       throw new ResourceNotFoundException("resource with id '" + id + "' does not exist");
     }
-    keycloakSession.realms().removeRole(keycloakSession.getContext().getRealm(), optionalRoleModel.get());
+    keycloakSession.roles().removeRole(optionalRoleModel.get());
   }
 
   /**
    * translates the given keycloak role to its SCIM representation
-   *
+   * 
    * @param keycloakSession to access the associates of the given role
    * @param roleModel the role that should be translated
    * @return the SCIM representation of the role
@@ -185,8 +185,7 @@ public class RealmRoleHandler extends ResourceHandler<RealmRole>
                                                 .stream()
                                                 .map(RealmRoleHandler::toAssociate)
                                                 .collect(Collectors.toList());
-    List<ChildRole> children = roleModel.getComposites()
-                                        .stream()
+    List<ChildRole> children = roleModel.getCompositesStream()
                                         .map(RealmRoleHandler::toChildRole)
                                         .collect(Collectors.toList());
 

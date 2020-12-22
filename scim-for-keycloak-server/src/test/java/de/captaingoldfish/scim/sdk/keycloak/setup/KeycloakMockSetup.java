@@ -1,28 +1,35 @@
 package de.captaingoldfish.scim.sdk.keycloak.setup;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import javax.persistence.EntityManager;
 
 import org.junit.jupiter.api.Assertions;
+import org.keycloak.Config;
 import org.keycloak.credential.CredentialProvider;
 import org.keycloak.credential.PasswordCredentialProvider;
 import org.keycloak.credential.PasswordCredentialProviderFactory;
 import org.keycloak.credential.UserCredentialStoreManager;
 import org.keycloak.credential.hash.PasswordHashProvider;
 import org.keycloak.credential.hash.Pbkdf2PasswordHashProviderFactory;
+import org.keycloak.executors.DefaultExecutorsProviderFactory;
+import org.keycloak.executors.ExecutorsProvider;
 import org.keycloak.models.KeycloakContext;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.PasswordPolicy;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
+import org.keycloak.models.jpa.JpaRealmProvider;
 import org.keycloak.policy.DefaultPasswordPolicyManagerProvider;
 import org.keycloak.policy.PasswordPolicyManagerProvider;
 import org.keycloak.services.DefaultKeycloakContext;
 import org.keycloak.services.DefaultKeycloakSessionFactory;
 import org.keycloak.services.DefaultKeycloakTransactionManager;
+import org.keycloak.storage.GroupStorageManager;
+import org.keycloak.storage.RoleStorageManager;
 import org.mockito.Mockito;
 
 import lombok.Getter;
@@ -89,7 +96,31 @@ class KeycloakMockSetup
     keycloakTransactionManager = Mockito.spy(new DefaultKeycloakTransactionManager(keycloakSession));
     Mockito.doReturn(keycloakTransactionManager).when(keycloakSession).getTransactionManager();
     Mockito.doReturn(keycloakSession).when(keycloakSessionFactory).create();
+
+    RoleStorageManager roleStorageManager = new RoleStorageManager(keycloakSession, 10000);
+    GroupStorageManager groupStorageManager = new GroupStorageManager(keycloakSession);
+    JpaRealmProvider jpaRealmProvider = (JpaRealmProvider)keycloakSession.realms();
+    Mockito.doReturn(roleStorageManager).when(keycloakSession).roles();
+    Mockito.doReturn(roleStorageManager).when(keycloakSession).roleStorageManager();
+    Mockito.doReturn(jpaRealmProvider).when(keycloakSession).roleLocalStorage();
+    Mockito.doReturn(groupStorageManager).when(keycloakSession).groups();
+    Mockito.doReturn(groupStorageManager).when(keycloakSession).groupStorageManager();
+    Mockito.doReturn(jpaRealmProvider).when(keycloakSession).groupLocalStorage();
+
     setupPasswordManagingSettings();
+    mockExecutorService();
+  }
+
+  /**
+   * mocks the keycloak executor service introduced with keycloak 12
+   */
+  protected void mockExecutorService()
+  {
+    DefaultExecutorsProviderFactory executorsProviderFactory = new DefaultExecutorsProviderFactory();
+    Config.Scope config = new Config.SystemPropertiesScope("");
+    executorsProviderFactory.init(config);
+    ExecutorsProvider executorsProvider = executorsProviderFactory.create(keycloakSession);
+    Mockito.doReturn(executorsProvider).when(keycloakSession).getProvider(ExecutorsProvider.class);
   }
 
   /**
@@ -124,11 +155,12 @@ class KeycloakMockSetup
     entityManager.getTransaction().begin();
     realmModel = keycloakSession.realms().createRealm(UUID.randomUUID().toString(), TEST_REALM_NAME);
     realmModel.setPasswordPolicy(PasswordPolicy.build().build(keycloakSession));
-    entityManager.getTransaction().commit();
     Mockito.doReturn(realmModel).when(keycloakContext).getRealm();
-    Assertions.assertEquals(1, keycloakSession.realms().getRealms().size());
+    List<RealmModel> realms = keycloakSession.realms().getRealms();
+    Assertions.assertEquals(1, realms.size());
     log.debug("test-realm successfully created: {} - {}", realmModel.getId(), realmModel.getName());
     createUser();
+    entityManager.getTransaction().commit();
   }
 
   /**
@@ -136,10 +168,8 @@ class KeycloakMockSetup
    */
   private void createUser()
   {
-    entityManager.getTransaction().begin();
     user = keycloakSession.users().addUser(realmModel, "admin");
     user.setSingleAttribute("scim-user", String.valueOf(true));
-    entityManager.getTransaction().commit();
   }
 
 

@@ -37,13 +37,13 @@
 
             <div class="form-group">
                 <div class="col-md-10 col-md-offset-2" data-ng-show="access.viewScim">
-                    <button data-ng-disabled="!changed" kc-save>{{:: 'save' | translate}}</button>
-                    <button data-ng-disabled="!changed" kc-reset>{{:: 'cancel' | translate}}
+                    <button data-ng-disabled="!changed" id="save" kc-save>{{:: 'save' | translate}}</button>
+                    <button data-ng-disabled="!changed" id="cancel" kc-reset>{{:: 'cancel' | translate}}
                     </button>
                 </div>
             </div>
 
-            <fieldset data-ng-show="requiresAuthentication">
+            <fieldset data-ng-show="requiresAuthentication" id="fieldset-common-roles">
                 <legend collapsed>
                     <span class="text">{{:: 'resource.type.tabs.common.roles' | translate}}</span>
                     <kc-tooltip>{{:: 'resource.type.tabs.common.roles.tooltip' | translate}}</kc-tooltip>
@@ -55,13 +55,15 @@
                     <div class="col-md-10">
                         <div class="row">
                             <div class="col-md-3">
-                                <label class="control-label" for="available">
+                                <label class="control-label" for="available-common">
                                     {{:: 'available-roles' | translate}}
                                 </label>
-                                <select class="form-control overflow-select" data-ng-model="selectedAvailableRoles"
-                                        data-ng-multiple="true" id="available"
-                                        multiple
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAvailableRoles"
+                                        data-ng-multiple="true"
+                                        id="available-common"
                                         realmMappings
+                                        multiple
                                         size="5">
                                     <option data-ng-repeat="role in availableRoles.roles | orderBy:'name'"
                                             title="{{role}}" value="{{role}}">
@@ -69,6 +71,7 @@
                                     </option>
                                 </select>
                                 <button class="btn btn-default"
+                                        id="add-common-role"
                                         data-ng-click="updateRoleAccess(availableRoles.roles,
                                                                         featureAuth.roles,
                                                                         selectedAvailableRoles)"
@@ -79,11 +82,13 @@
                             </div>
 
                             <div class="col-md-3">
-                                <label class="control-label" for="assigned">
+                                <label class="control-label" for="assigned-common">
                                     {{:: 'assigned-roles' | translate}}
                                 </label>
-                                <select class="form-control overflow-select" data-ng-model="selectedAssignedRoles"
-                                        data-ng-multiple="true" id="assigned"
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAssignedRoles"
+                                        data-ng-multiple="true"
+                                        id="assigned-common"
                                         multiple
                                         size="5">
                                     <option data-ng-repeat="r in featureAuth.roles | orderBy:'name'"
@@ -92,6 +97,7 @@
                                     </option>
                                 </select>
                                 <button class="btn btn-default"
+                                        id="remove-common-role"
                                         data-ng-click="updateRoleAccess(featureAuth.roles,
                                                                         availableRoles.roles,
                                                                         selectedAssignedRoles)"
@@ -105,7 +111,7 @@
                 </div>
             </fieldset>
 
-            <fieldset data-ng-show="requiresAuthentication">
+            <fieldset data-ng-show="requiresAuthentication" id="fieldset-create-roles">
                 <legend collapsed>
                     <span class="text">{{:: 'resource.type.tabs.common.roles.create' | translate}}</span>
                     <kc-tooltip>{{:: 'resource.type.tabs.common.roles.create.tooltip' | translate}}</kc-tooltip>
@@ -117,14 +123,15 @@
                     <div class="col-md-10">
                         <div class="row">
                             <div class="col-md-3">
-                                <label class="control-label" for="availableCreate">
+                                <label class="control-label" for="available-create">
                                     {{:: 'available-roles' | translate}}
                                 </label>
                                 <select class="form-control overflow-select"
-                                        data-ng-model="selectedAvailableRolesCreate" data-ng-multiple="true"
-                                        id="availableCreate"
-                                        multiple
+                                        data-ng-model="selectedAvailableRolesCreate"
+                                        data-ng-multiple="true"
+                                        id="available-create"
                                         realmMappings
+                                        multiple
                                         size="5">
                                     <option data-ng-repeat="role in availableRoles.rolesCreate | orderBy:'name'"
                                             title="{{role}}" value="{{role}}">
@@ -132,6 +139,7 @@
                                     </option>
                                 </select>
                                 <button class="btn btn-default"
+                                        id="add-create-role"
                                         data-ng-click="updateRoleAccess(availableRoles.rolesCreate,
                                                                         featureAuth.rolesCreate,
                                                                         selectedAvailableRolesCreate)"
@@ -142,11 +150,13 @@
                             </div>
 
                             <div class="col-md-3">
-                                <label class="control-label" for="assignedCreate">
+                                <label class="control-label" for="assigned-create">
                                     {{:: 'assigned-roles' | translate}}
                                 </label>
-                                <select class="form-control overflow-select" data-ng-model="selectedAssignedRolesCreate"
-                                        data-ng-multiple="true" id="assignedCreate"
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAssignedRolesCreate"
+                                        data-ng-multiple="true"
+                                        id="assigned-create"
                                         multiple
                                         size="5">
                                     <option data-ng-repeat="r in featureAuth.rolesCreate | orderBy:'name'"
@@ -155,6 +165,7 @@
                                     </option>
                                 </select>
                                 <button class="btn btn-default"
+                                        id="remove-create-role"
                                         data-ng-click="updateRoleAccess(featureAuth.rolesCreate,
                                                                         availableRoles.rolesCreate,
                                                                         selectedAssignedRolesCreate)"
@@ -168,7 +179,7 @@
                 </div>
             </fieldset>
 
-            <fieldset data-ng-show="requiresAuthentication">
+            <fieldset data-ng-show="requiresAuthentication" id="fieldset-get-roles">
                 <legend collapsed>
                     <span class="text">{{:: 'resource.type.tabs.common.roles.get' | translate}}</span>
                     <kc-tooltip>{{:: 'resource.type.tabs.common.roles.get.tooltip' | translate}}</kc-tooltip>
@@ -180,13 +191,15 @@
                     <div class="col-md-10">
                         <div class="row">
                             <div class="col-md-3">
-                                <label class="control-label" for="availableGet">
+                                <label class="control-label" for="available-get">
                                     {{:: 'available-roles' | translate}}
                                 </label>
-                                <select class="form-control overflow-select" data-ng-model="selectedAvailableRolesGet"
-                                        data-ng-multiple="true" id="availableGet"
-                                        multiple
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAvailableRolesGet"
+                                        data-ng-multiple="true"
+                                        id="available-get"
                                         realmMappings
+                                        multiple
                                         size="5">
                                     <option data-ng-repeat="role in availableRoles.rolesGet | orderBy:'name'"
                                             title="{{role}}" value="{{role}}">
@@ -194,6 +207,7 @@
                                     </option>
                                 </select>
                                 <button class="btn btn-default"
+                                        id="add-get-role"
                                         data-ng-click="updateRoleAccess(availableRoles.rolesGet,
                                                                         featureAuth.rolesGet,
                                                                         selectedAvailableRolesGet)"
@@ -204,11 +218,13 @@
                             </div>
 
                             <div class="col-md-3">
-                                <label class="control-label" for="assignedGet">
+                                <label class="control-label" for="assigned-get">
                                     {{:: 'assigned-roles' | translate}}
                                 </label>
-                                <select class="form-control overflow-select" data-ng-model="selectedAssignedRolesGet"
-                                        data-ng-multiple="true" id="assignedGet"
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAssignedRolesGet"
+                                        data-ng-multiple="true"
+                                        id="assigned-get"
                                         multiple
                                         size="5">
                                     <option data-ng-repeat="r in featureAuth.rolesGet | orderBy:'name'"
@@ -217,6 +233,7 @@
                                     </option>
                                 </select>
                                 <button class="btn btn-default"
+                                        id="remove-get-role"
                                         data-ng-click="updateRoleAccess(featureAuth.rolesGet,
                                                                         availableRoles.rolesGet,
                                                                         selectedAssignedRolesGet)"
@@ -230,7 +247,7 @@
                 </div>
             </fieldset>
 
-            <fieldset data-ng-show="requiresAuthentication">
+            <fieldset data-ng-show="requiresAuthentication" id="fieldset-update-roles">
                 <legend collapsed>
                     <span class="text">{{:: 'resource.type.tabs.common.roles.update' | translate}}</span>
                     <kc-tooltip>{{:: 'resource.type.tabs.common.roles.update.tooltip' | translate}}</kc-tooltip>
@@ -242,14 +259,15 @@
                     <div class="col-md-10">
                         <div class="row">
                             <div class="col-md-3">
-                                <label class="control-label" for="availableUpdate">
+                                <label class="control-label" for="available-update">
                                     {{:: 'available-roles' | translate}}
                                 </label>
                                 <select class="form-control overflow-select"
-                                        data-ng-model="selectedAvailableRolesUpdate" data-ng-multiple="true"
-                                        id="availableUpdate"
-                                        multiple
+                                        data-ng-model="selectedAvailableRolesUpdate"
+                                        data-ng-multiple="true"
+                                        id="available-update"
                                         realmMappings
+                                        multiple
                                         size="5">
                                     <option data-ng-repeat="role in availableRoles.rolesUpdate | orderBy:'name'"
                                             title="{{role}}" value="{{role}}">
@@ -257,6 +275,7 @@
                                     </option>
                                 </select>
                                 <button class="btn btn-default"
+                                        id="add-update-role"
                                         data-ng-click="updateRoleAccess(availableRoles.rolesUpdate,
                                                                         featureAuth.rolesUpdate,
                                                                         selectedAvailableRolesUpdate)"
@@ -267,11 +286,13 @@
                             </div>
 
                             <div class="col-md-3">
-                                <label class="control-label" for="assignedUpdate">
+                                <label class="control-label" for="assigned-update">
                                     {{:: 'assigned-roles' | translate}}
                                 </label>
-                                <select class="form-control overflow-select" data-ng-model="selectedAssignedRolesUpdate"
-                                        data-ng-multiple="true" id="assignedUpdate"
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAssignedRolesUpdate"
+                                        data-ng-multiple="true"
+                                        id="assigned-update"
                                         multiple
                                         size="5">
                                     <option data-ng-repeat="r in featureAuth.rolesUpdate | orderBy:'name'"
@@ -280,6 +301,7 @@
                                     </option>
                                 </select>
                                 <button class="btn btn-default"
+                                        id="remove-update-role"
                                         data-ng-click="updateRoleAccess(featureAuth.rolesUpdate,
                                                                         availableRoles.rolesUpdate,
                                                                         selectedAssignedRolesUpdate)"
@@ -293,7 +315,7 @@
                 </div>
             </fieldset>
 
-            <fieldset data-ng-show="requiresAuthentication">
+            <fieldset data-ng-show="requiresAuthentication" id="fieldset-delete-roles">
                 <legend collapsed>
                     <span class="text">{{:: 'resource.type.tabs.common.roles.delete' | translate}}</span>
                     <kc-tooltip>{{:: 'resource.type.tabs.common.roles.delete.tooltip' | translate}}</kc-tooltip>
@@ -305,14 +327,15 @@
                     <div class="col-md-10">
                         <div class="row">
                             <div class="col-md-3">
-                                <label class="control-label" for="availableDelete">
+                                <label class="control-label" for="available-delete">
                                     {{:: 'available-roles' | translate}}
                                 </label>
                                 <select class="form-control overflow-select"
-                                        data-ng-model="selectedAvailableRolesDelete" data-ng-multiple="true"
-                                        id="availableDelete"
-                                        multiple
+                                        data-ng-model="selectedAvailableRolesDelete"
+                                        data-ng-multiple="true"
+                                        id="available-delete"
                                         realmMappings
+                                        multiple
                                         size="5">
                                     <option data-ng-repeat="role in availableRoles.rolesDelete | orderBy:'name'"
                                             title="{{role}}" value="{{role}}">
@@ -320,6 +343,7 @@
                                     </option>
                                 </select>
                                 <button class="btn btn-default"
+                                        id="add-delete-role"
                                         data-ng-click="updateRoleAccess(availableRoles.rolesDelete,
                                                                         featureAuth.rolesDelete,
                                                                         selectedAvailableRolesDelete)"
@@ -330,11 +354,13 @@
                             </div>
 
                             <div class="col-md-3">
-                                <label class="control-label" for="assignedDelete">
+                                <label class="control-label" for="assigned-delete">
                                     {{:: 'assigned-roles' | translate}}
                                 </label>
-                                <select class="form-control overflow-select" data-ng-model="selectedAssignedRolesDelete"
-                                        data-ng-multiple="true" id="assignedDelete"
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAssignedRolesDelete"
+                                        data-ng-multiple="true"
+                                        id="assigned-delete"
                                         multiple
                                         size="5">
                                     <option data-ng-repeat="r in featureAuth.rolesDelete | orderBy:'name'"
@@ -343,6 +369,7 @@
                                     </option>
                                 </select>
                                 <button class="btn btn-default"
+                                        id="remove-delete-role"
                                         data-ng-click="updateRoleAccess(featureAuth.rolesDelete,
                                                                         availableRoles.rolesDelete,
                                                                         selectedAssignedRolesDelete)"

@@ -3,6 +3,8 @@ package de.captaingoldfish.scim.sdk.keycloak.scim.administration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -13,6 +15,7 @@ import javax.ws.rs.core.Response;
 
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.jpa.entities.ClientEntity;
 import org.keycloak.storage.ClientStorageManager;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -22,6 +25,7 @@ import de.captaingoldfish.scim.sdk.common.etag.ETag;
 import de.captaingoldfish.scim.sdk.common.resources.ServiceProvider;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Meta;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimServiceProviderEntity;
 import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractEndpoint;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimConfiguration;
 import de.captaingoldfish.scim.sdk.keycloak.services.ScimServiceProviderService;
@@ -71,7 +75,7 @@ public class ServiceProviderResource extends AbstractEndpoint
 
     // now override the current service provider configuration
     {
-      ResourceEndpoint resourceEndpoint = ScimConfiguration.getScimEndpoint(getKeycloakSession());
+      ResourceEndpoint resourceEndpoint = ScimConfiguration.getScimEndpoint(getKeycloakSession(), true);
       ServiceProvider oldServiceProvider = resourceEndpoint.getServiceProvider();
       oldServiceProvider.setFilterConfig(newServiceProvider.getFilterConfig());
       oldServiceProvider.setSortConfig(newServiceProvider.getSortConfig());
@@ -101,9 +105,20 @@ public class ServiceProviderResource extends AbstractEndpoint
   public Response getAvailableClients()
   {
     ArrayNode arrayNode = new ArrayNode(JsonNodeFactory.instance);
-    ClientStorageManager clientProvider = new ClientStorageManager(getKeycloakSession());
-    List<ClientModel> clientModelList = clientProvider.getClients(getKeycloakSession().getContext().getRealm());
-    clientModelList.forEach(clientModel -> arrayNode.add(clientModel.getClientId()));
+    ClientStorageManager clientProvider = new ClientStorageManager(getKeycloakSession(), 10000);
+
+    ScimServiceProviderService scimServiceProviderService = new ScimServiceProviderService(getKeycloakSession());
+    ScimServiceProviderEntity serviceProvider = scimServiceProviderService.getServiceProviderEntity()
+                                                                          .orElseThrow(IllegalStateException::new);
+
+    List<String> assignedClientIds = serviceProvider.getAuthorizedClients()
+                                                    .stream()
+                                                    .map(ClientEntity::getClientId)
+                                                    .collect(Collectors.toList());
+    Stream<String> clientModelStream = clientProvider.getClientsStream(getKeycloakSession().getContext().getRealm())
+                                                     .map(ClientModel::getClientId)
+                                                     .filter(clientId -> !assignedClientIds.contains(clientId));
+    clientModelStream.forEach(arrayNode::add);
     return Response.ok(arrayNode.toString()).build();
   }
 

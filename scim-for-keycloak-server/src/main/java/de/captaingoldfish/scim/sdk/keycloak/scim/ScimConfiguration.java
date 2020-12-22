@@ -40,17 +40,25 @@ public final class ScimConfiguration
   @Getter(AccessLevel.PROTECTED) // used for unit tests
   private static final Map<String, ResourceEndpoint> RESOURCE_ENDPOINT_MAP = new HashMap<>();
 
+  public static void realmRemoved(KeycloakSession keycloakSession)
+  {
+    RealmModel realmModel = keycloakSession.getContext().getRealm();
+    RESOURCE_ENDPOINT_MAP.remove(realmModel.getId());
+  }
+
   /**
    * gets the SCIM resource endpoint for the given realm
    *
    * @param keycloakSession used to check for existing {@link ServiceProvider}s in the database
+   * @param createEndpointIfNotExisting if set to true the {@link ResourceEndpoint} will be created if not
+   *          already present
    * @return the SCIM resource endpoint for the given realm
    */
-  public static ResourceEndpoint getScimEndpoint(KeycloakSession keycloakSession)
+  public static ResourceEndpoint getScimEndpoint(KeycloakSession keycloakSession, boolean createEndpointIfNotExisting)
   {
     RealmModel realm = keycloakSession.getContext().getRealm();
     ResourceEndpoint resourceEndpoint = RESOURCE_ENDPOINT_MAP.get(realm.getName());
-    if (resourceEndpoint == null)
+    if (resourceEndpoint == null && createEndpointIfNotExisting)
     {
       resourceEndpoint = createNewResourceEndpoint(keycloakSession);
       RESOURCE_ENDPOINT_MAP.put(realm.getName(), resourceEndpoint);

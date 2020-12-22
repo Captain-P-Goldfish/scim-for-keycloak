@@ -121,7 +121,7 @@ public class ScimEndpointTest extends KeycloakScimManagementTest
     KeycloakContext context = getKeycloakSession().getContext();
     RealmModel newRealm = getKeycloakSession().realms().createRealm("2ndRealm");
     Mockito.doReturn(newRealm).when(context).getRealm();
-    ScimConfiguration.getScimEndpoint(getKeycloakSession());
+    ScimConfiguration.getScimEndpoint(getKeycloakSession(), true);
     Assertions.assertEquals(2, ScimConfigurationBridge.getScimResourceEndpoints().size());
 
     // now try to load the users from the other realm. An empty list should be returned
@@ -148,7 +148,7 @@ public class ScimEndpointTest extends KeycloakScimManagementTest
     // first thing: create the new realm and initialize the scim configuration
     {
       Mockito.doReturn(newRealm).when(context).getRealm();
-      ScimConfiguration.getScimEndpoint(getKeycloakSession());
+      ScimConfiguration.getScimEndpoint(getKeycloakSession(), true);
       Assertions.assertEquals(2, ScimConfigurationBridge.getScimResourceEndpoints().size());
     }
 
@@ -214,11 +214,11 @@ public class ScimEndpointTest extends KeycloakScimManagementTest
     ScimResourceTypeEntity resourceTypeEntity = resourceTypeService.getResourceTypeEntityByName(resourceTypeName).get();
 
     // create access roles
-    final RoleModel common = getKeycloakSession().realms().addRealmRole(getRealmModel(), "common");
-    final RoleModel create = getKeycloakSession().realms().addRealmRole(getRealmModel(), "create");
-    final RoleModel get = getKeycloakSession().realms().addRealmRole(getRealmModel(), "get");
-    final RoleModel update = getKeycloakSession().realms().addRealmRole(getRealmModel(), "update");
-    final RoleModel delete = getKeycloakSession().realms().addRealmRole(getRealmModel(), "delete");
+    final RoleModel common = getKeycloakSession().roles().addRealmRole(getRealmModel(), "common");
+    final RoleModel create = getKeycloakSession().roles().addRealmRole(getRealmModel(), "create");
+    final RoleModel get = getKeycloakSession().roles().addRealmRole(getRealmModel(), "get");
+    final RoleModel update = getKeycloakSession().roles().addRealmRole(getRealmModel(), "update");
+    final RoleModel delete = getKeycloakSession().roles().addRealmRole(getRealmModel(), "delete");
 
     {
       // set the roles necessary to access the endpoints

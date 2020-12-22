@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.models.GroupModel;
@@ -84,10 +85,9 @@ public class GroupHandler extends ResourceHandler<Group>
     KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
     // TODO in order to filter on database level the feature "autoFiltering" must be disabled and the JPA criteria
     // api should be used
-    List<GroupModel> groupModels = keycloakSession.getContext().getRealm().getGroups();
-    List<Group> groupList = groupModels.stream()
-                                       .map(groupModel -> modelToGroup(keycloakSession, groupModel))
-                                       .collect(Collectors.toList());
+    Stream<GroupModel> groupModelsStream = keycloakSession.getContext().getRealm().getGroupsStream();
+    List<Group> groupList = groupModelsStream.map(groupModel -> modelToGroup(keycloakSession, groupModel))
+                                             .collect(Collectors.toList());
     return PartialListResponse.<Group> builder()
                               .totalResults(keycloakSession.getContext().getRealm().getGroupsCount(false))
                               .resources(groupList)
@@ -148,7 +148,7 @@ public class GroupHandler extends ResourceHandler<Group>
 
   /**
    * remove groups that are no longer associated with the current group and adds the newly associated groups
-   *
+   * 
    * @param group the scim group model as it must be after the change
    * @param groupModel the current group model
    */
@@ -165,7 +165,7 @@ public class GroupHandler extends ResourceHandler<Group>
                                                                               .equalsIgnoreCase("Group"))
                                          .map(groupMember -> groupMember.getValue().get())
                                          .collect(Collectors.toSet());
-    Set<GroupModel> oldGroupMembers = groupModel.getSubGroups();
+    Set<GroupModel> oldGroupMembers = groupModel.getSubGroupsStream().collect(Collectors.toSet());
     oldGroupMembers.removeIf(gm -> newGroupMemberIds.contains(gm.getId()));
     oldGroupMembers.forEach(groupModel::removeChild);
 
@@ -173,7 +173,7 @@ public class GroupHandler extends ResourceHandler<Group>
     newGroupMemberIds.removeIf(unchangedMemberIds::contains);
 
     newGroupMemberIds.forEach(id -> {
-      GroupModel newMember = keycloakSession.realms().getGroupById(id, realmModel);
+      GroupModel newMember = keycloakSession.groups().getGroupById(realmModel, id);
       if (newMember == null)
       {
         throw new ResourceNotFoundException(String.format("Group with id '%s' does not exist", id));
@@ -199,7 +199,9 @@ public class GroupHandler extends ResourceHandler<Group>
                                                                && groupMember.getType().get().equalsIgnoreCase("User"))
                                         .map(groupMember -> groupMember.getValue().get())
                                         .collect(Collectors.toSet());
-    List<UserModel> oldUserMembers = keycloakSession.users().getGroupMembers(realmModel, groupModel);
+    List<UserModel> oldUserMembers = keycloakSession.users()
+                                                    .getGroupMembersStream(realmModel, groupModel)
+                                                    .collect(Collectors.toList());
     oldUserMembers.removeIf(userModel -> newUserMemberIds.contains(userModel.getId()));
     oldUserMembers.forEach(userModel -> userModel.leaveGroup(groupModel));
 
@@ -244,13 +246,11 @@ public class GroupHandler extends ResourceHandler<Group>
     List<Member> members = new ArrayList<>();
 
     keycloakSession.users()
-                   .getGroupMembers(keycloakSession.getContext().getRealm(), groupModel)
-                   .stream()
+                   .getGroupMembersStream(keycloakSession.getContext().getRealm(), groupModel)
                    .map(groupMember -> Member.builder().value(groupMember.getId()).type("User").build())
                    .forEach(members::add);
 
-    groupModel.getSubGroups()
-              .stream()
+    groupModel.getSubGroupsStream()
               .map(subgroup -> Member.builder().value(subgroup.getId()).type("Group").build())
               .forEach(members::add);
 

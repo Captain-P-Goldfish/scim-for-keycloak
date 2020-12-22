@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.models.KeycloakSession;
@@ -104,8 +105,8 @@ public class UserHandler extends ResourceHandler<User>
     // TODO in order to filter on database level the feature "autoFiltering" must be disabled and the JPA criteria
     // api should be used
     RealmModel realmModel = keycloakSession.getContext().getRealm();
-    List<UserModel> userModels = keycloakSession.users().getUsers(realmModel);
-    List<User> userList = userModels.stream().map(this::modelToUser).collect(Collectors.toList());
+    Stream<UserModel> userModels = keycloakSession.users().getUsersStream(realmModel);
+    List<User> userList = userModels.map(this::modelToUser).collect(Collectors.toList());
     return PartialListResponse.<User> builder().totalResults(userList.size()).resources(userList).build();
   }
 
@@ -331,10 +332,10 @@ public class UserHandler extends ResourceHandler<User>
                                                                 UserModel keycloakUser)
   {
     List<T> attributeList = new ArrayList<>();
-    keycloakUser.getAttribute(attributeName).forEach(attribute -> {
+    keycloakUser.getAttributeStream(attributeName).forEach(attribute -> {
       attributeList.add(JsonHelper.readJsonDocument(attribute, type));
     });
-    keycloakUser.getAttribute(attributeName + PRIMARY_SUFFIX).forEach(attribute -> {
+    keycloakUser.getAttributeStream(attributeName + PRIMARY_SUFFIX).forEach(attribute -> {
       attributeList.add(JsonHelper.readJsonDocument(attribute, type));
     });
     return attributeList;

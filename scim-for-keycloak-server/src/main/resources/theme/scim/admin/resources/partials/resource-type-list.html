@@ -12,7 +12,8 @@
         </tr>
         </thead>
         <tbody>
-        <tr data-ng-repeat="resourceType in metaResources.Resources">
+        <tr data-ng-repeat="resourceType in metaResources.Resources"
+            id="{{'meta-' + resourceType.name}}">
             <td class="clip">
                 {{resourceType.name}}
             </td>
@@ -40,7 +41,8 @@
         </tr>
         </thead>
         <tbody>
-        <tr data-ng-repeat="resourceType in resource.Resources">
+        <tr data-ng-repeat="resourceType in resource.Resources"
+            id="{{resourceType.name}}">
             <td class="clip">
                 <a href="#/realms/{{realm.realm}}/scim/resource-type/{{resourceType.name}}">
                     {{resourceType.name}}
@@ -62,6 +64,7 @@
                 {{ requiresAuthentication(resourceType) }}
             </td>
             <td class="kc-action-cell"
+                id="edit"
                 kc-open="/realms/{{realm.realm}}/scim/resource-type/{{resourceType.name}}">
                 {{:: 'edit' | translate}}
             </td>

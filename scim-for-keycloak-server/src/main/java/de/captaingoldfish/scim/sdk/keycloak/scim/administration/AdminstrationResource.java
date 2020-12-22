@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
  * this endpoint is used to change the SCIM configuration. It requires the role
  * {@link de.captaingoldfish.scim.sdk.keycloak.provider.RealmRoleInitializer#SCIM_ADMIN_ROLE} to get access to
  * the endpoints
- *
+ * 
  * @author Pascal Knueppel
  * @since 27.07.2020
  */

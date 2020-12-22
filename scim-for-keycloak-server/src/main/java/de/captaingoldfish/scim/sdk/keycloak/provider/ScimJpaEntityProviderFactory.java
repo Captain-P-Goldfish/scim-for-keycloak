@@ -10,6 +10,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleContainerModel;
 import org.keycloak.models.RoleModel;
 
+import de.captaingoldfish.scim.sdk.keycloak.scim.ScimConfiguration;
 import de.captaingoldfish.scim.sdk.keycloak.services.ScimResourceTypeService;
 import de.captaingoldfish.scim.sdk.keycloak.services.ScimServiceProviderService;
 import lombok.extern.slf4j.Slf4j;
@@ -52,9 +53,9 @@ public class ScimJpaEntityProviderFactory implements JpaEntityProviderFactory
         RoleModel roleModel = roleRemovedEvent.getRole();
         roleRemoved(keycloakSession, roleModel);
       }
-      else if (event instanceof RealmModel.ClientRemovedEvent)
+      else if (event instanceof ClientModel.ClientRemovedEvent)
       {
-        RealmModel.ClientRemovedEvent clientRemovedEvent = (RealmModel.ClientRemovedEvent)event;
+        ClientModel.ClientRemovedEvent clientRemovedEvent = (ClientModel.ClientRemovedEvent)event;
         KeycloakSession keycloakSession = clientRemovedEvent.getKeycloakSession();
         ClientModel clientModel = clientRemovedEvent.getClient();
         clientRemoved(keycloakSession, clientModel);
@@ -81,12 +82,13 @@ public class ScimJpaEntityProviderFactory implements JpaEntityProviderFactory
   {
     new ScimServiceProviderService(keycloakSession).deleteProvider();
     new ScimResourceTypeService(keycloakSession).deleteResourceTypes();
+    ScimConfiguration.realmRemoved(keycloakSession);
   }
 
   /**
    * if a role was removed that was associated with a scim endpoint it must also be removed from the scim
    * database configuration
-   *
+   * 
    * @param removedRole the role that was removed
    */
   public void roleRemoved(KeycloakSession keycloakSession, RoleModel removedRole)
@@ -97,7 +99,7 @@ public class ScimJpaEntityProviderFactory implements JpaEntityProviderFactory
   /**
    * if a client was removed that was associated with a scim service provider it must also be removed from the
    * scim database configuration
-   *
+   * 
    * @param removedClient the client that was removed
    */
   public void clientRemoved(KeycloakSession keycloakSession, ClientModel removedClient)

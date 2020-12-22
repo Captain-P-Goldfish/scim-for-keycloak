@@ -24,10 +24,10 @@
                 <div class="col-md-6">
                     <input autofocus
                            class="form-control"
-                           data-ng-value="resource.id"
-                           disabled
                            id="resourceTypeId"
                            name="resourceTypeId"
+                           data-ng-value="resource.id"
+                           disabled
                            type="text">
                 </div>
             </div>
@@ -40,9 +40,9 @@
                 <div class="col-md-6">
                     <input class="form-control"
                            data-ng-value="resource.name"
-                           disabled
                            id="resourceTypeName"
                            name="resourceTypeName"
+                           disabled
                            type="text">
                 </div>
             </div>
@@ -69,9 +69,9 @@
                 <div class="col-md-6">
                     <input class="form-control"
                            data-ng-value="resource.schema"
-                           disabled
                            id="resourceTypeSchema"
                            name="resourceTypeSchema"
+                           disabled
                            type="text">
                 </div>
             </div>
@@ -84,9 +84,9 @@
                 <div class="col-md-6">
                     <input class="form-control"
                            data-ng-value="resource.endpoint"
-                           disabled
                            id="resourceTypeEndpoint"
                            name="resourceTypeEndpoint"
+                           disabled
                            type="text">
                 </div>
             </div>
@@ -117,11 +117,11 @@
                             </td>
                             <td class="clip">
                                 <input data-ng-disabled="true"
-                                       data-ng-model="extension.required"
                                        id="extensionRequired"
                                        name="extensionRequired"
                                        off-text="{{:: 'offText' | translate}}"
                                        on-text="{{:: 'onText' | translate}}"
+                                       data-ng-model="extension.required"
                                        onoffswitch/>
                             </td>
                         </tr>
@@ -343,8 +343,8 @@
 
             <div class="form-group">
                 <div class="col-md-10 col-md-offset-2" data-ng-show="access.viewScim">
-                    <button data-ng-disabled="!changed" kc-save>{{:: 'save' | translate}}</button>
-                    <button data-ng-disabled="!changed" kc-reset>{{:: 'cancel' | translate}}
+                    <button data-ng-disabled="!changed" id="save" kc-save>{{:: 'save' | translate}}</button>
+                    <button data-ng-disabled="!changed" id="cancel" kc-reset>{{:: 'cancel' | translate}}
                     </button>
                 </div>
             </div>

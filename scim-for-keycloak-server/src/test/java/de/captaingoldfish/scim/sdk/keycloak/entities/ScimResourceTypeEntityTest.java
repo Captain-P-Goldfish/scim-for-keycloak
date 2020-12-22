@@ -55,11 +55,11 @@ public class ScimResourceTypeEntityTest extends KeycloakScimManagementTest
     deleteFromTable(ScimResourceTypeEntity.class);
     beginTransaction();
 
-    RoleAdapter scimTestRole = (RoleAdapter)getKeycloakSession().realms().addRealmRole(getRealmModel(), "scim-test");
-    RoleAdapter createRole = (RoleAdapter)getKeycloakSession().realms().addRealmRole(getRealmModel(), "create");
-    RoleAdapter getRole = (RoleAdapter)getKeycloakSession().realms().addRealmRole(getRealmModel(), "get");
-    RoleAdapter updateRole = (RoleAdapter)getKeycloakSession().realms().addRealmRole(getRealmModel(), "update");
-    RoleAdapter deleteRole = (RoleAdapter)getKeycloakSession().realms().addRealmRole(getRealmModel(), "delete");
+    RoleAdapter scimTestRole = (RoleAdapter)getKeycloakSession().roles().addRealmRole(getRealmModel(), "scim-test");
+    RoleAdapter createRole = (RoleAdapter)getKeycloakSession().roles().addRealmRole(getRealmModel(), "create");
+    RoleAdapter getRole = (RoleAdapter)getKeycloakSession().roles().addRealmRole(getRealmModel(), "get");
+    RoleAdapter updateRole = (RoleAdapter)getKeycloakSession().roles().addRealmRole(getRealmModel(), "update");
+    RoleAdapter deleteRole = (RoleAdapter)getKeycloakSession().roles().addRealmRole(getRealmModel(), "delete");
 
     final String resourceTypeName = "User";
     ScimResourceTypeEntity resourceType = ScimResourceTypeEntity.builder()

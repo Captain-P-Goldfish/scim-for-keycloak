@@ -10,7 +10,7 @@ import de.captaingoldfish.scim.sdk.server.endpoints.EndpointDefinition;
  * represents the roles endpoint definition that includes the resoruce-type definition the schema definition
  * and a {@link de.captaingoldfish.scim.sdk.server.endpoints.ResourceHandler} implementation for
  * {@link RealmRole}s
- *
+ * 
  * @author Pascal Knueppel
  * @since 16.08.2020
  */

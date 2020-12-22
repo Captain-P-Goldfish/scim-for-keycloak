@@ -40,7 +40,7 @@ public class GroupHandlerTest extends KeycloakScimManagementTest
 
   /**
    * will verify that a member is being removed from a group if no longer present in the members section
-   *
+   * 
    * @see <a href="https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/54">
    *      https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/54 </a>
    */
@@ -50,9 +50,9 @@ public class GroupHandlerTest extends KeycloakScimManagementTest
     UserModel superMario = getKeycloakSession().users().addUser(getRealmModel(), "supermario");
     UserModel bowser = getKeycloakSession().users().addUser(getRealmModel(), "bowser");
 
-    GroupModel nintendo = getKeycloakSession().realms().createGroup(getRealmModel(), "nintendo");
-    GroupModel retroStudios = getKeycloakSession().realms().createGroup(getRealmModel(), "retro studios");
-    GroupModel marioClub = getKeycloakSession().realms().createGroup(getRealmModel(), "mario club");
+    GroupModel nintendo = getKeycloakSession().groups().createGroup(getRealmModel(), "nintendo");
+    GroupModel retroStudios = getKeycloakSession().groups().createGroup(getRealmModel(), "retro studios");
+    GroupModel marioClub = getKeycloakSession().groups().createGroup(getRealmModel(), "mario club");
 
 
     {
@@ -96,12 +96,11 @@ public class GroupHandlerTest extends KeycloakScimManagementTest
 
       Assertions.assertTrue(superMario.isMemberOf(nintendo));
       Assertions.assertTrue(bowser.isMemberOf(nintendo));
-      Assertions.assertTrue(nintendo.getSubGroups()
-                                    .stream()
+      Assertions.assertEquals(2, nintendo.getSubGroupsStream().count());
+      Assertions.assertTrue(nintendo.getSubGroupsStream()
                                     .map(GroupModel::getName)
                                     .anyMatch(name -> name.equals(retroStudios.getName())));
-      Assertions.assertTrue(nintendo.getSubGroups()
-                                    .stream()
+      Assertions.assertTrue(nintendo.getSubGroupsStream()
                                     .map(GroupModel::getName)
                                     .anyMatch(name -> name.equals(marioClub.getName())));
     }
@@ -129,14 +128,13 @@ public class GroupHandlerTest extends KeycloakScimManagementTest
       Response response = getScimEndpoint().handleScimRequest(request);
       Assertions.assertEquals(HttpStatus.OK, response.getStatus());
 
-      Assertions.assertTrue(superMario.isMemberOf(nintendo));
-      Assertions.assertFalse(bowser.isMemberOf(nintendo));
-      Assertions.assertTrue(nintendo.getSubGroups()
-                                    .stream()
+      Assertions.assertTrue(superMario.isMemberOf(nintendo), "super mario must still be a member of group nintendo");
+      Assertions.assertFalse(bowser.isMemberOf(nintendo),
+                             "bowser should have been removed as member of group " + "nintendo");
+      Assertions.assertTrue(nintendo.getSubGroupsStream()
                                     .map(GroupModel::getName)
                                     .anyMatch(name -> name.equals(retroStudios.getName())));
-      Assertions.assertFalse(nintendo.getSubGroups()
-                                     .stream()
+      Assertions.assertFalse(nintendo.getSubGroupsStream()
                                      .map(GroupModel::getName)
                                      .anyMatch(name -> name.equals(marioClub.getName())));
     }
@@ -145,7 +143,7 @@ public class GroupHandlerTest extends KeycloakScimManagementTest
   /**
    * will verify that creating a group with a none existing member causes a
    * {@link de.captaingoldfish.scim.sdk.common.exceptions.ResourceNotFoundException}
-   *
+   * 
    * @see <a href="https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/55">
    *      https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/55</a>
    */
@@ -175,7 +173,7 @@ public class GroupHandlerTest extends KeycloakScimManagementTest
 
   /**
    * verifies that groups can be created if their names are prefixes of other group names
-   *
+   * 
    * @see <a href="https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/56">
    *      https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/56</a>
    */
@@ -183,7 +181,7 @@ public class GroupHandlerTest extends KeycloakScimManagementTest
   public void testCreateGroupWithSimiliarNames()
   {
     final String prefixName = "groupBremen";
-    GroupModel removeBremenGroup = getKeycloakSession().realms().createGroup(getRealmModel(), prefixName + "Remove");
+    getKeycloakSession().groups().createGroup(getRealmModel(), prefixName + "Remove");
 
     Group nintendo = Group.builder().displayName(prefixName).build();
     HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
@@ -198,14 +196,14 @@ public class GroupHandlerTest extends KeycloakScimManagementTest
 
   /**
    * verifies that a group with a duplicate name cannot be created
-   *
+   * 
    * @see <a href="https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/56">
    *      https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/56</a>
    */
   @Test
   public void testCreateGroupWithDuplicateName()
   {
-    GroupModel groupBremen = getKeycloakSession().realms().createGroup(getRealmModel(), "groupBremen");
+    GroupModel groupBremen = getKeycloakSession().groups().createGroup(getRealmModel(), "groupBremen");
 
     Group nintendo = Group.builder().displayName(groupBremen.getName()).build();
     HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())

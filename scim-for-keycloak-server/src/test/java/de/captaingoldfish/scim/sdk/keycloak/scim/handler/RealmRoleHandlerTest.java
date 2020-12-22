@@ -2,6 +2,7 @@ package de.captaingoldfish.scim.sdk.keycloak.scim.handler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletRequest;
@@ -66,8 +67,8 @@ public class RealmRoleHandlerTest extends KeycloakScimManagementTest
   {
     UserModel donkeyKong = getKeycloakSession().users().addUser(getRealmModel(), "DonkeyKong");
     UserModel superMario = getKeycloakSession().users().addUser(getRealmModel(), "SuperMario");
-    GroupModel bremen = getKeycloakSession().realms().createGroup(getRealmModel(), "bremen");
-    GroupModel berlin = getKeycloakSession().realms().createGroup(getRealmModel(), "berlin");
+    GroupModel bremen = getKeycloakSession().groups().createGroup(getRealmModel(), "bremen");
+    GroupModel berlin = getKeycloakSession().groups().createGroup(getRealmModel(), "berlin");
 
     final String roleName = "admin";
     final String description = "admin role";
@@ -103,14 +104,18 @@ public class RealmRoleHandlerTest extends KeycloakScimManagementTest
 
     // validate database
     {
-      RoleModel roleModel = getKeycloakSession().realms().getRealmRole(getRealmModel(), roleName);
+      RoleModel roleModel = getKeycloakSession().roles().getRealmRole(getRealmModel(), roleName);
       Assertions.assertNotNull(roleModel);
-      List<GroupModel> groupModels = getKeycloakSession().realms().getGroupsByRole(getRealmModel(), roleModel, -1, -1);
+      List<GroupModel> groupModels = getKeycloakSession().groups()
+                                                         .getGroupsByRoleStream(getRealmModel(), roleModel, -1, -1)
+                                                         .collect(Collectors.toList());
       Assertions.assertEquals(2, groupModels.size());
       Assertions.assertTrue(groupModels.stream().anyMatch(group -> group.getName().equals(bremen.getName())));
       Assertions.assertTrue(groupModels.stream().anyMatch(group -> group.getName().equals(berlin.getName())));
 
-      List<UserModel> userModels = getKeycloakSession().users().getRoleMembers(getRealmModel(), roleModel);
+      List<UserModel> userModels = getKeycloakSession().users()
+                                                       .getRoleMembersStream(getRealmModel(), roleModel)
+                                                       .collect(Collectors.toList());
       Assertions.assertEquals(2, userModels.size());
       Assertions.assertTrue(userModels.stream().anyMatch(user -> user.getUsername().equals(donkeyKong.getUsername())));
       Assertions.assertTrue(userModels.stream().anyMatch(user -> user.getUsername().equals(superMario.getUsername())));
@@ -123,13 +128,12 @@ public class RealmRoleHandlerTest extends KeycloakScimManagementTest
   @Test
   public void testCreateRoleWithChildren()
   {
-    RoleModel creator = getKeycloakSession().realms().addRealmRole(getRealmModel(), "creator");
-    RoleModel destroyer = getKeycloakSession().realms().addRealmRole(getRealmModel(), "destroyer");
+    RoleModel creator = getKeycloakSession().roles().addRealmRole(getRealmModel(), "creator");
+    RoleModel destroyer = getKeycloakSession().roles().addRealmRole(getRealmModel(), "destroyer");
 
     ClientProvider clientProvider = getKeycloakSession().realms();
     ClientModel clientModel = clientProvider.addClient(getRealmModel(), "test-client");
-    RoleModel testClientRole = getKeycloakSession().realms()
-                                                   .addClientRole(getRealmModel(), clientModel, "test-client-role");
+    RoleModel testClientRole = getKeycloakSession().roles().addClientRole(clientModel, "test-client-role");
 
     final String roleName = "admin";
     final String description = "admin role";
@@ -167,11 +171,11 @@ public class RealmRoleHandlerTest extends KeycloakScimManagementTest
 
     // validate database
     {
-      RoleModel roleModel = getKeycloakSession().realms().getRealmRole(getRealmModel(), roleName);
+      RoleModel roleModel = getKeycloakSession().roles().getRealmRole(getRealmModel(), roleName);
       Assertions.assertNotNull(roleModel);
-      Assertions.assertEquals(3, roleModel.getComposites().size());
+      Assertions.assertEquals(3, roleModel.getCompositesStream().count());
 
-      roleModel.getComposites().forEach(composite -> {
+      roleModel.getCompositesStream().forEach(composite -> {
         Assertions.assertTrue(children.stream()
                                       .anyMatch(child -> child.getDisplay().get().equals(composite.getName())));
       });
@@ -190,16 +194,15 @@ public class RealmRoleHandlerTest extends KeycloakScimManagementTest
 
     UserModel donkeyKong = getKeycloakSession().users().addUser(getRealmModel(), "DonkeyKong");
     UserModel superMario = getKeycloakSession().users().addUser(getRealmModel(), "SuperMario");
-    GroupModel bremen = getKeycloakSession().realms().createGroup(getRealmModel(), "bremen");
-    GroupModel berlin = getKeycloakSession().realms().createGroup(getRealmModel(), "berlin");
+    GroupModel bremen = getKeycloakSession().groups().createGroup(getRealmModel(), "bremen");
+    GroupModel berlin = getKeycloakSession().groups().createGroup(getRealmModel(), "berlin");
 
-    RoleModel creator = getKeycloakSession().realms().addRealmRole(getRealmModel(), "creator");
-    RoleModel destroyer = getKeycloakSession().realms().addRealmRole(getRealmModel(), "destroyer");
+    RoleModel creator = getKeycloakSession().roles().addRealmRole(getRealmModel(), "creator");
+    RoleModel destroyer = getKeycloakSession().roles().addRealmRole(getRealmModel(), "destroyer");
 
     ClientProvider clientProvider = getKeycloakSession().realms();
     ClientModel clientModel = clientProvider.addClient(getRealmModel(), "test-client");
-    RoleModel testClientRole = getKeycloakSession().realms()
-                                                   .addClientRole(getRealmModel(), clientModel, "test-client-role");
+    RoleModel testClientRole = getKeycloakSession().roles().addClientRole(clientModel, "test-client-role");
 
     RealmRole createdRole;
     // create the role
@@ -237,7 +240,7 @@ public class RealmRoleHandlerTest extends KeycloakScimManagementTest
     // update preparation
     final String newDescription = "the new description";
     UserModel peach = getKeycloakSession().users().addUser(getRealmModel(), "Peach");
-    RoleModel princess = getKeycloakSession().realms().addRealmRole(getRealmModel(), "princess");
+    RoleModel princess = getKeycloakSession().roles().addRealmRole(getRealmModel(), "princess");
 
     RealmRole updatedRole;
     // update the role
@@ -302,20 +305,23 @@ public class RealmRoleHandlerTest extends KeycloakScimManagementTest
 
     // validate database
     {
-      RoleModel adminRole = getKeycloakSession().realms().getRealmRole(getRealmModel(), roleName);
-      Assertions.assertEquals(updatedRole.getChildren().size(), adminRole.getComposites().size());
+      RoleModel adminRole = getKeycloakSession().roles().getRealmRole(getRealmModel(), roleName);
+      Assertions.assertEquals(updatedRole.getChildren().size(), adminRole.getCompositesStream().count());
       updatedRole.getChildren().forEach(child -> {
-        Assertions.assertTrue(adminRole.getComposites()
-                                       .stream()
+        Assertions.assertTrue(adminRole.getCompositesStream()
                                        .anyMatch(composite -> child.getValue().get().equals(composite.getId())
                                                               && child.getDisplay().get().equals(composite.getName())));
       });
 
-      List<GroupModel> groupModels = getKeycloakSession().realms().getGroupsByRole(getRealmModel(), adminRole, -1, -1);
+      List<GroupModel> groupModels = getKeycloakSession().groups()
+                                                         .getGroupsByRoleStream(getRealmModel(), adminRole, -1, -1)
+                                                         .collect(Collectors.toList());
       Assertions.assertEquals(1, groupModels.size());
       Assertions.assertTrue(groupModels.stream().anyMatch(group -> group.getName().equals(bremen.getName())));
 
-      List<UserModel> userModels = getKeycloakSession().users().getRoleMembers(getRealmModel(), adminRole);
+      List<UserModel> userModels = getKeycloakSession().users()
+                                                       .getRoleMembersStream(getRealmModel(), adminRole)
+                                                       .collect(Collectors.toList());
       Assertions.assertEquals(2, userModels.size());
       Assertions.assertTrue(userModels.stream().anyMatch(user -> user.getUsername().equals(peach.getUsername())));
       Assertions.assertTrue(userModels.stream().anyMatch(user -> user.getUsername().equals(superMario.getUsername())));
@@ -334,16 +340,15 @@ public class RealmRoleHandlerTest extends KeycloakScimManagementTest
 
     UserModel donkeyKong = getKeycloakSession().users().addUser(getRealmModel(), "DonkeyKong");
     UserModel superMario = getKeycloakSession().users().addUser(getRealmModel(), "SuperMario");
-    GroupModel bremen = getKeycloakSession().realms().createGroup(getRealmModel(), "bremen");
-    GroupModel berlin = getKeycloakSession().realms().createGroup(getRealmModel(), "berlin");
+    GroupModel bremen = getKeycloakSession().groups().createGroup(getRealmModel(), "bremen");
+    GroupModel berlin = getKeycloakSession().groups().createGroup(getRealmModel(), "berlin");
 
-    RoleModel creator = getKeycloakSession().realms().addRealmRole(getRealmModel(), "creator");
-    RoleModel destroyer = getKeycloakSession().realms().addRealmRole(getRealmModel(), "destroyer");
+    RoleModel creator = getKeycloakSession().roles().addRealmRole(getRealmModel(), "creator");
+    RoleModel destroyer = getKeycloakSession().roles().addRealmRole(getRealmModel(), "destroyer");
 
     ClientProvider clientProvider = getKeycloakSession().realms();
     ClientModel clientModel = clientProvider.addClient(getRealmModel(), "test-client");
-    RoleModel testClientRole = getKeycloakSession().realms()
-                                                   .addClientRole(getRealmModel(), clientModel, "test-client-role");
+    RoleModel testClientRole = getKeycloakSession().roles().addClientRole(clientModel, "test-client-role");
 
     RealmRole createdRole;
     // create the role
@@ -390,7 +395,7 @@ public class RealmRoleHandlerTest extends KeycloakScimManagementTest
 
     // validate database
     {
-      RoleModel adminRole = getKeycloakSession().realms().getRealmRole(getRealmModel(), roleName);
+      RoleModel adminRole = getKeycloakSession().roles().getRealmRole(getRealmModel(), roleName);
       Assertions.assertNull(adminRole);
     }
   }

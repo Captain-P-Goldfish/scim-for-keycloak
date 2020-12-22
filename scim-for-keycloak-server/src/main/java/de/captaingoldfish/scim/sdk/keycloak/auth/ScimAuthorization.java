@@ -68,8 +68,8 @@ public class ScimAuthorization implements Authorization
   {
     return Optional.ofNullable(authResult)
                    .map(AdminAuth::getUser)
-                   .map(UserModel::getRealmRoleMappings)
-                   .map(realmRoles -> realmRoles.stream().map(RoleModel::getName).collect(Collectors.toSet()))
+                   .map(UserModel::getRealmRoleMappingsStream)
+                   .map(realmRoles -> realmRoles.map(RoleModel::getName).collect(Collectors.toSet()))
                    .orElse(Collections.emptySet());
   }
 

@@ -37,9 +37,8 @@ import de.captaingoldfish.scim.sdk.keycloak.entities.ScimServiceProviderEntity;
 
 
 /**
- * This implementation is used to handle actions on
- * {@link de.captaingoldfish.scim.sdk.keycloak.entities.ScimServiceProviderEntity} objects
- *
+ * This implementation is used to handle actions on {@link ScimServiceProviderEntity} objects
+ * 
  * @author Pascal Knueppel
  * @since 02.08.2020
  */
@@ -88,7 +87,7 @@ public class ScimServiceProviderService extends AbstractService
 
   /**
    * updates the {@link ServiceProvider} representation for the current realm
-   *
+   * 
    * @param serviceProvider the updated {@link ServiceProvider} representation
    */
   public ServiceProvider updateServiceProvider(ServiceProvider serviceProvider)
@@ -131,7 +130,7 @@ public class ScimServiceProviderService extends AbstractService
 
   /**
    * gets the {@link ClientEntity} representations with the given clientIds
-   *
+   * 
    * @param clientIds the clientIds of the clients that should be extracted from the database
    * @return the list of all clients that matched the values in the given set
    */
@@ -148,7 +147,7 @@ public class ScimServiceProviderService extends AbstractService
 
   /**
    * loads the client with the given clientId
-   *
+   * 
    * @param realmModel the owning realm of the client
    * @param clientId the clientId of the client
    * @return the client if it does exist or an empty if the client does not exist in the database
@@ -161,10 +160,10 @@ public class ScimServiceProviderService extends AbstractService
     Root<ClientEntity> root = clientQuery.from(ClientEntity.class);
     // @formatter:off
     clientQuery.where(
-    criteriaBuilder.and(
-    criteriaBuilder.equal(root.get("realm").get("id"), realmModel.getId()),
-    criteriaBuilder.equal(root.get("clientId"), clientId)
-    )
+      criteriaBuilder.and(
+        criteriaBuilder.equal(root.get("realm").get("id"), realmModel.getId()),
+        criteriaBuilder.equal(root.get("clientId"), clientId)
+      )
     );
     // @formatter:on
     try
@@ -212,7 +211,7 @@ public class ScimServiceProviderService extends AbstractService
 
   /**
    * translate the database entity representation to the SCIM representation
-   *
+   * 
    * @param entity the entity representation of a {@link ServiceProvider}
    */
   protected ServiceProvider toScimRepresentation(ScimServiceProviderEntity entity)
@@ -261,7 +260,7 @@ public class ScimServiceProviderService extends AbstractService
 
   /**
    * TODO authentication schemes must be handled later if clients can ce assigned to the SCIM endpoints
-   *
+   * 
    * @return the list of available authentication methods that may be used to authenticate at the SCIM endpoints
    */
   public List<AuthenticationScheme> getAuthenticationSchemes()
@@ -285,11 +284,12 @@ public class ScimServiceProviderService extends AbstractService
     getEntityManager().createNamedQuery("removeScimServiceProvider")
                       .setParameter("realmId", realmModel.getId())
                       .executeUpdate();
+    getEntityManager().flush();
   }
 
   /**
    * removes all client associations of the given client from the service provider of the current realm
-   *
+   * 
    * @param removedClient the client that was removed
    */
   public void removeAssociatedClients(ClientModel removedClient)

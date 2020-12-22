@@ -52,7 +52,7 @@ public class ScimServiceProviderEntity implements Serializable
   @Id
   @Column(name = "ID")
   @Access(AccessType.PROPERTY) // we do this because relationships often fetch id, but not entity. This avoids an extra
-  // SQL
+                               // SQL
   @Setter(AccessLevel.PROTECTED)
   private String id = KeycloakModelUtils.generateId();
 
@@ -137,8 +137,8 @@ public class ScimServiceProviderEntity implements Serializable
   // @formatter:off
   @OneToMany
   @JoinTable(name = "SCIM_SP_AUTHORIZED_CLIENTS",
-  joinColumns = {@JoinColumn(name = "SCIM_SERVICE_PROVIDER_ID")},
-  inverseJoinColumns = {@JoinColumn(name = "CLIENT_ID")})
+             joinColumns = {@JoinColumn(name = "SCIM_SERVICE_PROVIDER_ID")},
+             inverseJoinColumns = {@JoinColumn(name = "CLIENT_ID")})
   // @formatter:on
   private List<ClientEntity> authorizedClients;
 

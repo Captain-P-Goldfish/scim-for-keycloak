@@ -41,11 +41,6 @@ public class Authentication
   private static final String ERROR_MESSAGE_AUTHENTICATION_FAILED = "Authentication failed";
 
   /**
-   * used to authenticate the user
-   */
-  private static final AppAuthManager APP_AUTH_MANAGER = new AppAuthManager();
-
-  /**
    * Authenticates the calling user and client according to the Bearer Token in the HTTP header.
    *
    * @return authentication result object
@@ -54,24 +49,24 @@ public class Authentication
   public AdminAuth authenticate(KeycloakSession keycloakSession)
   {
     KeycloakContext context = keycloakSession.getContext();
-    String accessToken = APP_AUTH_MANAGER.extractAuthorizationHeaderToken(context.getRequestHeaders());
+    String accessToken = AppAuthManager.extractAuthorizationHeaderToken(context.getRequestHeaders());
     if (accessToken == null)
     {
       log.error(ERROR_MESSAGE_AUTHENTICATION_FAILED);
       throw new NotAuthorizedException(ERROR_MESSAGE_AUTHENTICATION_FAILED);
     }
-    AuthenticationManager.AuthResult result = APP_AUTH_MANAGER.authenticateBearerToken(accessToken,
-                                                                                       keycloakSession,
-                                                                                       context.getRealm(),
-                                                                                       context.getUri(),
-                                                                                       context.getConnection(),
-                                                                                       context.getRequestHeaders());
-    if (result == null)
+    RealmModel authenticationRealm = keycloakSession.getContext().getRealm();
+    AppAuthManager.BearerTokenAuthenticator authenticator = new AppAuthManager.BearerTokenAuthenticator(keycloakSession);
+    AuthenticationManager.AuthResult authResult = authenticator.setRealm(authenticationRealm)
+                                                               .setConnection(context.getConnection())
+                                                               .setHeaders(context.getRequestHeaders())
+                                                               .authenticate();
+    if (authResult == null)
     {
       log.error(ERROR_MESSAGE_AUTHENTICATION_FAILED);
       throw new NotAuthorizedException(ERROR_MESSAGE_AUTHENTICATION_FAILED);
     }
-    AdminAuth adminAuth = createAdminAuth(keycloakSession, result);
+    AdminAuth adminAuth = createAdminAuth(keycloakSession, authResult);
 
     ScimServiceProviderService serviceProviderService = new ScimServiceProviderService(keycloakSession);
     Optional<ScimServiceProviderEntity> optionalEntity = serviceProviderService.getServiceProviderEntity();
@@ -99,7 +94,7 @@ public class Authentication
   /**
    * checks if the just logged in user was granted the {@link RealmRoleInitializer#SCIM_ADMIN_ROLE} to access
    * the SCIM administration
-   *
+   * 
    * @param keycloakSession the current request context
    */
   public void authenticateAsScimAdmin(KeycloakSession keycloakSession)
@@ -116,7 +111,7 @@ public class Authentication
 
   /**
    * tries to get the roles that are authorized to access the SCIM environment
-   *
+   * 
    * @param keycloakSession the current request context
    * @return should be the "scim-admin" role of the master client of this realm that is located in the master
    *         realm itself (used to grant access for the admin user) and the "scim-admin" role of the
@@ -155,7 +150,7 @@ public class Authentication
    * probably with the "admin"-user from the master realm. But this user cannot authenticate on the "SCIM" realm
    * because it has no relation to it. So we need to execute the authentication on the "master" realm by
    * manipulating the current context.
-   *
+   * 
    * @param keycloakSession the current request context
    * @return the authentication result of the user that tried to authenticate
    * @see <a href="https://github.com/dteleguin/beercloak">https://github.com/dteleguin/beercloak</a>
@@ -164,8 +159,7 @@ public class Authentication
   {
     KeycloakContext context = keycloakSession.getContext();
     RealmModel originalRealm = context.getRealm();
-    AppAuthManager authManager = new AppAuthManager();
-    String tokenString = authManager.extractAuthorizationHeaderToken(context.getRequestHeaders());
+    String tokenString = AppAuthManager.extractAuthorizationHeaderToken(context.getRequestHeaders());
 
     if (tokenString == null)
     {
@@ -193,12 +187,12 @@ public class Authentication
       throw new NotAuthorizedException("Unknown realm in token");
     }
     context.setRealm(authenticationRealm);
-    AuthenticationManager.AuthResult authResult = authManager.authenticateBearerToken(keycloakSession,
-                                                                                      authenticationRealm,
-                                                                                      keycloakSession.getContext()
-                                                                                                     .getUri(),
-                                                                                      context.getConnection(),
-                                                                                      context.getRequestHeaders());
+
+    AppAuthManager.BearerTokenAuthenticator authenticator = new AppAuthManager.BearerTokenAuthenticator(keycloakSession);
+    AuthenticationManager.AuthResult authResult = authenticator.setRealm(authenticationRealm)
+                                                               .setConnection(context.getConnection())
+                                                               .setHeaders(context.getRequestHeaders())
+                                                               .authenticate();
     if (authResult == null)
     {
       throw new NotAuthorizedException("Bearer");
@@ -206,10 +200,10 @@ public class Authentication
     context.setRealm(originalRealm);
 
     // @formatter:off
-    ClientModel client
-    = authenticationRealm.getName().equals(Config.getAdminRealm())
-    ? originalRealm.getMasterAdminClient()
-    : originalRealm.getClientByClientId(realmManager.getRealmAdminClientId(originalRealm));
+    ClientModel client 
+      = authenticationRealm.getName().equals(Config.getAdminRealm()) 
+      ? originalRealm.getMasterAdminClient()
+      : originalRealm.getClientByClientId(realmManager.getRealmAdminClientId(originalRealm));
     // @formatter:on
 
     if (client == null)

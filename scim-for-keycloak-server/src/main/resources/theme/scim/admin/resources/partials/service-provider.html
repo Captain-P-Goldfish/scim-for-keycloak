@@ -32,8 +32,8 @@
                 </label>
                 <div class="col-md-6 time-selector">
                     <input class="form-control ng-pristine ng-valid ng-not-empty ng-valid-min ng-valid-max ng-valid-required ng-touched"
-                           data-ng-disabled="disableSCIM"
                            data-ng-model="serviceProvider.filter.maxResults"
+                           data-ng-disabled="disableSCIM"
                            id="filterMaxResults"
                            max="31536000"
                            min="1"
@@ -229,8 +229,8 @@
 
             <div class="form-group">
                 <div class="col-md-10 col-md-offset-2" data-ng-show="access.viewScim">
-                    <button data-ng-disabled="!changed" kc-save>{{:: 'save' | translate}}</button>
-                    <button data-ng-disabled="!changed" kc-reset>{{:: 'cancel' | translate}}
+                    <button data-ng-disabled="!changed" id="save" kc-save>{{:: 'save' | translate}}</button>
+                    <button data-ng-disabled="!changed" id="cancel" kc-reset>{{:: 'cancel' | translate}}
                     </button>
                 </div>
             </div>

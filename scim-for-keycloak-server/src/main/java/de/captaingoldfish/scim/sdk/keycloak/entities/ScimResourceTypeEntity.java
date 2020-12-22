@@ -49,7 +49,7 @@ public class ScimResourceTypeEntity
   @Id
   @Column(name = "ID")
   @Access(AccessType.PROPERTY) // we do this because relationships often fetch id, but not entity. This avoids an extra
-  // SQL
+                               // SQL
   @Setter(AccessLevel.PROTECTED)
   private String id = KeycloakModelUtils.generateId();
 
@@ -146,8 +146,8 @@ public class ScimResourceTypeEntity
   // @formatter:off
   @OneToMany
   @JoinTable(name = "SCIM_ENDPOINT_ROLES",
-  joinColumns = {@JoinColumn(name = "SCIM_RESOURCE_TYPE_ID")},
-  inverseJoinColumns = {@JoinColumn(name = "ROLE_ID")})
+             joinColumns = {@JoinColumn(name = "SCIM_RESOURCE_TYPE_ID")},
+             inverseJoinColumns = {@JoinColumn(name = "ROLE_ID")})
   // @formatter:on
   private List<RoleEntity> endpointRoles;
 
@@ -158,8 +158,8 @@ public class ScimResourceTypeEntity
   // @formatter:off
   @OneToMany
   @JoinTable(name = "SCIM_ENDPOINT_CREATE_ROLES",
-  joinColumns = {@JoinColumn(name = "SCIM_RESOURCE_TYPE_ID")},
-  inverseJoinColumns = {@JoinColumn(name = "ROLE_ID")})
+             joinColumns = {@JoinColumn(name = "SCIM_RESOURCE_TYPE_ID")},
+             inverseJoinColumns = {@JoinColumn(name = "ROLE_ID")})
   // @formatter:on
   private List<RoleEntity> createRoles;
 
@@ -170,8 +170,8 @@ public class ScimResourceTypeEntity
   // @formatter:off
   @OneToMany
   @JoinTable(name = "SCIM_ENDPOINT_GET_ROLES",
-  joinColumns = {@JoinColumn(name = "SCIM_RESOURCE_TYPE_ID")},
-  inverseJoinColumns = {@JoinColumn(name = "ROLE_ID")})
+             joinColumns = {@JoinColumn(name = "SCIM_RESOURCE_TYPE_ID")},
+             inverseJoinColumns = {@JoinColumn(name = "ROLE_ID")})
   // @formatter:on
   private List<RoleEntity> getRoles;
 
@@ -182,8 +182,8 @@ public class ScimResourceTypeEntity
   // @formatter:off
   @OneToMany
   @JoinTable(name = "SCIM_ENDPOINT_UPDATE_ROLES",
-  joinColumns = {@JoinColumn(name = "SCIM_RESOURCE_TYPE_ID")},
-  inverseJoinColumns = {@JoinColumn(name = "ROLE_ID")})
+             joinColumns = {@JoinColumn(name = "SCIM_RESOURCE_TYPE_ID")},
+             inverseJoinColumns = {@JoinColumn(name = "ROLE_ID")})
   // @formatter:on
   private List<RoleEntity> updateRoles;
 
@@ -194,8 +194,8 @@ public class ScimResourceTypeEntity
   // @formatter:off
   @OneToMany
   @JoinTable(name = "SCIM_ENDPOINT_DELETE_ROLES",
-  joinColumns = {@JoinColumn(name = "SCIM_RESOURCE_TYPE_ID")},
-  inverseJoinColumns = {@JoinColumn(name = "ROLE_ID")})
+             joinColumns = {@JoinColumn(name = "SCIM_RESOURCE_TYPE_ID")},
+             inverseJoinColumns = {@JoinColumn(name = "ROLE_ID")})
   // @formatter:on
   private List<RoleEntity> deleteRoles;
 

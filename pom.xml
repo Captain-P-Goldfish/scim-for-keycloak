@@ -6,7 +6,7 @@
 
     <groupId>de.captaingoldfish</groupId>
     <artifactId>scim-for-keycloak</artifactId>
-    <version>kc-11-b2-SNAPSHOT</version>
+    <version>kc-12-b1-SNAPSHOT</version>
 
     <name>SCIM for Keycloak</name>
     <description>A third party module that extends keycloak by SCIM functionality</description>
@@ -26,6 +26,7 @@
         <module>scim-for-keycloak-server</module>
         <module>scim-for-keycloak-deployment</module>
         <module>scim-for-keycloak-client</module>
+        <module>scim-for-keycloak-frontend-integration-tests</module>
     </modules>
 
     <properties>
@@ -38,7 +39,7 @@
         <!--suppress UnresolvedMavenProperty -->
         <formatter-path>${project.parent.basedir}</formatter-path>
 
-        <version.keycloak>11.0.3</version.keycloak>
+        <version.keycloak>12.0.1</version.keycloak>
         <version.scim.sdk>1.8.3</version.scim.sdk>
 
         <version.sun.javax.activation>1.2.0</version.sun.javax.activation>
@@ -174,6 +175,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${version.maven.surefire.plugin}</version>
+                <configuration>
+                    <groups>!integration-tests</groups>
+                </configuration>
             </plugin>
 
             <plugin>

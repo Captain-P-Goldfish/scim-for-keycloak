@@ -49,7 +49,7 @@ class DatabaseSetup
    */
   // @formatter:off
   private static final EntityManagerFactory ENTITY_MANAGER_FACTORY =
-  Persistence.createEntityManagerFactory("keycloak-default", getH2DatabaseProperties());
+    Persistence.createEntityManagerFactory("keycloak-default", getH2DatabaseProperties());
   // @formatter:on
 
   /**
@@ -128,7 +128,7 @@ class DatabaseSetup
     Mockito.doReturn(jpaUserProvider).when(keycloakSession).userLocalStorage();
     Mockito.doReturn(jpaRealmProvider).when(keycloakSession).realms();
     Mockito.doReturn(jpaRealmProvider).when(keycloakSession).realmLocalStorage();
-    ClientProvider clientProvider = Mockito.spy(new ClientStorageManager(keycloakSession));
+    ClientProvider clientProvider = Mockito.spy(new ClientStorageManager(keycloakSession, 10000));
     Mockito.doReturn(jpaRealmProvider).when(keycloakSession).clients();
     Mockito.doReturn(clientProvider).when(keycloakSession).clientLocalStorage();
     Mockito.doReturn(new DefaultJpaConnectionProvider(newEntityManager))

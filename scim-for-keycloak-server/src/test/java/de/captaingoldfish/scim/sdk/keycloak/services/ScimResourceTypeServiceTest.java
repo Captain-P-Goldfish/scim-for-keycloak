@@ -63,7 +63,7 @@ public class ScimResourceTypeServiceTest extends KeycloakScimManagementTest
 
   /**
    * verifies that the available roles can be successfully retrieved
-   *
+   * 
    * @param rolesToCreate the roles that should be created to execute this test
    * @param rolesAlreadySet the roles that should not be in the available roles result
    */
@@ -73,7 +73,7 @@ public class ScimResourceTypeServiceTest extends KeycloakScimManagementTest
   {
     for ( String roleName : rolesToCreate )
     {
-      getKeycloakSession().realms().addRealmRole(getRealmModel(), roleName);
+      getKeycloakSession().roles().addRealmRole(getRealmModel(), roleName);
     }
     ScimResourceTypeService resourceTypeService = new ScimResourceTypeService(getKeycloakSession());
 
@@ -118,11 +118,11 @@ public class ScimResourceTypeServiceTest extends KeycloakScimManagementTest
     ResourceType currentUserResourceType = resourceEndpoint.getResourceTypeByName(resourceTypeName).get();
 
     // create access roles
-    final RoleModel common = getKeycloakSession().realms().addRealmRole(getRealmModel(), "common");
-    final RoleModel create = getKeycloakSession().realms().addRealmRole(getRealmModel(), "create");
-    final RoleModel get = getKeycloakSession().realms().addRealmRole(getRealmModel(), "get");
-    final RoleModel update = getKeycloakSession().realms().addRealmRole(getRealmModel(), "update");
-    final RoleModel delete = getKeycloakSession().realms().addRealmRole(getRealmModel(), "delete");
+    final RoleModel common = getKeycloakSession().roles().addRealmRole(getRealmModel(), "common");
+    final RoleModel create = getKeycloakSession().roles().addRealmRole(getRealmModel(), "create");
+    final RoleModel get = getKeycloakSession().roles().addRealmRole(getRealmModel(), "get");
+    final RoleModel update = getKeycloakSession().roles().addRealmRole(getRealmModel(), "update");
+    final RoleModel delete = getKeycloakSession().roles().addRealmRole(getRealmModel(), "delete");
 
     ParseableResourceType newResourceType = JsonHelper.copyResourceToObject(currentUserResourceType,
                                                                             ParseableResourceType.class);
@@ -237,11 +237,11 @@ public class ScimResourceTypeServiceTest extends KeycloakScimManagementTest
     List<DynamicTest> dynamicTestList = new ArrayList<>();
 
     // create access roles
-    final RoleModel common = getKeycloakSession().realms().addRealmRole(getRealmModel(), "common");
-    final RoleModel create = getKeycloakSession().realms().addRealmRole(getRealmModel(), "create");
-    final RoleModel get = getKeycloakSession().realms().addRealmRole(getRealmModel(), "get");
-    final RoleModel update = getKeycloakSession().realms().addRealmRole(getRealmModel(), "update");
-    final RoleModel delete = getKeycloakSession().realms().addRealmRole(getRealmModel(), "delete");
+    final RoleModel common = getKeycloakSession().roles().addRealmRole(getRealmModel(), "common");
+    final RoleModel create = getKeycloakSession().roles().addRealmRole(getRealmModel(), "create");
+    final RoleModel get = getKeycloakSession().roles().addRealmRole(getRealmModel(), "get");
+    final RoleModel update = getKeycloakSession().roles().addRealmRole(getRealmModel(), "update");
+    final RoleModel delete = getKeycloakSession().roles().addRealmRole(getRealmModel(), "delete");
 
     ScimResourceTypeService resourceTypeService = new ScimResourceTypeService(getKeycloakSession());
     ScimResourceTypeEntity userResourceTypeDb = resourceTypeService.getResourceTypeEntityByName(ResourceTypeNames.USER)
@@ -320,7 +320,7 @@ public class ScimResourceTypeServiceTest extends KeycloakScimManagementTest
     }));
 
     dynamicTestList.add(DynamicTest.dynamicTest("remove common role", () -> {
-      getKeycloakSession().realms().removeRole(getRealmModel(), common);
+      getKeycloakSession().roles().removeRole(common);
       resourceTypeService.removeAssociatedRoles(common);
       getEntityManager().clear(); // clears the entity manager cache
     }));
@@ -378,7 +378,7 @@ public class ScimResourceTypeServiceTest extends KeycloakScimManagementTest
     }));
 
     dynamicTestList.add(DynamicTest.dynamicTest("remove create role", () -> {
-      getKeycloakSession().realms().removeRole(getRealmModel(), create);
+      getKeycloakSession().roles().removeRole(create);
       resourceTypeService.removeAssociatedRoles(create);
       getEntityManager().clear(); // clears the entity manager cache
     }));
@@ -433,7 +433,7 @@ public class ScimResourceTypeServiceTest extends KeycloakScimManagementTest
 
 
     dynamicTestList.add(DynamicTest.dynamicTest("remove get role", () -> {
-      getKeycloakSession().realms().removeRole(getRealmModel(), get);
+      getKeycloakSession().roles().removeRole(get);
       resourceTypeService.removeAssociatedRoles(get);
       getEntityManager().clear(); // clears the entity manager cache
     }));
@@ -485,7 +485,7 @@ public class ScimResourceTypeServiceTest extends KeycloakScimManagementTest
     }));
 
     dynamicTestList.add(DynamicTest.dynamicTest("remove update role", () -> {
-      getKeycloakSession().realms().removeRole(getRealmModel(), update);
+      getKeycloakSession().roles().removeRole(update);
       resourceTypeService.removeAssociatedRoles(update);
       getEntityManager().clear(); // clears the entity manager cache
     }));
@@ -534,7 +534,7 @@ public class ScimResourceTypeServiceTest extends KeycloakScimManagementTest
     }));
 
     dynamicTestList.add(DynamicTest.dynamicTest("remove delete role", () -> {
-      getKeycloakSession().realms().removeRole(getRealmModel(), delete);
+      getKeycloakSession().roles().removeRole(delete);
       resourceTypeService.removeAssociatedRoles(delete);
       getEntityManager().clear(); // clears the entity manager cache
     }));

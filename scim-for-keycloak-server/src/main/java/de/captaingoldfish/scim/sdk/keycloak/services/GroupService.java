@@ -32,7 +32,7 @@ public class GroupService extends AbstractService
 
   /**
    * tries to find a group by its name
-   *
+   * 
    * @param name the name of the group
    * @return the group or an empty if no group with the given name does exist
    */

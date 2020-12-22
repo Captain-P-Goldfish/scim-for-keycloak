@@ -57,7 +57,7 @@ public class ScimResourceTypeService extends AbstractService
    * gets an existing configuration from the database for the given resource type or creates a configuration in
    * the database that matches the settings of the given resource type if no entry for this resource type was
    * present yet
-   *
+   * 
    * @param resourceType the resource type that might have a configuration in the database or not
    * @return the existing configuration or a configuration that matches the given resource type
    */
@@ -75,7 +75,7 @@ public class ScimResourceTypeService extends AbstractService
 
   /**
    * uses the given parsed resource type data and puts its values into the corresponding database entry
-   *
+   * 
    * @param parseableResourceType the resource type data that was parsed from a http request body
    * @return empty if no entry with the given resource type name exists in the database and the updated database
    *         entry if the update was successful
@@ -96,7 +96,7 @@ public class ScimResourceTypeService extends AbstractService
 
   /**
    * creates a new database entry for the given resource type
-   *
+   * 
    * @param resourceType the resource type whose representation should be found within the database
    * @param realmModel the owning realm of the resource type
    * @return the database representation of the resource type
@@ -116,7 +116,7 @@ public class ScimResourceTypeService extends AbstractService
 
   /**
    * tries to find a resource type within the database by its name
-   *
+   * 
    * @param name the resource type name that may have a database entry
    * @return the database representation of the resource type or an empty
    */
@@ -206,7 +206,7 @@ public class ScimResourceTypeService extends AbstractService
   /**
    * retrieves the realm roles of the given names from the database. If a role does not exist within the
    * database it is simply ignored and removed
-   *
+   * 
    * @param roles the roles that should be added to the current resource type
    * @return the list of role entities that do exist in the keycloak_roles table
    */
@@ -229,10 +229,10 @@ public class ScimResourceTypeService extends AbstractService
     Root<RoleEntity> root = roleQuery.from(RoleEntity.class);
     // @formatter:off
     roleQuery.where(
-    criteriaBuilder.and(
-    criteriaBuilder.equal(root.get("realm").get("id"), realmModel.getId()),
-    criteriaBuilder.equal(root.get("name"), roleName)
-    )
+      criteriaBuilder.and(
+        criteriaBuilder.equal(root.get("realm").get("id"), realmModel.getId()),
+        criteriaBuilder.equal(root.get("name"), roleName)
+      )
     );
     // @formatter:on
     try
@@ -287,17 +287,18 @@ public class ScimResourceTypeService extends AbstractService
     getEntityManager().createNamedQuery("removeScimResourceTypes")
                       .setParameter("realmId", realmModel.getId())
                       .executeUpdate();
+    getEntityManager().flush();
   }
 
   /**
    * gets all realm roles that are not present within the given list<br>
    * <br>
    * the expected SQL statement is:
-   *
+   * 
    * <pre>
    *   SELECT name FROM KEYCLOAK_ROLE WHERE realmId = :realmId and is not clientRole and name not in (:roles)
    * </pre>
-   *
+   * 
    * @param roles the lists that are already assigned to the current resource type
    * @return the set of roles that have not been assigned to the current resource type
    */
@@ -325,7 +326,7 @@ public class ScimResourceTypeService extends AbstractService
 
   /**
    * this method will remove all associations with the given role from all resource types
-   *
+   * 
    * @param roleModel the role that should be removed from the mapping tables
    */
   public void removeAssociatedRoles(RoleModel roleModel)
@@ -336,12 +337,17 @@ public class ScimResourceTypeService extends AbstractService
 
   /**
    * removes the given role from the current configuration of all resource types
-   *
+   * 
    * @param roleModel the role to remove
    */
   private void removeRolesFromCurrentConfig(RoleModel roleModel)
   {
-    ResourceEndpoint resourceEndpoint = ScimConfiguration.getScimEndpoint(getKeycloakSession());
+    ResourceEndpoint resourceEndpoint = ScimConfiguration.getScimEndpoint(getKeycloakSession(), false);
+    if (resourceEndpoint == null)
+    {
+      // in this case the realm itself was probably just removed
+      return;
+    }
     resourceEndpoint.getRegisteredResourceTypes().forEach(resourceType -> {
       ResourceTypeAuthorization authorization = resourceType.getFeatures().getAuthorization();
 

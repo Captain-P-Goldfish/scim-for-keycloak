@@ -1,6 +1,6 @@
 package de.captaingoldfish.scim.sdk.keycloak.provider;
 
-import java.util.List;
+import java.util.stream.Stream;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -23,10 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * this class will initialize the role that is necessary to access and configure the scim configuration. This
  * class is inspired by beercloak:
- *
+ * 
  * @author Pascal Knueppel
- * @see <a href=" https://github.com/dteleguin/beercloak">inspired by beercloak</a>
  * @since 01.08.2020 - 19:21
+ * @see <a href=" https://github.com/dteleguin/beercloak">inspired by beercloak</a>
  */
 @Slf4j
 public class RealmRoleInitializer
@@ -99,10 +99,9 @@ public class RealmRoleInitializer
    */
   private static void setupRealmAccess(KeycloakSession session)
   {
-    List<RealmModel> realms = session.realms().getRealms();
+    Stream<RealmModel> realms = session.realms().getRealmsStream();
     RealmManager manager = new RealmManager(session);
-    for ( RealmModel realm : realms )
-    {
+    realms.forEach(realm -> {
       ClientModel client = realm.getMasterAdminClient();
       if (client.getRole(SCIM_ADMIN_ROLE) == null)
       {
@@ -119,7 +118,7 @@ public class RealmRoleInitializer
           addRealmAdminRoles(manager, realm);
         }
       }
-    }
+    });
   }
 
   /**
@@ -162,7 +161,7 @@ public class RealmRoleInitializer
   /**
    * adds the {@link #SCIM_ADMIN_ROLE} to the given client and adds it as a composite role into the given
    * parent-role
-   *
+   * 
    * @param client the client to which the client-role {@link #SCIM_ADMIN_ROLE} should be added
    * @param parent the parent-role that will get the newly created {@link #SCIM_ADMIN_ROLE} as a composite role
    *          member

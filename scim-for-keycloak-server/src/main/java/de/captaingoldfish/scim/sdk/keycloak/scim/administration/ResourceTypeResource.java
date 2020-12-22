@@ -73,7 +73,7 @@ public class ResourceTypeResource extends AbstractEndpoint
 
   /**
    * returns the roles that are available for the given resource type
-   *
+   * 
    * @param resourceTypeName the name of the resource type for which the available roles should be retrieved
    */
   @GET
