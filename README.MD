@@ -12,6 +12,7 @@ option `scim` on entry `Admin Console Theme` and reload the page (Press F5).
 | 9.0.x    | :x:                | You may find an older working version at https://github.com/Captain-P-Goldfish/SCIM-SDK |     
 | 10.0.x   | :x:                | You may find an older working version at https://github.com/Captain-P-Goldfish/SCIM-SDK |     
 | 11.0.x   | :heavy_check_mark: | kc-11.b${buildnumber}      |     
+| 12.0.x   | :heavy_check_mark: | kc-12.b${buildnumber}      |     
 
 ## Versioning
 
