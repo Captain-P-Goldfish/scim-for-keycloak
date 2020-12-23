@@ -4,9 +4,22 @@
 
 # What is SCIM-for-keycloak?
 
-It is a full fleshed SCIM implementation that is easily integrated into keycloak and is also easily configurable within
-the web admin console. You'll be able to restrict access of endpoints with roles and to specific clients . Select the
-option `scim` on entry `Admin Console Theme` and reload the page (Press F5).
+It is a full SCIM implementation that is easily integrated into keycloak and is also easily configurable within the web
+admin console.
+
+It grants you interoperable User, Group and Role provisioning by using a defined standard for resource managing:
+
+See:
+
+* https://tools.ietf.org/html/rfc7643
+* https://tools.ietf.org/html/rfc7644
+
+An example is user and group synchronizing with Microsoft Azure AD. A manual that describes how to do this can be found
+in the wiki:
+
+[Use with Microsoft Azure AD](https://github.com/Captain-P-Goldfish/scim-for-keycloak/wiki/Use-with-Microsoft-Azure-AD)
+
+Thanks to *Raffael Grob* for providing this manual.
 
 ## Keycloak support matrix
 
@@ -29,14 +42,26 @@ This project will use the following versioning pattern
 Releases will be only tagged in git and not be uploaded to any repository. Please build the necessary artifacts with the
 following description yourself.
 
-## Deploy into a standalone keycloak server?
+## How to build
 
-Switch into the parent directory "scim-for-keycloak" and build the project once with `mvn package -DskipTests`. Copy the
-file `scim-for-keycloak/scim-for-keycloak-deployment/target/scim-for-keycloak-kc-${keycloak.version}-b${project.incremental.version}.ear`
-into the directory `${keycloak.home}/standalone/deployments` of a keycloak server.  
+You need a git, JDK and maven installation on your computer
+
+Checkout the git tag that you want to build:
+
+1. list all available tags:  `git tag -l *`
+2. checkout the tag you want to build `git checkout tags/${tag-name}`
+3. build with maven
+   * `cd ${SCIM_FOR_KEYCLOAK_HOME}`
+   * `mvn clean package -DskipTests`
+4. find the scim-for-keycloak artifact in:
+   `scim-for-keycloak/scim-for-keycloak-deployment/target/scim-for-keycloak-kc-${keycloak.version}-b${project.incremental.version}.ear`
+
+## Deploy into a standalone keycloak server
+
+Copy the built artifact into the directory `${keycloak.home}/standalone/deployments` of a keycloak server.  
 **NOTE:** *If the server is running during deployment you need to restart it!*
 
-## How do I configure the SCIM endpoints?
+## How to configure the SCIM endpoints
 
 1. Deploy the `scim-for-keycloak.ear` file into your server. If the server is currently running you need to restart it!
 2. Now open the web admin console of keycloak open the realm settings and select the `Themes` tab and select the `scim`
