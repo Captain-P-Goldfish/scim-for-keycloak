@@ -18,7 +18,6 @@ An example is user and group synchronizing with Microsoft Azure AD. A manual tha
 in the wiki:
 
 [Use with Microsoft Azure AD](https://github.com/Captain-P-Goldfish/scim-for-keycloak/wiki/Use-with-Microsoft-Azure-AD)
-
 Thanks to *Raffael Grob* for providing this manual.
 
 ## Keycloak support matrix
