@@ -110,6 +110,9 @@ environment of a single realm. In such a case the user must have specific roles 
 SCIM environment. If the user does not have the corresponding role the "SCIM"-menu entry will not be visible to this
 user.
 
+**NOTE**: Do not get confused with the roles here. These roles are only for accessing the management in the keycloak web
+admin console. These roles have nothing to do with accessing the SCIM-endpoints.
+
 Two different roles are required to access the "SCIM"-menu.
 
 1. view-realm (allows the user to see the "SCIM"-menu item on the left)
