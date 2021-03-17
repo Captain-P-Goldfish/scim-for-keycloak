@@ -58,7 +58,10 @@ public class GroupHandler extends ResourceHandler<Group>
    * {@inheritDoc}
    */
   @Override
-  public Group getResource(String id, Authorization authorization)
+  public Group getResource(String id,
+                           Authorization authorization,
+                           List<SchemaAttribute> attributes,
+                           List<SchemaAttribute> excludedAttributes)
   {
     KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
     GroupModel groupModel = keycloakSession.getContext().getRealm().getGroupById(id);

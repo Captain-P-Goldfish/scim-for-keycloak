@@ -105,7 +105,10 @@ public class RealmRoleHandler extends ResourceHandler<RealmRole>
    * {@inheritDoc}
    */
   @Override
-  public RealmRole getResource(String id, Authorization authorization)
+  public RealmRole getResource(String id,
+                               Authorization authorization,
+                               List<SchemaAttribute> attributes,
+                               List<SchemaAttribute> excludedAttributes)
   {
     KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
     return new RoleService(keycloakSession).getRoleModel(id)
