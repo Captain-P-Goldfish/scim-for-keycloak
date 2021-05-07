@@ -7,7 +7,7 @@
     <parent>
         <groupId>de.captaingoldfish</groupId>
         <artifactId>scim-for-keycloak</artifactId>
-        <version>kc-13-b1-SNAPSHOT</version>
+        <version>kc-13-b1</version>
     </parent>
 
     <artifactId>scim-for-keycloak-frontend-integration-tests</artifactId>
