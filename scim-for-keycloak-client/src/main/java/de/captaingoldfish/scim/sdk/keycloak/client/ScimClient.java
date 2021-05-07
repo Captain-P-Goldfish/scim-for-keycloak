@@ -7,16 +7,29 @@ import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.core.MediaType;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHeaders;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.StringEntity;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import de.captaingoldfish.scim.sdk.client.ScimClientConfig;
 import de.captaingoldfish.scim.sdk.client.ScimRequestBuilder;
 import de.captaingoldfish.scim.sdk.client.builder.BulkBuilder;
+import de.captaingoldfish.scim.sdk.client.http.HttpResponse;
+import de.captaingoldfish.scim.sdk.client.http.ProxyHelper;
+import de.captaingoldfish.scim.sdk.client.http.ScimHttpClient;
 import de.captaingoldfish.scim.sdk.client.response.ServerResponse;
 import de.captaingoldfish.scim.sdk.common.constants.AttributeNames;
 import de.captaingoldfish.scim.sdk.common.constants.EndpointPaths;
@@ -35,6 +48,7 @@ import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PhoneNumber;
 import de.captaingoldfish.scim.sdk.common.response.BulkResponse;
 import de.captaingoldfish.scim.sdk.common.response.ListResponse;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -52,11 +66,15 @@ public class ScimClient
    */
   public static void main(String[] args)
   {
-    final String baseUrl = "http://localhost:8080/auth/realms/master/scim/v2";
+    final String baseUrl = "http://localhost:8080/auth/realms/scim/scim/v2";
+    final String accessToken = getAccessToken();
+    final Map<String, String> defaultHeaders = new HashMap<>();
+    defaultHeaders.put(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
     ScimRequestBuilder scimRequestBuilder = new ScimRequestBuilder(baseUrl,
                                                                    ScimClientConfig.builder()
                                                                                    .socketTimeout(120)
                                                                                    .requestTimeout(120)
+                                                                                   .httpHeaders(defaultHeaders)
                                                                                    .build());
     ServerResponse<ServiceProvider> response = scimRequestBuilder.get(ServiceProvider.class,
                                                                       EndpointPaths.SERVICE_PROVIDER_CONFIG,
@@ -64,9 +82,43 @@ public class ScimClient
                                                                  .sendRequest();
     ServiceProvider serviceProviderConfig = response.getResource();
 
-    // deleteAllUsers(scimRequestBuilder);
+    deleteAllUsers(scimRequestBuilder);
     createUsers(scimRequestBuilder, serviceProviderConfig);
     // createGroups(scimRequestBuilder);
+  }
+
+  @SneakyThrows
+  private static String getAccessToken()
+  {
+    final String tokenEndpoint = "http://localhost:8080/auth/realms/scim/protocol/openid-connect/token";
+    ScimClientConfig scimClientConfig = ScimClientConfig.builder()
+                                                        .socketTimeout(120)
+                                                        .requestTimeout(120)
+                                                        .basic("scim", "5810f85b-cedd-4cc3-84cc-ccbd89d4a54a")
+                                                        .proxy(ProxyHelper.builder()
+                                                                          .systemProxyHost("localhost")
+                                                                          .systemProxyPort(8888)
+                                                                          .build())
+                                                        .build();
+    try (ScimHttpClient scimHttpClient = new ScimHttpClient(scimClientConfig))
+    {
+
+      HttpPost httpPost = new HttpPost(tokenEndpoint);
+      httpPost.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED);
+      // httpPost.addHeader(HttpHeaders.AUTHORIZATION, "Basic scim:5810f85b-cedd-4cc3-84cc-ccbd89d4a54a=");
+      URIBuilder uriBuilder = new URIBuilder("http://localhost").addParameter("grant_type", "client_credentials")
+      /*
+       * .addParameter("client_id", "scim") .addParameter("client_secret", "ffc6e64a-36d2-4ea7-9140-538c4a487459")
+       */;
+      httpPost.setEntity(new StringEntity(uriBuilder.build().getQuery()));
+      HttpResponse httpResponse = scimHttpClient.sendRequest(httpPost);
+      if (httpResponse.getHttpStatusCode() != 200)
+      {
+        throw new IllegalStateException("retrieving access token failed");
+      }
+      ObjectNode objectNode = (ObjectNode)JsonHelper.readJsonDocument(httpResponse.getResponseBody());
+      return objectNode.get("access_token").asText();
+    }
   }
 
   /**
@@ -75,7 +127,10 @@ public class ScimClient
   private static void createUsers(ScimRequestBuilder scimRequestBuilder, ServiceProvider serviceProviderConfig)
   {
     int maxOperations = serviceProviderConfig.getBulkConfig().getMaxOperations();
-    getUserList(maxOperations).forEach(bulkUserList -> {
+    List<List<User>> bulkList = getUserList(maxOperations);
+    for ( int i = 0 ; i < 1 ; i++ )
+    {
+      List<User> bulkUserList = bulkList.get(i);
       BulkBuilder bulkBuilder = scimRequestBuilder.bulk();
       bulkUserList.parallelStream().forEach(user -> {
         bulkBuilder.bulkRequestOperation(EndpointPaths.USERS)
@@ -93,7 +148,7 @@ public class ScimClient
       {
         log.error("creating of users failed: " + response.getErrorResponse().getDetail().orElse(null));
       }
-    });
+    }
   }
 
   /**

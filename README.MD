@@ -20,15 +20,18 @@ in the wiki:
 [Use with Microsoft Azure AD](https://github.com/Captain-P-Goldfish/scim-for-keycloak/wiki/Use-with-Microsoft-Azure-AD)
 Thanks to *Raffael Grob* for providing this manual.
 
+
 ## Keycloak support matrix
 
-|  version | supported          | scim-for-keycloak version  |
-| :------- | :----------------- | :------------------------- |
-| lower    | :x:                | -                          |
-| 9.0.x    | :x:                | You may find an older working version at https://github.com/Captain-P-Goldfish/SCIM-SDK |     
-| 10.0.x   | :x:                | You may find an older working version at https://github.com/Captain-P-Goldfish/SCIM-SDK |     
-| 11.0.x   | :heavy_check_mark: | kc-11.b${buildnumber}      |     
-| 12.0.x   | :heavy_check_mark: | kc-12.b${buildnumber}      |     
+|  version | supported          | scim-for-keycloak version  | SCIM-SDK Version |
+| :------- | :----------------- | :------------------------- | ---------------- |
+| lower    | :x:                | -                          |                  |
+| 9.0.x    | :x:                | You may find an older working version at https://github.com/Captain-P-Goldfish/SCIM-SDK |   | 
+| 10.0.x   | :x:                | You may find an older working version at https://github.com/Captain-P-Goldfish/SCIM-SDK |   |  
+| 11.0.x   | :heavy_check_mark: | kc-11.b1                   | 1.8.3            |
+| 12.0.x   | :heavy_check_mark: | kc-12.b1                   | 1.8.3            |
+| 12.0.x   | :heavy_check_mark: | kc-12.b2                   | 1.9.2            |
+| 13.0.0   | :heavy_check_mark: | kc-13.b1                   | 1.9.2            |
 
 ## Versioning
 

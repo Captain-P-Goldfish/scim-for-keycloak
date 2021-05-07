@@ -7,7 +7,7 @@
     <parent>
         <groupId>de.captaingoldfish</groupId>
         <artifactId>scim-for-keycloak</artifactId>
-        <version>kc-12-b3-SNAPSHOT</version>
+        <version>kc-13-b1-SNAPSHOT</version>
     </parent>
 
     <artifactId>scim-for-keycloak-frontend-integration-tests</artifactId>
@@ -21,7 +21,7 @@
         <version.okio>2.9.0</version.okio>
 
         <!-- test dependencies -->
-        <version.testcontainers>1.15.1</version.testcontainers>
+        <version.testcontainers>1.15.3</version.testcontainers>
         <version.mysql.connector>8.0.21</version.mysql.connector>
         <version.mariadb.connector>2.6.2</version.mariadb.connector>
         <version.mssql.connector>8.4.0.jre8</version.mssql.connector>

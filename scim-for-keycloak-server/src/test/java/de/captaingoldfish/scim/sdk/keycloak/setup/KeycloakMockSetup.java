@@ -1,8 +1,8 @@
 package de.captaingoldfish.scim.sdk.keycloak.setup;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 
@@ -21,6 +21,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.PasswordPolicy;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.jpa.JpaRealmProvider;
 import org.keycloak.policy.DefaultPasswordPolicyManagerProvider;
@@ -129,9 +130,14 @@ class KeycloakMockSetup
   protected void setupPasswordManagingSettings()
   {
     Mockito.doReturn(new UserCredentialStoreManager(keycloakSession)).when(keycloakSession).userCredentialManager();
-    Mockito.doReturn(Collections.singletonList(new PasswordCredentialProviderFactory()))
+    Mockito.doReturn(Stream.of(new PasswordCredentialProviderFactory()),
+                     Stream.of(new PasswordCredentialProviderFactory()),
+                     Stream.of(new PasswordCredentialProviderFactory()),
+                     Stream.of(new PasswordCredentialProviderFactory()),
+                     Stream.of(new PasswordCredentialProviderFactory()),
+                     Stream.of(new PasswordCredentialProviderFactory()))
            .when(keycloakSessionFactory)
-           .getProviderFactories(CredentialProvider.class);
+           .getProviderFactoriesStream(CredentialProvider.class);
     Mockito.doReturn(new PasswordCredentialProvider(keycloakSession))
            .when(keycloakSession)
            .getProvider(CredentialProvider.class, PasswordCredentialProviderFactory.PROVIDER_ID);
@@ -154,6 +160,8 @@ class KeycloakMockSetup
     log.trace("building test realm '{}'", TEST_REALM_NAME);
     entityManager.getTransaction().begin();
     realmModel = keycloakSession.realms().createRealm(UUID.randomUUID().toString(), TEST_REALM_NAME);
+    RoleModel roleModel = realmModel.addRole("default-role");
+    realmModel.setDefaultRole(roleModel);
     realmModel.setPasswordPolicy(PasswordPolicy.build().build(keycloakSession));
     Mockito.doReturn(realmModel).when(keycloakContext).getRealm();
     List<RealmModel> realms = keycloakSession.realms().getRealms();

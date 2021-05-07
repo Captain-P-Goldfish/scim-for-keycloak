@@ -230,7 +230,7 @@ public class ScimResourceTypeService extends AbstractService
     // @formatter:off
     roleQuery.where(
       criteriaBuilder.and(
-        criteriaBuilder.equal(root.get("realm").get("id"), realmModel.getId()),
+        criteriaBuilder.equal(root.get("realmId"), realmModel.getId()),
         criteriaBuilder.equal(root.get("name"), roleName)
       )
     );

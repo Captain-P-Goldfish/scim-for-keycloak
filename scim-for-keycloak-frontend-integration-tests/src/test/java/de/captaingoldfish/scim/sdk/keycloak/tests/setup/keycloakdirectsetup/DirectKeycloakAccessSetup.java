@@ -195,7 +195,7 @@ public class DirectKeycloakAccessSetup
       String sqlQuery = "select client from " + ClientEntity.class.getSimpleName() + " client";
       if (StringUtils.isNotBlank(realmId))
       {
-        sqlQuery += " where client.realm.id = :realmId";
+        sqlQuery += " where client.realmId = :realmId";
       }
       TypedQuery<ClientEntity> query = getEntityManager().createQuery(sqlQuery, ClientEntity.class);
       if (StringUtils.isNotBlank(realmId))

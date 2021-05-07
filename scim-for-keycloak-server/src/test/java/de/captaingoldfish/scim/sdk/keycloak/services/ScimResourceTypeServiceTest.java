@@ -54,15 +54,18 @@ public class ScimResourceTypeServiceTest extends KeycloakScimManagementTest
 
   public static Stream<Arguments> getAvailableRoleParams()
   {
-    return Stream.of(Arguments.arguments(Arrays.asList("admin", "user", "keycloak"), Arrays.asList()),
-                     Arguments.arguments(Arrays.asList("admin", "user", "keycloak"), Arrays.asList("admin")),
-                     Arguments.arguments(Arrays.asList("admin", "user", "keycloak"), Arrays.asList("admin", "user")),
+    return Stream.of(Arguments.arguments(Arrays.asList("admin", "user", "keycloak"), Arrays.asList("default-role")),
                      Arguments.arguments(Arrays.asList("admin", "user", "keycloak"),
-                                         Arrays.asList("admin", "user", "keycloak")));
+                                         Arrays.asList("admin", "default-role")),
+                     Arguments.arguments(Arrays.asList("admin", "user", "keycloak"),
+                                         Arrays.asList("admin", "user", "default-role")),
+                     Arguments.arguments(Arrays.asList("admin", "user", "keycloak"),
+                                         Arrays.asList("admin", "user", "keycloak", "default-role")));
   }
 
   /**
-   * verifies that the available roles can be successfully retrieved
+   * verifies that the available roles can be successfully retrieved. The available roles are the roles that
+   * have not been associated with the with the SCIM resource type yet
    * 
    * @param rolesToCreate the roles that should be created to execute this test
    * @param rolesAlreadySet the roles that should not be in the available roles result
@@ -80,7 +83,10 @@ public class ScimResourceTypeServiceTest extends KeycloakScimManagementTest
     List<String> expectedRolesAvailable = rolesToCreate.stream()
                                                        .filter(roleName -> !rolesAlreadySet.contains(roleName))
                                                        .collect(Collectors.toList());
-    Assertions.assertEquals(rolesToCreate.size() - rolesAlreadySet.size(), expectedRolesAvailable.size());
+    // since keycloak 13 a default role is associated to each realm that is then passed to each new created user.
+    final int numberOfAssociatedDefaultRoles = 1;
+    Assertions.assertEquals(numberOfAssociatedDefaultRoles + rolesToCreate.size() - rolesAlreadySet.size(),
+                            expectedRolesAvailable.size());
 
     Set<String> availableRoles = resourceTypeService.getAvailableRolesFor(new HashSet<>(rolesAlreadySet));
     log.warn(availableRoles.toString());

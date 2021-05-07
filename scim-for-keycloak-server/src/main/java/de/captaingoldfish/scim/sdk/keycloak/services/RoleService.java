@@ -54,7 +54,7 @@ public class RoleService extends AbstractService
     EntityManager entityManager = getEntityManager();
     TypedQuery<RoleEntity> query = entityManager.createQuery("select role from RoleEntity role "
                                                              + "where role.clientRole = false "
-                                                             + "and role.realm.id = :realm and role.id = :id",
+                                                             + "and role.realmId = :realm and role.id = :id",
                                                              RoleEntity.class);
     try
     {

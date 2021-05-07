@@ -161,7 +161,7 @@ public class ScimServiceProviderService extends AbstractService
     // @formatter:off
     clientQuery.where(
       criteriaBuilder.and(
-        criteriaBuilder.equal(root.get("realm").get("id"), realmModel.getId()),
+        criteriaBuilder.equal(root.get("realmId"), realmModel.getId()),
         criteriaBuilder.equal(root.get("clientId"), clientId)
       )
     );

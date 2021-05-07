@@ -206,7 +206,6 @@ public abstract class KeycloakScimManagementTest
 
     deleteFromMappingTable("CLIENT_ATTRIBUTES");
     deleteFromMappingTable("REDIRECT_URIS");
-    deleteFromMappingTable("CLIENT_DEFAULT_ROLES");
     deleteFromMappingTable("SCOPE_MAPPING");
     deleteFromMappingTable("PROTOCOL_MAPPER_CONFIG");
 
