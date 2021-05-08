@@ -28,10 +28,10 @@ Thanks to *Raffael Grob* for providing this manual.
 | lower    | :x:                | -                          |                  |
 | 9.0.x    | :x:                | You may find an older working version at https://github.com/Captain-P-Goldfish/SCIM-SDK |   | 
 | 10.0.x   | :x:                | You may find an older working version at https://github.com/Captain-P-Goldfish/SCIM-SDK |   |  
-| 11.0.x   | :heavy_check_mark: | kc-11.b1                   | 1.8.3            |
-| 12.0.x   | :heavy_check_mark: | kc-12.b1                   | 1.8.3            |
-| 12.0.x   | :heavy_check_mark: | kc-12.b2                   | 1.9.2            |
-| 13.0.0   | :heavy_check_mark: | kc-13.b1                   | 1.9.2            |
+| 11.0.x   | :heavy_check_mark: | kc-11-b1                   | 1.8.3            |
+| 12.0.x   | :heavy_check_mark: | kc-12-b1                   | 1.8.3            |
+| 12.0.x   | :heavy_check_mark: | kc-12-b2                   | 1.9.2            |
+| 13.0.0   | :heavy_check_mark: | kc-13-b1                   | 1.9.2            |
 
 ## Versioning
 
