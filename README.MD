@@ -76,7 +76,8 @@ Copy the built artifact into the directory `${keycloak.home}/standalone/deployme
    ![theme-settings](images/service-provider-config.png)
 2. You can disable SCIM for each realm separately and the `ServiceProvider` configurations as defined in RFC7643
 3. You may restrict access to the SCIM-endpoints for each separate realm by allowing users only access if they have been
-   identified by a specific client. If no clients are selected any client is authorized to access the SCIM endpoints:  
+   identified by a specific client.
+   `If no clients are selected any client is authorized to access the SCIM endpoints`  
    ![theme-settings](images/service-provider-auth-config.png)
 4. You get an overview for all registered `ResourceTypes` and may configure them separately.  
    ![theme-settings](images/resource-type-overview.png)  
@@ -90,8 +91,9 @@ Copy the built artifact into the directory `${keycloak.home}/standalone/deployme
    resources are created, deleted, updated or read.
 6. You can turn off the requirement for authentication on each `ResourceType` but not for specific
    `ResourceType`-endpoints.
-7. You'll be able to set required roles for each `ResourceType` and each `ResourceType`
-   -endpoint [create, get , list, update, delete]  
+7. You'll be able to set required roles for each `ResourceType` and each `ResourceType`-endpoint
+   [create, get , list, update, delete]
+   . `If no roles are applied to an endpoint the API will assume the authorization to be disabled.`
    ![theme-settings](images/resource-type-auth-config.png)  
    The role settings are of course only respected if authentication is enabled.
 
