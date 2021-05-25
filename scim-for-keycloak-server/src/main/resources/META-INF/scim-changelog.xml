@@ -134,4 +134,10 @@
 
     </changeSet>
 
+    <changeSet author="mario siegenthaler" id="scim-sdk-1.0.1">
+        <addColumn tableName="SCIM_SERVICE_PROVIDER">
+            <column name="REQUIRE_SCIM_API_USER_ROLE" type="BOOLEAN" defaultValue="false" />
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

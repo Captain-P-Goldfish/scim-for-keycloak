@@ -131,6 +131,9 @@ public class ScimServiceProviderEntity implements Serializable
   @Column(name = "BULK_MAX_PAYLOAD_SIZE")
   private long bulkMaxPayloadSize;
 
+  @Column(name = "REQUIRE_SCIM_API_USER_ROLE")
+  private boolean requireScimApiUserRole;
+
   /**
    * the clients that are allowed to access the SCIM endpoints. OPTIONAL
    */
@@ -166,6 +169,7 @@ public class ScimServiceProviderEntity implements Serializable
                                    boolean bulkSupported,
                                    int bulkMaxOperations,
                                    long bulkMaxPayloadSize,
+                                   boolean requireScimApiUserRole,
                                    List<ClientEntity> authorizedClients,
                                    Instant created,
                                    Instant lastModified)
@@ -181,6 +185,7 @@ public class ScimServiceProviderEntity implements Serializable
     this.bulkSupported = bulkSupported;
     this.bulkMaxOperations = bulkMaxOperations;
     this.bulkMaxPayloadSize = bulkMaxPayloadSize;
+    this.requireScimApiUserRole = requireScimApiUserRole;
     this.authorizedClients = Optional.ofNullable(authorizedClients).orElse(new ArrayList<>());
     this.created = created;
     this.lastModified = lastModified;

@@ -58,6 +58,7 @@ public class ScimServiceProviderService extends AbstractService
     return ScimServiceProviderEntity.builder()
                                     .realmId(getKeycloakSession().getContext().getRealm().getId())
                                     .enabled(true)
+                                    .requireScimApiUserRole(true)
                                     .filterSupported(true)
                                     .filterMaxResults(50)
                                     .sortSupported(true)
@@ -99,6 +100,9 @@ public class ScimServiceProviderService extends AbstractService
     scimServiceProviderEntity.setEnabled(Optional.ofNullable(serviceProvider.get("enabled"))
                                                  .map(JsonNode::booleanValue)
                                                  .orElse(true));
+    scimServiceProviderEntity.setRequireScimApiUserRole(Optional.ofNullable(serviceProvider.get("requireScimApiUserRole"))
+                                                                .map(JsonNode::booleanValue)
+                                                                .orElse(true));
     scimServiceProviderEntity.setFilterSupported(serviceProvider.getFilterConfig().isSupported());
     scimServiceProviderEntity.setFilterMaxResults(serviceProvider.getFilterConfig().getMaxResults());
     scimServiceProviderEntity.setSortSupported(serviceProvider.getSortConfig().isSupported());
@@ -250,6 +254,7 @@ public class ScimServiceProviderService extends AbstractService
     {
       // now adding custom attributes not that are not defined by SCIM but are used within the web-admin console
       serviceProvider.set("enabled", BooleanNode.valueOf(entity.isEnabled()));
+      serviceProvider.set("requireScimApiUserRole", BooleanNode.valueOf(entity.isRequireScimApiUserRole()));
 
       ArrayNode arrayNode = new ArrayNode(JsonNodeFactory.instance);
       entity.getAuthorizedClients().stream().map(ClientEntity::getClientId).forEach(arrayNode::add);
