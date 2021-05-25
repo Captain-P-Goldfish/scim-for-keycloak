@@ -22,7 +22,7 @@ import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
 import de.captaingoldfish.scim.sdk.keycloak.custom.resources.ChildRole;
 import de.captaingoldfish.scim.sdk.keycloak.custom.resources.RealmRole;
 import de.captaingoldfish.scim.sdk.keycloak.custom.resources.RoleAssociate;
-import de.captaingoldfish.scim.sdk.keycloak.setup.KeycloakScimManagementTest;
+import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
 import de.captaingoldfish.scim.sdk.keycloak.setup.RequestBuilder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
  * @since 16.08.2020
  */
 @Slf4j
-public class RealmRoleHandlerTest extends KeycloakScimManagementTest
+public class RealmRoleHandlerTest extends AbstractScimEndpointTest
 {
 
   public static final String ROLES_ENDPOINT = "/RealmRoles";
