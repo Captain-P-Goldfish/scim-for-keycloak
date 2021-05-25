@@ -38,6 +38,11 @@ public class RealmRoleInitializer
   public static final String SCIM_ADMIN_ROLE = "scim-admin";
 
   /**
+   * the role that is required to access the SCIM api
+   */
+  public static final String SCIM_API_USER_ROLE = "scim-api-user";
+
+  /**
    * initializes the {@link #SCIM_ADMIN_ROLE} on all existing realms if not present and makes sure that the role
    * will also be added to all new created realms
    */
@@ -115,7 +120,7 @@ public class RealmRoleInitializer
         if (client.getRole(SCIM_ADMIN_ROLE) == null)
         {
           log.info("configuring realm {} for SCIM", realm.getName());
-          addRealmAdminRoles(manager, realm);
+          addRealmRoles(manager, realm);
         }
       }
     });
@@ -132,7 +137,7 @@ public class RealmRoleInitializer
     addMasterAdminRoles(manager, realm);
     if (!realm.getName().equals(Config.getAdminRealm()))
     {
-      addRealmAdminRoles(manager, realm);
+      addRealmRoles(manager, realm);
     }
   }
 
@@ -151,11 +156,12 @@ public class RealmRoleInitializer
   /**
    * will add the role {@link #SCIM_ADMIN_ROLE} to the admin-user role of the given realm
    */
-  private static void addRealmAdminRoles(RealmManager manager, RealmModel realm)
+  private static void addRealmRoles(RealmManager manager, RealmModel realm)
   {
     ClientModel client = realm.getClientByClientId(manager.getRealmAdminClientId(realm));
     RoleModel admin = client.getRole(AdminRoles.REALM_ADMIN);
     addScimAdminRole(client, admin);
+    addScimApiUserRole(realm);
   }
 
   /**
@@ -174,4 +180,17 @@ public class RealmRoleInitializer
     parent.addCompositeRole(role);
     log.info("added role '{}' as composite member to role '{}'", SCIM_ADMIN_ROLE, parent.getName());
   }
+
+  /**
+   * adds the {@link #SCIM_API_USER_ROLE} to the given realm.
+   *
+   * @param realm the client to which the role {@link #SCIM_API_USER_ROLE} should be added
+   */
+  private static void addScimApiUserRole(RealmModel realm)
+  {
+    RoleModel role = realm.addRole(SCIM_API_USER_ROLE);
+    log.info("created role '{}'", SCIM_API_USER_ROLE);
+    role.setDescription("${role_" + SCIM_API_USER_ROLE + "}");
+  }
+
 }

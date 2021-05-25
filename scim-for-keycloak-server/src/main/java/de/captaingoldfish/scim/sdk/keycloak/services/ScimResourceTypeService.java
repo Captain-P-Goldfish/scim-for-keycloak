@@ -1,11 +1,7 @@
 package de.captaingoldfish.scim.sdk.keycloak.services;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -19,6 +15,8 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import de.captaingoldfish.scim.sdk.keycloak.provider.RealmRoleInitializer;
+import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
@@ -37,6 +35,7 @@ import de.captaingoldfish.scim.sdk.server.schemas.custom.EndpointControlFeature;
 import de.captaingoldfish.scim.sdk.server.schemas.custom.ResourceTypeAuthorization;
 import de.captaingoldfish.scim.sdk.server.schemas.custom.ResourceTypeFeatures;
 import lombok.extern.slf4j.Slf4j;
+import org.keycloak.services.managers.RealmManager;
 
 
 /**
@@ -103,10 +102,12 @@ public class ScimResourceTypeService extends AbstractService
    */
   private ScimResourceTypeEntity createNewResourceTypeEntry(ResourceType resourceType, RealmModel realmModel)
   {
+    List<RoleEntity> roles = getRoles(Collections.singleton(RealmRoleInitializer.SCIM_API_USER_ROLE));
     ScimResourceTypeEntity scimResourceTypeEntity = ScimResourceTypeEntity.builder()
                                                                           .realmId(realmModel.getId())
                                                                           .name(resourceType.getName())
                                                                           .created(Instant.now())
+                                                                          .endpointRoles(roles)
                                                                           .build();
     getEntityManager().persist(scimResourceTypeEntity);
     setValuesOfEntity(scimResourceTypeEntity, resourceType);
