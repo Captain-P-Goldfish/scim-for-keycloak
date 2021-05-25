@@ -74,7 +74,7 @@ Copy the built artifact into the directory `${keycloak.home}/standalone/deployme
 
 1. Select the `SCIM` link and you should see the following view:   
    ![theme-settings](images/service-provider-config.png)
-2. You can disable SCIM for each realm separately and the `ServiceProvider` configurations as defined in RFC7643
+2. You can enable SCIM for each realm separately and the `ServiceProvider` configurations as defined in RFC7643
 3. You may restrict access to the SCIM-endpoints for each separate realm by allowing users only access if they have been
    identified by a specific client. If no clients are selected any client is authorized to access the SCIM endpoints:  
    ![theme-settings](images/service-provider-auth-config.png)
