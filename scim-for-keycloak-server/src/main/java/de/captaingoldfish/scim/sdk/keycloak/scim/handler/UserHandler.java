@@ -3,6 +3,7 @@ package de.captaingoldfish.scim.sdk.keycloak.scim.handler;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -270,6 +271,13 @@ public class UserHandler extends ResourceHandler<User>
    */
   private User modelToUser(UserModel userModel)
   {
+    List<Email> emails = getAttributeList(Email.class, AttributeNames.RFC7643.EMAILS, userModel);
+
+    Optional.ofNullable(userModel.getEmail()).ifPresent(email -> {
+      // remove emails that are marked as primary in favor of the email property attribute of the user
+      emails.removeIf(MultiComplexNode::isPrimary);
+      emails.add(Email.builder().primary(true).value(email).build());
+    });
     User user = User.builder()
                     .id(userModel.getId())
                     .externalId(userModel.getFirstAttribute(AttributeNames.RFC7643.EXTERNAL_ID))
@@ -291,7 +299,7 @@ public class UserHandler extends ResourceHandler<User>
                     .preferredLanguage(userModel.getFirstAttribute(AttributeNames.RFC7643.PREFERRED_LANGUAGE))
                     .timeZone(userModel.getFirstAttribute(AttributeNames.RFC7643.TIMEZONE))
                     .profileUrl(userModel.getFirstAttribute(AttributeNames.RFC7643.PROFILE_URL))
-                    .emails(getAttributeList(Email.class, AttributeNames.RFC7643.EMAILS, userModel))
+                    .emails(emails)
                     .phoneNumbers(getAttributeList(PhoneNumber.class, AttributeNames.RFC7643.PHONE_NUMBERS, userModel))
                     .addresses(getAttributeList(Address.class, AttributeNames.RFC7643.ADDRESSES, userModel))
                     .ims(getAttributeList(Ims.class, AttributeNames.RFC7643.IMS, userModel))
