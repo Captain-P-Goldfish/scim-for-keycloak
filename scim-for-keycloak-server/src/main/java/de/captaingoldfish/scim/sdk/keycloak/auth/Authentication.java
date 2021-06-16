@@ -70,6 +70,40 @@ public class Authentication
 
     ScimServiceProviderService serviceProviderService = new ScimServiceProviderService(keycloakSession);
     Optional<ScimServiceProviderEntity> optionalEntity = serviceProviderService.getServiceProviderEntity();
+    checkClientAuthorized(keycloakSession, adminAuth, optionalEntity);
+    checkUserScimRole(keycloakSession, adminAuth, optionalEntity);
+    return adminAuth;
+  }
+
+  private void checkUserScimRole(KeycloakSession keycloakSession,
+                                 AdminAuth adminAuth,
+                                 Optional<ScimServiceProviderEntity> optionalEntity)
+  {
+    if (optionalEntity.isPresent() && !optionalEntity.get().isRequireScimApiUserRole())
+    {
+      // skip this check if the admin has turned it off
+      return;
+    }
+
+    // check if the user has the appropriate client role in realm-management
+    RealmManager realmManager = new RealmManager(keycloakSession);
+    RealmModel realm = keycloakSession.getContext().getRealm();
+    ClientModel adminClient = realm.getClientByClientId(realmManager.getRealmAdminClientId(realm));
+    boolean isUserAuthorized = adminAuth.hasAppRole(adminClient, RealmRoleInitializer.SCIM_API_USER_ROLE);
+    if (!isUserAuthorized)
+    {
+      log.error(ERROR_MESSAGE_AUTHENTICATION_FAILED + ": user does not have scim-api-user role");
+      throw new NotAuthorizedException(ERROR_MESSAGE_AUTHENTICATION_FAILED);
+    }
+  }
+
+  private void checkClientAuthorized(KeycloakSession keycloakSession,
+                                     AdminAuth adminAuth,
+                                     Optional<ScimServiceProviderEntity> optionalEntity)
+  {
+    // if no service provider representation are found in the database (which shouldn't happen under normal
+    // circumstances) we do not expect any clients to be associated with the current service provider (aka no
+    // restriction)
     if (optionalEntity.isPresent())
     {
       // there might be an association to an existing client with this service provider. If so the associated
@@ -80,15 +114,13 @@ public class Authentication
                                             .stream()
                                             .map(ClientEntity::getClientId)
                                             .anyMatch(clientId -> clientId.equals(adminAuth.getClient().getClientId()));
+
       if (!isClientAuthorized)
       {
-        log.error(ERROR_MESSAGE_AUTHENTICATION_FAILED);
+        log.error(ERROR_MESSAGE_AUTHENTICATION_FAILED + ": client not authorized");
         throw new NotAuthorizedException(ERROR_MESSAGE_AUTHENTICATION_FAILED);
       }
     }
-    // if no service provider representation are found in the database (which shouldn't happen under normal
-    // circumstances) we do not expect any clients to be associated with the current service provider
-    return adminAuth;
   }
 
   /**

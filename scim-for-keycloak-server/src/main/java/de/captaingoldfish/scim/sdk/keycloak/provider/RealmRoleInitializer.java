@@ -38,6 +38,12 @@ public class RealmRoleInitializer
   public static final String SCIM_ADMIN_ROLE = "scim-admin";
 
   /**
+   * the role that is required to access the SCIM rest api (and read/mutate resources)
+   */
+  public static final String SCIM_API_USER_ROLE = "scim-api-user";
+
+
+  /**
    * initializes the {@link #SCIM_ADMIN_ROLE} on all existing realms if not present and makes sure that the role
    * will also be added to all new created realms
    */
@@ -156,6 +162,7 @@ public class RealmRoleInitializer
     ClientModel client = realm.getClientByClientId(manager.getRealmAdminClientId(realm));
     RoleModel admin = client.getRole(AdminRoles.REALM_ADMIN);
     addScimAdminRole(client, admin);
+    addScimApiUserRole(client, admin);
   }
 
   /**
@@ -173,5 +180,20 @@ public class RealmRoleInitializer
     role.setDescription("${role_" + SCIM_ADMIN_ROLE + "}");
     parent.addCompositeRole(role);
     log.info("added role '{}' as composite member to role '{}'", SCIM_ADMIN_ROLE, parent.getName());
+  }
+
+
+  /**
+   * adds the {@link #SCIM_API_USER_ROLE} to the given client.
+   *
+   * @param client the client to which the role {@link #SCIM_API_USER_ROLE} should be added
+   */
+  private static void addScimApiUserRole(ClientModel client, RoleModel parent)
+  {
+    RoleModel role = client.addRole(SCIM_API_USER_ROLE);
+    log.info("created role '{}'", SCIM_API_USER_ROLE);
+    role.setDescription("${role_" + SCIM_API_USER_ROLE + "}");
+    parent.addCompositeRole(role);
+    log.info("added role '{}' as composite member to role '{}'", SCIM_API_USER_ROLE, parent.getName());
   }
 }
