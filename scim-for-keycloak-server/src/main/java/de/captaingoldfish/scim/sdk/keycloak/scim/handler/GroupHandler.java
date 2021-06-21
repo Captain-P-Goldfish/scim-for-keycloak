@@ -21,10 +21,10 @@ import de.captaingoldfish.scim.sdk.common.resources.Group;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Meta;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Member;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
-import de.captaingoldfish.scim.sdk.keycloak.auth.ScimAuthorization;
+import de.captaingoldfish.scim.sdk.keycloak.scim.ScimKeycloakContext;
 import de.captaingoldfish.scim.sdk.keycloak.services.GroupService;
+import de.captaingoldfish.scim.sdk.server.endpoints.Context;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceHandler;
-import de.captaingoldfish.scim.sdk.server.endpoints.authorize.Authorization;
 import de.captaingoldfish.scim.sdk.server.filter.FilterNode;
 import de.captaingoldfish.scim.sdk.server.response.PartialListResponse;
 
@@ -41,9 +41,9 @@ public class GroupHandler extends ResourceHandler<Group>
    * {@inheritDoc}
    */
   @Override
-  public Group createResource(Group group, Authorization authorization)
+  public Group createResource(Group group, Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     final String groupName = group.getDisplayName().get();
     if (new GroupService(keycloakSession).getGroupByName(groupName).isPresent())
     {
@@ -59,11 +59,11 @@ public class GroupHandler extends ResourceHandler<Group>
    */
   @Override
   public Group getResource(String id,
-                           Authorization authorization,
                            List<SchemaAttribute> attributes,
-                           List<SchemaAttribute> excludedAttributes)
+                           List<SchemaAttribute> excludedAttributes,
+                           Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     GroupModel groupModel = keycloakSession.getContext().getRealm().getGroupById(id);
     if (groupModel == null)
     {
@@ -83,9 +83,9 @@ public class GroupHandler extends ResourceHandler<Group>
                                                   SortOrder sortOrder,
                                                   List<SchemaAttribute> attributes,
                                                   List<SchemaAttribute> excludedAttributes,
-                                                  Authorization authorization)
+                                                  Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     // TODO in order to filter on database level the feature "autoFiltering" must be disabled and the JPA criteria
     // api should be used
     Stream<GroupModel> groupModelsStream = keycloakSession.getContext().getRealm().getGroupsStream();
@@ -101,9 +101,9 @@ public class GroupHandler extends ResourceHandler<Group>
    * {@inheritDoc}
    */
   @Override
-  public Group updateResource(Group groupToUpdate, Authorization authorization)
+  public Group updateResource(Group groupToUpdate, Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     GroupModel groupModel = keycloakSession.getContext().getRealm().getGroupById(groupToUpdate.getId().get());
     if (groupModel == null)
     {
@@ -117,9 +117,9 @@ public class GroupHandler extends ResourceHandler<Group>
    * {@inheritDoc}
    */
   @Override
-  public void deleteResource(String id, Authorization authorization)
+  public void deleteResource(String id, Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     GroupModel groupModel = keycloakSession.getContext().getRealm().getGroupById(id);
     if (groupModel == null)
     {

@@ -37,9 +37,9 @@ import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.ScimX509Certificate;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
-import de.captaingoldfish.scim.sdk.keycloak.auth.ScimAuthorization;
+import de.captaingoldfish.scim.sdk.keycloak.scim.ScimKeycloakContext;
+import de.captaingoldfish.scim.sdk.server.endpoints.Context;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceHandler;
-import de.captaingoldfish.scim.sdk.server.endpoints.authorize.Authorization;
 import de.captaingoldfish.scim.sdk.server.filter.FilterNode;
 import de.captaingoldfish.scim.sdk.server.response.PartialListResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -60,9 +60,9 @@ public class UserHandler extends ResourceHandler<User>
    * {@inheritDoc}
    */
   @Override
-  public User createResource(User user, Authorization authorization)
+  public User createResource(User user, Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     final String username = user.getUserName().get();
     if (keycloakSession.users().getUserByUsername(username, keycloakSession.getContext().getRealm()) != null)
     {
@@ -79,11 +79,11 @@ public class UserHandler extends ResourceHandler<User>
    */
   @Override
   public User getResource(String id,
-                          Authorization authorization,
                           List<SchemaAttribute> attributes,
-                          List<SchemaAttribute> excludedAttributes)
+                          List<SchemaAttribute> excludedAttributes,
+                          Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     UserModel userModel = keycloakSession.users().getUserById(id, keycloakSession.getContext().getRealm());
     if (userModel == null)
     {
@@ -103,9 +103,9 @@ public class UserHandler extends ResourceHandler<User>
                                                  SortOrder sortOrder,
                                                  List<SchemaAttribute> attributes,
                                                  List<SchemaAttribute> excludedAttributes,
-                                                 Authorization authorization)
+                                                 Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     // TODO in order to filter on database level the feature "autoFiltering" must be disabled and the JPA criteria
     // api should be used
     RealmModel realmModel = keycloakSession.getContext().getRealm();
@@ -118,9 +118,9 @@ public class UserHandler extends ResourceHandler<User>
    * {@inheritDoc}
    */
   @Override
-  public User updateResource(User userToUpdate, Authorization authorization)
+  public User updateResource(User userToUpdate, Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     UserModel userModel = keycloakSession.users()
                                          .getUserById(userToUpdate.getId().get(),
                                                       keycloakSession.getContext().getRealm());
@@ -142,9 +142,9 @@ public class UserHandler extends ResourceHandler<User>
    * {@inheritDoc}
    */
   @Override
-  public void deleteResource(String id, Authorization authorization)
+  public void deleteResource(String id, Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     UserModel userModel = keycloakSession.users().getUserById(id, keycloakSession.getContext().getRealm());
     if (userModel == null)
     {

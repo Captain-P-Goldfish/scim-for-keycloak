@@ -93,15 +93,17 @@ public class ScimEndpoint extends AbstractEndpoint
     }
     ResourceEndpoint resourceEndpoint = getResourceEndpoint();
 
+    ScimKeycloakContext scimKeycloakContext = new ScimKeycloakContext(getKeycloakSession(),
+                                                                      new ScimAuthorization(getKeycloakSession(),
+                                                                                            authentication));
     String query = request.getQueryString() == null ? "" : "?" + request.getQueryString();
     ScimResponse scimResponse = resourceEndpoint.handleRequest(request.getRequestURL().toString() + query,
                                                                HttpMethod.valueOf(request.getMethod()),
                                                                getRequestBody(request),
                                                                getHttpHeaders(request),
-                                                               new ScimAuthorization(getKeycloakSession(),
-                                                                                     authentication),
                                                                null,
-                                                               commitOrRollback());
+                                                               commitOrRollback(),
+                                                               scimKeycloakContext);
     return scimResponse.buildResponse();
   }
 

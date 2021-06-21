@@ -19,13 +19,13 @@ import de.captaingoldfish.scim.sdk.common.exceptions.InternalServerException;
 import de.captaingoldfish.scim.sdk.common.exceptions.ResourceNotFoundException;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Meta;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
-import de.captaingoldfish.scim.sdk.keycloak.auth.ScimAuthorization;
 import de.captaingoldfish.scim.sdk.keycloak.custom.resources.ChildRole;
 import de.captaingoldfish.scim.sdk.keycloak.custom.resources.RealmRole;
 import de.captaingoldfish.scim.sdk.keycloak.custom.resources.RoleAssociate;
+import de.captaingoldfish.scim.sdk.keycloak.scim.ScimKeycloakContext;
 import de.captaingoldfish.scim.sdk.keycloak.services.RoleService;
+import de.captaingoldfish.scim.sdk.server.endpoints.Context;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceHandler;
-import de.captaingoldfish.scim.sdk.server.endpoints.authorize.Authorization;
 import de.captaingoldfish.scim.sdk.server.filter.FilterNode;
 import de.captaingoldfish.scim.sdk.server.response.PartialListResponse;
 
@@ -88,9 +88,9 @@ public class RealmRoleHandler extends ResourceHandler<RealmRole>
    * {@inheritDoc}
    */
   @Override
-  public RealmRole createResource(RealmRole resource, Authorization authorization)
+  public RealmRole createResource(RealmRole resource, Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     RoleModel roleModel = keycloakSession.roles()
                                          .getRealmRole(keycloakSession.getContext().getRealm(), resource.getName());
     if (roleModel != null)
@@ -106,11 +106,11 @@ public class RealmRoleHandler extends ResourceHandler<RealmRole>
    */
   @Override
   public RealmRole getResource(String id,
-                               Authorization authorization,
                                List<SchemaAttribute> attributes,
-                               List<SchemaAttribute> excludedAttributes)
+                               List<SchemaAttribute> excludedAttributes,
+                               Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     return new RoleService(keycloakSession).getRoleModel(id)
                                            .map(roleModel -> toScimRole(keycloakSession, roleModel))
                                            .orElse(null);
@@ -127,9 +127,9 @@ public class RealmRoleHandler extends ResourceHandler<RealmRole>
                                                       SortOrder sortOrder,
                                                       List<SchemaAttribute> attributes,
                                                       List<SchemaAttribute> excludedAttributes,
-                                                      Authorization authorization)
+                                                      Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     List<RealmRole> roleModelList = keycloakSession.roles()
                                                    .getRealmRolesStream(keycloakSession.getContext().getRealm())
                                                    .map(roleModel -> toScimRole(keycloakSession, roleModel))
@@ -144,9 +144,9 @@ public class RealmRoleHandler extends ResourceHandler<RealmRole>
    * {@inheritDoc}
    */
   @Override
-  public RealmRole updateResource(RealmRole resourceToUpdate, Authorization authorization)
+  public RealmRole updateResource(RealmRole resourceToUpdate, Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     RoleModel roleModel = new RoleService(keycloakSession).updateRole(resourceToUpdate);
     return toScimRole(keycloakSession, roleModel);
   }
@@ -155,9 +155,9 @@ public class RealmRoleHandler extends ResourceHandler<RealmRole>
    * {@inheritDoc}
    */
   @Override
-  public void deleteResource(String id, Authorization authorization)
+  public void deleteResource(String id, Context context)
   {
-    KeycloakSession keycloakSession = ((ScimAuthorization)authorization).getKeycloakSession();
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     Optional<RoleModel> optionalRoleModel = new RoleService(keycloakSession).getRoleModel(id);
     if (!optionalRoleModel.isPresent())
     {
