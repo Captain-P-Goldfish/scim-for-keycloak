@@ -1,5 +1,6 @@
 package de.captaingoldfish.scim.sdk.keycloak.tests.setup.keycloakdirectsetup;
 
+import java.util.Collections;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
@@ -69,7 +70,7 @@ class DatabaseSetup
   {
     EntityManager newEntityManager = entityManagerFactory.createEntityManager();
     JpaUserProvider jpaUserProvider = new JpaUserProvider(keycloakSession, newEntityManager);
-    JpaRealmProvider jpaRealmProvider = new JpaRealmProvider(keycloakSession, newEntityManager);
+    JpaRealmProvider jpaRealmProvider = new JpaRealmProvider(keycloakSession, newEntityManager, Collections.emptySet());
     Mockito.doReturn(new JpaUserProvider(keycloakSession, newEntityManager)).when(keycloakSession).users();
     Mockito.doReturn(jpaUserProvider).when(keycloakSession).userLocalStorage();
     Mockito.doReturn(jpaRealmProvider).when(keycloakSession).realms();
