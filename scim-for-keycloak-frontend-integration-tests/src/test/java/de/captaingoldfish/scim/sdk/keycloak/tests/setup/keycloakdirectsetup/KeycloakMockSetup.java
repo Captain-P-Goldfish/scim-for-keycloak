@@ -1,6 +1,6 @@
 package de.captaingoldfish.scim.sdk.keycloak.tests.setup.keycloakdirectsetup;
 
-import java.util.Collections;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 
@@ -106,9 +106,9 @@ class KeycloakMockSetup
   protected void setupPasswordManagingSettings()
   {
     Mockito.doReturn(new UserCredentialStoreManager(keycloakSession)).when(keycloakSession).userCredentialManager();
-    Mockito.doReturn(Collections.singletonList(new PasswordCredentialProviderFactory()))
+    Mockito.doReturn(Stream.of(new PasswordCredentialProviderFactory()))
            .when(keycloakSessionFactory)
-           .getProviderFactories(CredentialProvider.class);
+           .getProviderFactoriesStream(CredentialProvider.class);
     Mockito.doReturn(new PasswordCredentialProvider(keycloakSession))
            .when(keycloakSession)
            .getProvider(CredentialProvider.class, PasswordCredentialProviderFactory.PROVIDER_ID);
