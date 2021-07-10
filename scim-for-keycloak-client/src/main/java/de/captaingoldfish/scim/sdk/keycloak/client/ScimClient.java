@@ -28,7 +28,6 @@ import de.captaingoldfish.scim.sdk.client.ScimClientConfig;
 import de.captaingoldfish.scim.sdk.client.ScimRequestBuilder;
 import de.captaingoldfish.scim.sdk.client.builder.BulkBuilder;
 import de.captaingoldfish.scim.sdk.client.http.HttpResponse;
-import de.captaingoldfish.scim.sdk.client.http.ProxyHelper;
 import de.captaingoldfish.scim.sdk.client.http.ScimHttpClient;
 import de.captaingoldfish.scim.sdk.client.response.ServerResponse;
 import de.captaingoldfish.scim.sdk.common.constants.AttributeNames;
@@ -83,8 +82,10 @@ public class ScimClient
     ServiceProvider serviceProviderConfig = response.getResource();
 
     deleteAllUsers(scimRequestBuilder);
+    deleteAllGroups(scimRequestBuilder);
     createUsers(scimRequestBuilder, serviceProviderConfig);
-    // createGroups(scimRequestBuilder);
+    createGroups(scimRequestBuilder);
+    updateGroups(scimRequestBuilder);
   }
 
   @SneakyThrows
@@ -94,11 +95,7 @@ public class ScimClient
     ScimClientConfig scimClientConfig = ScimClientConfig.builder()
                                                         .socketTimeout(120)
                                                         .requestTimeout(120)
-                                                        .basic("scim", "5810f85b-cedd-4cc3-84cc-ccbd89d4a54a")
-                                                        .proxy(ProxyHelper.builder()
-                                                                          .systemProxyHost("localhost")
-                                                                          .systemProxyPort(8888)
-                                                                          .build())
+                                                        .basic("scim", "809e751e-dd1c-40c3-adab-a8ad393c9d82")
                                                         .build();
     try (ScimHttpClient scimHttpClient = new ScimHttpClient(scimClientConfig))
     {
@@ -277,7 +274,42 @@ public class ScimClient
   {
     List<Group> groups = getGroupsList(scimRequestBuilder);
     groups.stream().parallel().forEach(group -> {
+      List<Member> randomUsers = getRandomUsers(scimRequestBuilder).stream()
+                                                                   .map(user -> Member.builder()
+                                                                                      .type(ResourceTypeNames.USER)
+                                                                                      .value(user.getId().get())
+                                                                                      .build())
+                                                                   .collect(Collectors.toList());
+      group.setMembers(randomUsers);
       ServerResponse<Group> response = scimRequestBuilder.create(Group.class, EndpointPaths.GROUPS)
+                                                         .setResource(group)
+                                                         .sendRequest();
+      if (response.isSuccess())
+      {
+        log.trace("group with name {} was successfully created", group.getDisplayName().get());
+      }
+      else
+      {
+        log.error("group with name {} could not be created", group.getDisplayName().get());
+      }
+    });
+  }
+
+  /**
+   * creates some groups with 10 random members for each group
+   */
+  private static void updateGroups(ScimRequestBuilder scimRequestBuilder)
+  {
+    List<Group> allGroups = getAllGroups(scimRequestBuilder);
+    allGroups.stream().parallel().forEach(group -> {
+      List<Member> randomUsers = getRandomUsers(scimRequestBuilder).stream()
+                                                                   .map(user -> Member.builder()
+                                                                                      .type(ResourceTypeNames.USER)
+                                                                                      .value(user.getId().get())
+                                                                                      .build())
+                                                                   .collect(Collectors.toList());
+      group.setMembers(randomUsers);
+      ServerResponse<Group> response = scimRequestBuilder.update(Group.class, EndpointPaths.GROUPS, group.getId().get())
                                                          .setResource(group)
                                                          .sendRequest();
       if (response.isSuccess())
@@ -324,14 +356,51 @@ public class ScimClient
   }
 
   /**
+   * deletes all groups from the current realm
+   */
+  private static void deleteAllGroups(ScimRequestBuilder scimRequestBuilder)
+  {
+    List<Group> allGroups = getAllGroups(scimRequestBuilder);
+    allGroups.parallelStream().forEach(group -> {
+      ServerResponse<Group> deleteResponse = scimRequestBuilder.delete(Group.class,
+                                                                       EndpointPaths.GROUPS,
+                                                                       group.getId().get())
+                                                               .sendRequest();
+
+      if (deleteResponse.isSuccess())
+      {
+        log.trace("group with name {} was successfully deleted", group.getDisplayName().get());
+      }
+      else
+      {
+        log.error("group with name {} could not be deleted", group.getDisplayName().get());
+      }
+    });
+  }
+
+  private static List<Group> getAllGroups(ScimRequestBuilder scimRequestBuilder)
+  {
+    return scimRequestBuilder.list(Group.class, EndpointPaths.GROUPS)
+                             .get()
+                             .sendRequest()
+                             .getResource()
+                             .getListedResources();
+  }
+
+  /**
    * randomly gets 10 users from the server
    */
   private static List<User> getRandomUsers(ScimRequestBuilder scimRequestBuilder)
   {
     Random random = new Random();
+    ServerResponse<ListResponse<User>> countResponse = scimRequestBuilder.list(User.class, EndpointPaths.USERS)
+                                                                         .count(0)
+                                                                         .get()
+                                                                         .sendRequest();
+    long totalResults = countResponse.getResource().getTotalResults();
     ServerResponse<ListResponse<User>> response = scimRequestBuilder.list(User.class, EndpointPaths.USERS)
-                                                                    .startIndex(random.nextInt(4500))
-                                                                    .count(10)
+                                                                    .startIndex(random.nextInt((int)totalResults))
+                                                                    .count(2)
                                                                     .get()
                                                                     .sendRequest();
     ListResponse<User> listResponse = response.getResource();
