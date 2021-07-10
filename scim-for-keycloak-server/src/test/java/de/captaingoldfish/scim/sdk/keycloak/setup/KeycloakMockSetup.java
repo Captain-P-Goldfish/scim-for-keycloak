@@ -8,14 +8,18 @@ import javax.persistence.EntityManager;
 
 import org.junit.jupiter.api.Assertions;
 import org.keycloak.Config;
+import org.keycloak.common.ClientConnection;
 import org.keycloak.credential.CredentialProvider;
 import org.keycloak.credential.PasswordCredentialProvider;
 import org.keycloak.credential.PasswordCredentialProviderFactory;
 import org.keycloak.credential.UserCredentialStoreManager;
 import org.keycloak.credential.hash.PasswordHashProvider;
 import org.keycloak.credential.hash.Pbkdf2PasswordHashProviderFactory;
+import org.keycloak.events.EventStoreProvider;
+import org.keycloak.events.jpa.JpaEventStoreProvider;
 import org.keycloak.executors.DefaultExecutorsProviderFactory;
 import org.keycloak.executors.ExecutorsProvider;
+import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakContext;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
@@ -75,6 +79,13 @@ class KeycloakMockSetup
   private UserModel user;
 
   /**
+   * a client used for the {@link org.keycloak.services.resources.admin.AdminAuth} mock and
+   * {@link org.keycloak.services.resources.admin.AdminEventBuilder}
+   */
+  @Getter
+  private ClientModel client;
+
+  /**
    * the keycloak session factory
    */
   @Getter
@@ -85,6 +96,12 @@ class KeycloakMockSetup
    */
   @Getter
   private DefaultKeycloakTransactionManager keycloakTransactionManager;
+
+  /**
+   * the event store provider used for accessing admin events within the database
+   */
+  @Getter
+  private EventStoreProvider eventStoreProvider;
 
   public KeycloakMockSetup(KeycloakSession keycloakSession, EntityManager entityManager)
   {
@@ -107,6 +124,12 @@ class KeycloakMockSetup
     Mockito.doReturn(groupStorageManager).when(keycloakSession).groups();
     Mockito.doReturn(groupStorageManager).when(keycloakSession).groupStorageManager();
     Mockito.doReturn(jpaRealmProvider).when(keycloakSession).groupLocalStorage();
+
+    ClientConnection clientConnection = Mockito.mock(ClientConnection.class);
+    Mockito.doReturn(clientConnection).when(keycloakContext).getConnection();
+
+    eventStoreProvider = new JpaEventStoreProvider(this.keycloakSession, this.entityManager, Integer.MAX_VALUE);
+    Mockito.doReturn(eventStoreProvider).when(this.keycloakSession).getProvider(EventStoreProvider.class);
 
     setupPasswordManagingSettings();
     mockExecutorService();
@@ -160,6 +183,8 @@ class KeycloakMockSetup
     log.trace("building test realm '{}'", TEST_REALM_NAME);
     entityManager.getTransaction().begin();
     realmModel = keycloakSession.realms().createRealm(UUID.randomUUID().toString(), TEST_REALM_NAME);
+    realmModel.setAdminEventsEnabled(true);
+    realmModel.setAdminEventsDetailsEnabled(true);
     RoleModel roleModel = realmModel.addRole("default-role");
     realmModel.setDefaultRole(roleModel);
     realmModel.setPasswordPolicy(PasswordPolicy.build().build(keycloakSession));
@@ -168,7 +193,13 @@ class KeycloakMockSetup
     Assertions.assertEquals(1, realms.size());
     log.debug("test-realm successfully created: {} - {}", realmModel.getId(), realmModel.getName());
     createUser();
+    createClient();
     entityManager.getTransaction().commit();
+  }
+
+  private void createClient()
+  {
+    client = realmModel.addClient("goldfish");
   }
 
   /**
@@ -177,7 +208,6 @@ class KeycloakMockSetup
   private void createUser()
   {
     user = keycloakSession.users().addUser(realmModel, "admin");
-    user.setSingleAttribute("scim-user", String.valueOf(true));
   }
 
 

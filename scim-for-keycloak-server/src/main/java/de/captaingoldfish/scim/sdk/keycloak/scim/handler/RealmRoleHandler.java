@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.keycloak.events.admin.OperationType;
+import org.keycloak.events.admin.ResourceType;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RoleMapperModel;
@@ -19,6 +21,7 @@ import de.captaingoldfish.scim.sdk.common.exceptions.InternalServerException;
 import de.captaingoldfish.scim.sdk.common.exceptions.ResourceNotFoundException;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Meta;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
+import de.captaingoldfish.scim.sdk.keycloak.audit.ScimAdminEventBuilder;
 import de.captaingoldfish.scim.sdk.keycloak.custom.resources.ChildRole;
 import de.captaingoldfish.scim.sdk.keycloak.custom.resources.RealmRole;
 import de.captaingoldfish.scim.sdk.keycloak.custom.resources.RoleAssociate;
@@ -28,6 +31,7 @@ import de.captaingoldfish.scim.sdk.server.endpoints.Context;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceHandler;
 import de.captaingoldfish.scim.sdk.server.filter.FilterNode;
 import de.captaingoldfish.scim.sdk.server.response.PartialListResponse;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -36,6 +40,7 @@ import de.captaingoldfish.scim.sdk.server.response.PartialListResponse;
  * @author Pascal Knueppel
  * @since 16.08.2020
  */
+@Slf4j
 public class RealmRoleHandler extends ResourceHandler<RealmRole>
 {
 
@@ -98,7 +103,16 @@ public class RealmRoleHandler extends ResourceHandler<RealmRole>
       throw new ConflictException("role with name '" + roleModel.getName() + "' does already exist");
     }
     RoleModel newRoleModel = new RoleService(keycloakSession).createNewRole(resource);
-    return toScimRole(keycloakSession, newRoleModel);
+    RealmRole realmRole = toScimRole(keycloakSession, newRoleModel);
+    {
+      ScimAdminEventBuilder adminEventAuditer = ((ScimKeycloakContext)context).getAdminEventAuditer();
+      adminEventAuditer.createEvent(OperationType.CREATE,
+                                    ResourceType.REALM_ROLE,
+                                    String.format("roles/%s", newRoleModel.getId()),
+                                    realmRole);
+    }
+    log.debug("Created realm role with name: {}", realmRole.getName());
+    return realmRole;
   }
 
   /**
@@ -148,7 +162,16 @@ public class RealmRoleHandler extends ResourceHandler<RealmRole>
   {
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     RoleModel roleModel = new RoleService(keycloakSession).updateRole(resourceToUpdate);
-    return toScimRole(keycloakSession, roleModel);
+    RealmRole realmRole = toScimRole(keycloakSession, roleModel);
+    {
+      ScimAdminEventBuilder adminEventAuditer = ((ScimKeycloakContext)context).getAdminEventAuditer();
+      adminEventAuditer.createEvent(OperationType.UPDATE,
+                                    ResourceType.REALM_ROLE,
+                                    String.format("roles/%s", roleModel.getId()),
+                                    realmRole);
+    }
+    log.debug("Updated realm role with name: {}", realmRole.getName());
+    return realmRole;
   }
 
   /**
@@ -164,6 +187,17 @@ public class RealmRoleHandler extends ResourceHandler<RealmRole>
       throw new ResourceNotFoundException("resource with id '" + id + "' does not exist");
     }
     keycloakSession.roles().removeRole(optionalRoleModel.get());
+    {
+      ScimAdminEventBuilder adminEventAuditer = ((ScimKeycloakContext)context).getAdminEventAuditer();
+      adminEventAuditer.createEvent(OperationType.DELETE,
+                                    ResourceType.REALM_ROLE,
+                                    String.format("roles/%s", optionalRoleModel.get().getId()),
+                                    RealmRole.builder()
+                                             .id(optionalRoleModel.get().getId())
+                                             .name(optionalRoleModel.get().getName())
+                                             .build());
+    }
+    log.debug("Deleted realm role with name: {}", optionalRoleModel.get().getName());
   }
 
   /**

@@ -2,8 +2,10 @@ package de.captaingoldfish.scim.sdk.keycloak.scim.handler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
@@ -12,11 +14,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.keycloak.events.admin.AdminEvent;
+import org.keycloak.events.admin.OperationType;
+import org.keycloak.events.admin.ResourceType;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.UserModel;
 
 import de.captaingoldfish.scim.sdk.common.constants.EndpointPaths;
 import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
+import de.captaingoldfish.scim.sdk.common.constants.ResourceTypeNames;
 import de.captaingoldfish.scim.sdk.common.constants.enums.HttpMethod;
 import de.captaingoldfish.scim.sdk.common.constants.enums.PatchOp;
 import de.captaingoldfish.scim.sdk.common.request.PatchOpRequest;
@@ -214,5 +220,368 @@ public class GroupHandlerTest extends KeycloakScimManagementTest
 
     Response response = getScimEndpoint().handleScimRequest(request);
     Assertions.assertEquals(HttpStatus.CONFLICT, response.getStatus());
+  }
+
+  /**
+   * verifies that a group is created and that an admin event is correctly stored
+   */
+  @Test
+  public void testAdminEventOnGroupCreated()
+  {
+    Group goldfish = Group.builder().displayName("goldfish").build();
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .endpoint(EndpointPaths.GROUPS)
+                                               .method(HttpMethod.POST)
+                                               .requestBody(goldfish.toString())
+                                               .build();
+
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
+
+    Group createdGroup = JsonHelper.readJsonDocument((String)response.getEntity(), Group.class);
+    // check for created admin event
+    {
+      List<AdminEvent> adminEventList = getAdminEventStoreProvider().createAdminQuery()
+                                                                    .getResultStream()
+                                                                    .collect(Collectors.toList());
+      Assertions.assertEquals(1, adminEventList.size());
+      AdminEvent adminEvent = adminEventList.get(0);
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals("groups/" + createdGroup.getId().get(), adminEvent.getResourcePath());
+      Assertions.assertEquals(OperationType.CREATE, adminEvent.getOperationType());
+      Assertions.assertEquals(ResourceType.GROUP, adminEvent.getResourceType());
+      // equalize the two objects by modifying the meta-attribute. The meta-attribute is not identical because the
+      // schema-validation is modifying the meta-attribute when evaluating the response
+      {
+        createdGroup.getMeta().get().setResourceType(null);
+        createdGroup.getMeta().get().setLocation(null);
+      }
+      Assertions.assertEquals(createdGroup, JsonHelper.readJsonDocument(adminEvent.getRepresentation(), Group.class));
+    }
+  }
+
+  /**
+   * verifies that for an admin event is triggered for for each group add member operation.
+   */
+  @Test
+  public void testAdminEventsOnGroupCreatedWithMembers()
+  {
+    UserModel superMario = getKeycloakSession().users().addUser(getRealmModel(), "supermario");
+    UserModel bowser = getKeycloakSession().users().addUser(getRealmModel(), "bowser");
+
+    GroupModel marioClub = getKeycloakSession().groups().createGroup(getRealmModel(), "mario club");
+    GroupModel luigiClub = getKeycloakSession().groups().createGroup(getRealmModel(), "luigi club");
+
+    List<Member> groupMembers = Arrays.asList(Member.builder()
+                                                    .type(ResourceTypeNames.USER)
+                                                    .value(superMario.getId())
+                                                    .build(),
+                                              Member.builder()
+                                                    .type(ResourceTypeNames.USER)
+                                                    .value(bowser.getId())
+                                                    .build(),
+                                              Member.builder()
+                                                    .type(ResourceTypeNames.GROUPS)
+                                                    .value(marioClub.getId())
+                                                    .build(),
+                                              Member.builder()
+                                                    .type(ResourceTypeNames.GROUPS)
+                                                    .value(luigiClub.getId())
+                                                    .build());
+
+    Group nintendo = Group.builder().displayName("nintendo").members(groupMembers).build();
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .endpoint(EndpointPaths.GROUPS)
+                                               .method(HttpMethod.POST)
+                                               .requestBody(nintendo.toString())
+                                               .build();
+
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
+
+    Group createdGroup = JsonHelper.readJsonDocument((String)response.getEntity(), Group.class);
+    GroupModel nintendoGroupModel = getKeycloakSession().groups()
+                                                        .getGroupById(getRealmModel(), createdGroup.getId().get());
+
+    Assertions.assertTrue(superMario.isMemberOf(nintendoGroupModel));
+    Assertions.assertTrue(bowser.isMemberOf(nintendoGroupModel));
+    Assertions.assertTrue(nintendoGroupModel.getSubGroupsStream().anyMatch(g -> g.getId().equals(marioClub.getId())));
+    Assertions.assertTrue(nintendoGroupModel.getSubGroupsStream().anyMatch(g -> g.getId().equals(luigiClub.getId())));
+
+    List<AdminEvent> adminEventList = getAdminEventStoreProvider().createAdminQuery()
+                                                                  .getResultStream()
+                                                                  .collect(Collectors.toList());
+    Assertions.assertEquals(5, adminEventList.size());
+    // check for created admin event that the group was created
+    {
+      AdminEvent adminEvent = adminEventList.get(0);
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals("groups/" + createdGroup.getId().get(), adminEvent.getResourcePath());
+      Assertions.assertEquals(OperationType.CREATE, adminEvent.getOperationType());
+      Assertions.assertEquals(ResourceType.GROUP, adminEvent.getResourceType());
+      // equalize the two objects by modifying the meta-attribute. The meta-attribute is not identical because the
+      // schema-validation is modifying the meta-attribute when evaluating the response
+      {
+        createdGroup.getMeta().get().setResourceType(null);
+        createdGroup.getMeta().get().setLocation(null);
+      }
+      List<Member> membersWithRefRemoved = createdGroup.getMembers()
+                                                       .stream()
+                                                       .peek(member -> member.setRef(null))
+                                                       .collect(Collectors.toList());
+      createdGroup.setMembers(membersWithRefRemoved);
+      Assertions.assertEquals(createdGroup, JsonHelper.readJsonDocument(adminEvent.getRepresentation(), Group.class));
+    }
+
+    // check for admin event that the user supermario was added as a group member
+    {
+      AdminEvent adminEvent = adminEventList.stream()
+                                            .filter(event -> event.getResourcePath()
+                                                                  .equals(String.format("users/%s/groups/%s",
+                                                                                        superMario.getId(),
+                                                                                        nintendoGroupModel.getId())))
+                                            .findAny()
+                                            .get();
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals(OperationType.CREATE, adminEvent.getOperationType());
+      Assertions.assertEquals(ResourceType.GROUP_MEMBERSHIP, adminEvent.getResourceType());
+      Assertions.assertEquals(Group.builder()
+                                   .id(nintendoGroupModel.getId())
+                                   .displayName(nintendoGroupModel.getName())
+                                   .members(Collections.singletonList(Member.builder()
+                                                                            .value(superMario.getId())
+                                                                            .type(ResourceTypeNames.USER)
+                                                                            .display(superMario.getUsername())
+                                                                            .build()))
+                                   .build(),
+                              JsonHelper.readJsonDocument(adminEvent.getRepresentation(), Group.class));
+    }
+
+    // check for admin event that the user bowser was added as a group member
+    {
+      AdminEvent adminEvent = adminEventList.stream()
+                                            .filter(event -> event.getResourcePath()
+                                                                  .equals(String.format("users/%s/groups/%s",
+                                                                                        bowser.getId(),
+                                                                                        nintendoGroupModel.getId())))
+                                            .findAny()
+                                            .get();
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals(OperationType.CREATE, adminEvent.getOperationType());
+      Assertions.assertEquals(ResourceType.GROUP_MEMBERSHIP, adminEvent.getResourceType());
+      Assertions.assertEquals(Group.builder()
+                                   .id(nintendoGroupModel.getId())
+                                   .displayName(nintendoGroupModel.getName())
+                                   .members(Collections.singletonList(Member.builder()
+                                                                            .value(bowser.getId())
+                                                                            .type(ResourceTypeNames.USER)
+                                                                            .display(bowser.getUsername())
+                                                                            .build()))
+                                   .build(),
+                              JsonHelper.readJsonDocument(adminEvent.getRepresentation(), Group.class));
+    }
+
+    // check for admin event that the group mario-club was added as a group member
+    {
+      AdminEvent adminEvent = adminEventList.stream()
+                                            .filter(event -> event.getResourcePath()
+                                                                  .equals(String.format("groups/%s/groups/%s",
+                                                                                        marioClub.getId(),
+                                                                                        nintendoGroupModel.getId())))
+                                            .findAny()
+                                            .get();
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals(OperationType.CREATE, adminEvent.getOperationType());
+      Assertions.assertEquals(ResourceType.GROUP_MEMBERSHIP, adminEvent.getResourceType());
+      Assertions.assertEquals(Group.builder()
+                                   .id(nintendoGroupModel.getId())
+                                   .displayName(nintendoGroupModel.getName())
+                                   .members(Collections.singletonList(Member.builder()
+                                                                            .value(marioClub.getId())
+                                                                            .type(ResourceTypeNames.GROUPS)
+                                                                            .display(marioClub.getName())
+                                                                            .build()))
+                                   .build(),
+                              JsonHelper.readJsonDocument(adminEvent.getRepresentation(), Group.class));
+    }
+
+    // check for admin event that the group luigi-club was added as a group member
+    {
+      AdminEvent adminEvent = adminEventList.stream()
+                                            .filter(event -> event.getResourcePath()
+                                                                  .equals(String.format("groups/%s/groups/%s",
+                                                                                        luigiClub.getId(),
+                                                                                        nintendoGroupModel.getId())))
+                                            .findAny()
+                                            .get();
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals(OperationType.CREATE, adminEvent.getOperationType());
+      Assertions.assertEquals(ResourceType.GROUP_MEMBERSHIP, adminEvent.getResourceType());
+      Assertions.assertEquals(Group.builder()
+                                   .id(nintendoGroupModel.getId())
+                                   .displayName(nintendoGroupModel.getName())
+                                   .members(Collections.singletonList(Member.builder()
+                                                                            .value(luigiClub.getId())
+                                                                            .type(ResourceTypeNames.GROUPS)
+                                                                            .display(luigiClub.getName())
+                                                                            .build()))
+                                   .build(),
+                              JsonHelper.readJsonDocument(adminEvent.getRepresentation(), Group.class));
+    }
+  }
+
+  /**
+   * verifies that an admin event is stored if a group is deleted
+   */
+  @Test
+  public void testAdminEventOnGroupDeleted()
+  {
+    GroupModel nintendo = getKeycloakSession().groups().createGroup(getRealmModel(), "nintendo");
+
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .endpoint(EndpointPaths.GROUPS + "/" + nintendo.getId())
+                                               .method(HttpMethod.DELETE)
+                                               .build();
+
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatus());
+
+    // check for created admin event
+    {
+      List<AdminEvent> adminEventList = getAdminEventStoreProvider().createAdminQuery()
+                                                                    .getResultStream()
+                                                                    .collect(Collectors.toList());
+      Assertions.assertEquals(1, adminEventList.size());
+      AdminEvent adminEvent = adminEventList.get(0);
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals("groups/" + nintendo.getId(), adminEvent.getResourcePath());
+      Assertions.assertEquals(OperationType.DELETE, adminEvent.getOperationType());
+      Assertions.assertEquals(ResourceType.GROUP, adminEvent.getResourceType());
+      Assertions.assertEquals(Group.builder().id(nintendo.getId()).displayName(nintendo.getName()).build(),
+                              JsonHelper.readJsonDocument(adminEvent.getRepresentation(), Group.class));
+    }
+  }
+
+  /**
+   * verifies that an admin event is stored if a group membership is deleted. Additionally the a second
+   * admin-event must be stored that tells us that the group was updated
+   */
+  @Test
+  public void testAdminEventOnGroupRemoved()
+  {
+    UserModel superMario = getKeycloakSession().users().addUser(getRealmModel(), "supermario");
+    UserModel bowser = getKeycloakSession().users().addUser(getRealmModel(), "bowser");
+
+    GroupModel marioClub = getKeycloakSession().groups().createGroup(getRealmModel(), "mario club");
+    GroupModel luigiClub = getKeycloakSession().groups().createGroup(getRealmModel(), "luigi club");
+    GroupModel nintendo = getKeycloakSession().groups().createGroup(getRealmModel(), "nintendo");
+
+    nintendo.addChild(marioClub);
+    nintendo.addChild(luigiClub);
+    superMario.joinGroup(nintendo);
+    bowser.joinGroup(nintendo);
+
+    List<Member> groupMembers = Arrays.asList(Member.builder()
+                                                    .type(ResourceTypeNames.USER)
+                                                    .value(superMario.getId())
+                                                    .build(),
+                                              Member.builder()
+                                                    .type(ResourceTypeNames.GROUPS)
+                                                    .value(marioClub.getId())
+                                                    .build());
+
+    Group nintendoGroup = Group.builder().displayName("nintendo").members(groupMembers).build();
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .endpoint(EndpointPaths.GROUPS + "/" + nintendo.getId())
+                                               .method(HttpMethod.PUT)
+                                               .requestBody(nintendoGroup.toString())
+                                               .build();
+
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.OK, response.getStatus());
+
+    Group updatedGroup = JsonHelper.readJsonDocument((String)response.getEntity(), Group.class);
+    List<AdminEvent> adminEventList = getAdminEventStoreProvider().createAdminQuery()
+                                                                  .getResultStream()
+                                                                  .collect(Collectors.toList());
+    Assertions.assertEquals(3, adminEventList.size());
+    // check for created admin event that the group was created
+    {
+      AdminEvent adminEvent = adminEventList.get(0);
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals("groups/" + updatedGroup.getId().get(), adminEvent.getResourcePath());
+      Assertions.assertEquals(OperationType.UPDATE, adminEvent.getOperationType());
+      Assertions.assertEquals(ResourceType.GROUP, adminEvent.getResourceType());
+      // equalize the two objects by modifying the meta-attribute. The meta-attribute is not identical because the
+      // schema-validation is modifying the meta-attribute when evaluating the response
+      {
+        updatedGroup.getMeta().get().setResourceType(null);
+        updatedGroup.getMeta().get().setLocation(null);
+      }
+      List<Member> membersWithRefRemoved = updatedGroup.getMembers()
+                                                       .stream()
+                                                       .peek(member -> member.setRef(null))
+                                                       .collect(Collectors.toList());
+      updatedGroup.setMembers(membersWithRefRemoved);
+      Assertions.assertEquals(updatedGroup, JsonHelper.readJsonDocument(adminEvent.getRepresentation(), Group.class));
+    }
+
+    // check for admin event that the user bowser was remove as a group member
+    {
+      AdminEvent adminEvent = adminEventList.stream()
+                                            .filter(event -> event.getResourcePath()
+                                                                  .equals(String.format("users/%s/groups/%s",
+                                                                                        bowser.getId(),
+                                                                                        nintendo.getId())))
+                                            .findAny()
+                                            .get();
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals(OperationType.DELETE, adminEvent.getOperationType());
+      Assertions.assertEquals(ResourceType.GROUP_MEMBERSHIP, adminEvent.getResourceType());
+      Assertions.assertEquals(Group.builder()
+                                   .id(nintendo.getId())
+                                   .displayName(nintendo.getName())
+                                   .members(Collections.singletonList(Member.builder()
+                                                                            .value(bowser.getId())
+                                                                            .type(ResourceTypeNames.USER)
+                                                                            .display(bowser.getUsername())
+                                                                            .build()))
+                                   .build(),
+                              JsonHelper.readJsonDocument(adminEvent.getRepresentation(), Group.class));
+    }
+
+    // check for admin event that the group luigi-club was remove as a group member
+    {
+      AdminEvent adminEvent = adminEventList.stream()
+                                            .filter(event -> event.getResourcePath()
+                                                                  .equals(String.format("groups/%s/groups/%s",
+                                                                                        luigiClub.getId(),
+                                                                                        nintendo.getId())))
+                                            .findAny()
+                                            .get();
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals(OperationType.DELETE, adminEvent.getOperationType());
+      Assertions.assertEquals(ResourceType.GROUP_MEMBERSHIP, adminEvent.getResourceType());
+      Assertions.assertEquals(Group.builder()
+                                   .id(nintendo.getId())
+                                   .displayName(nintendo.getName())
+                                   .members(Collections.singletonList(Member.builder()
+                                                                            .value(luigiClub.getId())
+                                                                            .type(ResourceTypeNames.GROUPS)
+                                                                            .display(luigiClub.getName())
+                                                                            .build()))
+                                   .build(),
+                              JsonHelper.readJsonDocument(adminEvent.getRepresentation(), Group.class));
+    }
   }
 }

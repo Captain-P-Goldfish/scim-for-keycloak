@@ -2,6 +2,7 @@ package de.captaingoldfish.scim.sdk.keycloak.scim.handler;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -13,12 +14,15 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.keycloak.events.admin.AdminEvent;
+import org.keycloak.events.admin.OperationType;
 import org.keycloak.models.UserCredentialManager;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 
 import de.captaingoldfish.scim.sdk.common.constants.EndpointPaths;
 import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
+import de.captaingoldfish.scim.sdk.common.constants.ResourceTypeNames;
 import de.captaingoldfish.scim.sdk.common.constants.enums.HttpMethod;
 import de.captaingoldfish.scim.sdk.common.constants.enums.PatchOp;
 import de.captaingoldfish.scim.sdk.common.request.PatchOpRequest;
@@ -42,6 +46,7 @@ import de.captaingoldfish.scim.sdk.keycloak.scim.ScimConfigurationBridge;
 import de.captaingoldfish.scim.sdk.keycloak.setup.KeycloakScimManagementTest;
 import de.captaingoldfish.scim.sdk.keycloak.setup.RequestBuilder;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceEndpoint;
+import de.captaingoldfish.scim.sdk.server.schemas.ResourceType;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -94,6 +99,75 @@ public class UserHandlerTest extends KeycloakScimManagementTest
       UserCredentialModel newUserCredential = UserCredentialModel.password(newPassword);
       Assertions.assertFalse(credentialManager.isValid(getRealmModel(), superMario, originalUserCredential));
       Assertions.assertTrue(credentialManager.isValid(getRealmModel(), superMario, newUserCredential));
+    }
+
+    User updateddUser = JsonHelper.readJsonDocument((String)response.getEntity(), User.class);
+    // check for created admin event
+    {
+      List<AdminEvent> adminEventList = getAdminEventStoreProvider().createAdminQuery()
+                                                                    .getResultStream()
+                                                                    .collect(Collectors.toList());
+      Assertions.assertEquals(1, adminEventList.size());
+      AdminEvent adminEvent = adminEventList.get(0);
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals("users/" + updateddUser.getId().get(), adminEvent.getResourcePath());
+      Assertions.assertEquals(OperationType.UPDATE, adminEvent.getOperationType());
+      Assertions.assertEquals(org.keycloak.events.admin.ResourceType.USER, adminEvent.getResourceType());
+      // equalize the two objects by modifying the meta-attribute. The meta-attribute is not identical because the
+      // schema-validation is modifying the meta-attribute when evaluating the response
+      User adminEventUser = JsonHelper.readJsonDocument(adminEvent.getRepresentation(), User.class);
+      {
+        updateddUser.getMeta().get().setResourceType(null);
+        updateddUser.getMeta().get().setLocation(null);
+        // the last modified representation on the left side does not match the representation on the right right side
+        // because we got string comparison here and one representation is shown in UTC and the other in local date
+        // time which is why we are overriding the last modified value here which makes the check for this value
+        // pointless
+        updateddUser.getMeta().get().setLastModified(adminEventUser.getMeta().get().getLastModified().get());
+      }
+      Assertions.assertEquals(updateddUser, updateddUser);
+    }
+  }
+
+  /**
+   * verifies that a user can be deleted
+   */
+  @Test
+  public void testDeleteUser()
+  {
+    ResourceEndpoint resourceEndpoint = ScimConfigurationBridge.getScimResourceEndpoints()
+                                                               .get(getRealmModel().getName());
+    ServiceProvider serviceProvider = resourceEndpoint.getServiceProvider();
+    serviceProvider.setChangePasswordConfig(ChangePasswordConfig.builder().supported(true).build());
+
+    UserModel superMario = getKeycloakSession().users().addUser(getRealmModel(), "SuperMario");
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .method(HttpMethod.DELETE)
+                                               .endpoint(EndpointPaths.USERS + "/" + superMario.getId())
+                                               .build();
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatus());
+
+    // validate
+    {
+      Assertions.assertNull(getKeycloakSession().users().getUserById(getRealmModel(), superMario.getId()));
+    }
+
+    // check for created admin event
+    {
+      List<AdminEvent> adminEventList = getAdminEventStoreProvider().createAdminQuery()
+                                                                    .getResultStream()
+                                                                    .collect(Collectors.toList());
+      Assertions.assertEquals(1, adminEventList.size());
+      AdminEvent adminEvent = adminEventList.get(0);
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals("users/" + superMario.getId(), adminEvent.getResourcePath());
+      Assertions.assertEquals(OperationType.DELETE, adminEvent.getOperationType());
+      Assertions.assertEquals(org.keycloak.events.admin.ResourceType.USER, adminEvent.getResourceType());
+      Assertions.assertEquals(User.builder().id(superMario.getId()).userName(superMario.getUsername()).build(),
+                              JsonHelper.readJsonDocument(adminEvent.getRepresentation(), User.class));
     }
   }
 
@@ -183,9 +257,9 @@ public class UserHandlerTest extends KeycloakScimManagementTest
     Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
 
     final String userId;
+    User createdUser = JsonHelper.readJsonDocument((String)response.getEntity(), User.class);
     // validate
     {
-      User createdUser = JsonHelper.readJsonDocument((String)response.getEntity(), User.class);
       userId = createdUser.getId().get();
       Assertions.assertEquals(user.getUserName().get(), createdUser.getUserName().get());
       Assertions.assertEquals(user.getExternalId().get(), createdUser.getExternalId().get());
@@ -249,6 +323,74 @@ public class UserHandlerTest extends KeycloakScimManagementTest
                                   .get(),
                               userModel.getEmail());
 
+    }
+
+    // check for created admin event
+    {
+      List<AdminEvent> adminEventList = getAdminEventStoreProvider().createAdminQuery()
+                                                                    .getResultStream()
+                                                                    .collect(Collectors.toList());
+      Assertions.assertEquals(1, adminEventList.size());
+      AdminEvent adminEvent = adminEventList.get(0);
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals("users/" + createdUser.getId().get(), adminEvent.getResourcePath());
+      Assertions.assertEquals(OperationType.CREATE, adminEvent.getOperationType());
+      Assertions.assertEquals(org.keycloak.events.admin.ResourceType.USER, adminEvent.getResourceType());
+      // equalize the two objects by modifying the meta-attribute. The meta-attribute is not identical because the
+      // schema-validation is modifying the meta-attribute when evaluating the response
+      {
+        createdUser.getMeta().get().setResourceType(null);
+        createdUser.getMeta().get().setLocation(null);
+      }
+      Assertions.assertEquals(createdUser, JsonHelper.readJsonDocument(adminEvent.getRepresentation(), User.class));
+    }
+  }
+
+  /**
+   * this test must result in an admin-event entry that has an anonymous user and client entered into the table
+   */
+  @Test
+  public void createÛserWithDeactivatedAuthentication()
+  {
+    ResourceEndpoint resourceEndpoint = ScimConfigurationBridge.getScimResourceEndpoints()
+                                                               .get(getRealmModel().getName());
+    ResourceType userResourceType = resourceEndpoint.getResourceTypeByName(ResourceTypeNames.USER).get();
+    // if authentication is deactivated the authenticate-method in the Authorization-object will not be called and
+    // thus we will get an anonymous admin-event object
+    userResourceType.getFeatures().getAuthorization().setAuthenticated(false);
+
+    User user = User.builder().userName("goldfish").build();
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .method(HttpMethod.POST)
+                                               .endpoint(EndpointPaths.USERS)
+                                               .requestBody(user.toString())
+                                               .build();
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
+
+    User createdUser = JsonHelper.readJsonDocument((String)response.getEntity(), User.class);
+    // check for created admin event
+    {
+      List<AdminEvent> adminEventList = getAdminEventStoreProvider().createAdminQuery()
+                                                                    .getResultStream()
+                                                                    .collect(Collectors.toList());
+      Assertions.assertEquals(1, adminEventList.size());
+      AdminEvent adminEvent = adminEventList.get(0);
+      Assertions.assertNotEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertNotEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals("anonymous", adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals("anonymous", adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals("users/" + createdUser.getId().get(), adminEvent.getResourcePath());
+      Assertions.assertEquals(OperationType.CREATE, adminEvent.getOperationType());
+      Assertions.assertEquals(org.keycloak.events.admin.ResourceType.USER, adminEvent.getResourceType());
+      // equalize the two objects by modifying the meta-attribute. The meta-attribute is not identical because the
+      // schema-validation is modifying the meta-attribute when evaluating the response
+      {
+        createdUser.getMeta().get().setResourceType(null);
+        createdUser.getMeta().get().setLocation(null);
+      }
+      Assertions.assertEquals(createdUser, JsonHelper.readJsonDocument(adminEvent.getRepresentation(), User.class));
     }
   }
 }

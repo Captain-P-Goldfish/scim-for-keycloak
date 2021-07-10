@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.NotAuthorizedException;
@@ -14,8 +15,10 @@ import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.services.resources.admin.AdminAuth;
 
+import de.captaingoldfish.scim.sdk.keycloak.audit.ScimAdminEventBuilder;
 import de.captaingoldfish.scim.sdk.server.endpoints.authorize.Authorization;
 import lombok.Data;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -44,6 +47,13 @@ public class ScimAuthorization implements Authorization
    * this object is used for authentication
    */
   private Authentication authentication;
+
+  /**
+   * used to inform the current {@link de.captaingoldfish.scim.sdk.keycloak.scim.ScimKeycloakContext} object
+   * that an {@link ScimAdminEventBuilder} object can be created if called
+   */
+  @Setter
+  private Consumer<AdminAuth> adminAuthConsumer;
 
   public ScimAuthorization(KeycloakSession keycloakSession, Authentication authentication)
   {
@@ -85,6 +95,7 @@ public class ScimAuthorization implements Authorization
       try
       {
         authResult = authentication.authenticate(keycloakSession);
+        adminAuthConsumer.accept(authResult);
       }
       catch (NotAuthorizedException ex)
       {

@@ -10,6 +10,9 @@ import javax.ws.rs.core.Response;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.keycloak.events.admin.AdminEvent;
+import org.keycloak.events.admin.OperationType;
+import org.keycloak.events.admin.ResourceType;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientProvider;
 import org.keycloak.models.GroupModel;
@@ -57,6 +60,28 @@ public class RealmRoleHandlerTest extends KeycloakScimManagementTest
     RealmRole createdRole = JsonHelper.readJsonDocument((String)response.getEntity(), RealmRole.class);
     Assertions.assertEquals(roleName, createdRole.getName());
     Assertions.assertEquals(description, createdRole.getDescription().get());
+
+    // check for created admin event
+    {
+      List<AdminEvent> adminEventList = getAdminEventStoreProvider().createAdminQuery()
+                                                                    .getResultStream()
+                                                                    .collect(Collectors.toList());
+      Assertions.assertEquals(1, adminEventList.size());
+      AdminEvent adminEvent = adminEventList.get(0);
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals("roles/" + createdRole.getId().get(), adminEvent.getResourcePath());
+      Assertions.assertEquals(OperationType.CREATE, adminEvent.getOperationType());
+      Assertions.assertEquals(ResourceType.REALM_ROLE, adminEvent.getResourceType());
+      // equalize the two objects by modifying the meta-attribute. The meta-attribute is not identical because the
+      // schema-validation is modifying the meta-attribute when evaluating the response
+      {
+        createdRole.getMeta().get().setResourceType(null);
+        createdRole.getMeta().get().setLocation(null);
+      }
+      Assertions.assertEquals(createdRole,
+                              JsonHelper.readJsonDocument(adminEvent.getRepresentation(), RealmRole.class));
+    }
   }
 
   /**
@@ -326,6 +351,52 @@ public class RealmRoleHandlerTest extends KeycloakScimManagementTest
       Assertions.assertTrue(userModels.stream().anyMatch(user -> user.getUsername().equals(peach.getUsername())));
       Assertions.assertTrue(userModels.stream().anyMatch(user -> user.getUsername().equals(superMario.getUsername())));
     }
+
+
+    List<AdminEvent> adminEventList = getAdminEventStoreProvider().createAdminQuery()
+                                                                  .getResultStream()
+                                                                  .collect(Collectors.toList());
+    // we did a create operation so we must have two admin events
+    Assertions.assertEquals(2, adminEventList.size());
+    // check for created admin event
+    {
+      List<AdminEvent> updateAdminEventList = adminEventList.stream()
+                                                            .filter(event -> event.getOperationType()
+                                                                                  .equals(OperationType.UPDATE))
+                                                            .collect(Collectors.toList());
+      Assertions.assertEquals(1, updateAdminEventList.size());
+      AdminEvent adminEvent = updateAdminEventList.get(0);
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals("roles/" + updatedRole.getId().get(), adminEvent.getResourcePath());
+      Assertions.assertEquals(OperationType.UPDATE, adminEvent.getOperationType());
+      Assertions.assertEquals(ResourceType.REALM_ROLE, adminEvent.getResourceType());
+      // equalize the two objects by modifying the meta-attribute. The meta-attribute is not identical because the
+      // schema-validation is modifying the meta-attribute when evaluating the response
+      RealmRole adminEventRole = JsonHelper.readJsonDocument(adminEvent.getRepresentation(), RealmRole.class);
+      {
+        updatedRole.getMeta().get().setResourceType(null);
+        updatedRole.getMeta().get().setLocation(null);
+        // the last modified representation on the left side does not match the representation on the right right side
+        // because we got string comparison here and one representation is shown in UTC and the other in local date
+        // time which is why we are overriding the last modified value here which makes the check for this value
+        // pointless
+        updatedRole.getMeta().get().setLastModified(adminEventRole.getMeta().get().getLastModified().get());
+        // now remove the $ref-attributes that have been added by the schema-validation and that should be removed for
+        // successful comparison
+        List<ChildRole> childRoles = updatedRole.getChildren()
+                                                .stream()
+                                                .peek(role -> role.setRef(null))
+                                                .collect(Collectors.toList());
+        updatedRole.setChildren(childRoles);
+        List<RoleAssociate> roleAssociates = updatedRole.getAssociates()
+                                                        .stream()
+                                                        .peek(associate -> associate.setRef(null))
+                                                        .collect(Collectors.toList());
+        updatedRole.setAssociates(roleAssociates);
+      }
+      Assertions.assertEquals(updatedRole, adminEventRole);
+    }
   }
 
   /**
@@ -397,6 +468,28 @@ public class RealmRoleHandlerTest extends KeycloakScimManagementTest
     {
       RoleModel adminRole = getKeycloakSession().roles().getRealmRole(getRealmModel(), roleName);
       Assertions.assertNull(adminRole);
+    }
+
+    List<AdminEvent> adminEventList = getAdminEventStoreProvider().createAdminQuery()
+                                                                  .getResultStream()
+                                                                  .collect(Collectors.toList());
+    // at first a create request was sent so we will have two admin events in the database
+    Assertions.assertEquals(2, adminEventList.size());
+    // check for created admin event
+    {
+      List<AdminEvent> deleteAdminEventList = adminEventList.stream()
+                                                            .filter(event -> event.getOperationType()
+                                                                                  .equals(OperationType.DELETE))
+                                                            .collect(Collectors.toList());
+      Assertions.assertEquals(1, deleteAdminEventList.size());
+      AdminEvent adminEvent = deleteAdminEventList.get(0);
+      Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+      Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+      Assertions.assertEquals("roles/" + createdRole.getId().get(), adminEvent.getResourcePath());
+      Assertions.assertEquals(OperationType.DELETE, adminEvent.getOperationType());
+      Assertions.assertEquals(ResourceType.REALM_ROLE, adminEvent.getResourceType());
+      Assertions.assertEquals(RealmRole.builder().id(createdRole.getId().get()).name(createdRole.getName()).build(),
+                              JsonHelper.readJsonDocument(adminEvent.getRepresentation(), RealmRole.class));
     }
   }
 }

@@ -7,9 +7,13 @@ import javax.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.keycloak.events.EventStoreProvider;
+import org.keycloak.events.jpa.AdminEventEntity;
+import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserModel;
 import org.keycloak.models.jpa.entities.ClientEntity;
 import org.keycloak.models.jpa.entities.ClientScopeAttributeEntity;
 import org.keycloak.models.jpa.entities.ClientScopeClientMappingEntity;
@@ -26,6 +30,7 @@ import org.keycloak.models.jpa.entities.UserAttributeEntity;
 import org.keycloak.models.jpa.entities.UserEntity;
 import org.keycloak.models.jpa.entities.UserGroupMembershipEntity;
 import org.keycloak.models.jpa.entities.UserRoleMappingEntity;
+import org.keycloak.representations.AccessToken;
 import org.keycloak.services.resources.admin.AdminAuth;
 import org.mockito.Mockito;
 
@@ -77,6 +82,22 @@ public abstract class KeycloakScimManagementTest
   public RealmModel getRealmModel()
   {
     return KEYCLOAK_MOCK_SETUP.getRealmModel();
+  }
+
+  /**
+   * @return a test client
+   */
+  public ClientModel getTestClient()
+  {
+    return KEYCLOAK_MOCK_SETUP.getClient();
+  }
+
+  /**
+   * @return a test user
+   */
+  public UserModel getTestUser()
+  {
+    return KEYCLOAK_MOCK_SETUP.getUser();
   }
 
   /**
@@ -147,7 +168,11 @@ public abstract class KeycloakScimManagementTest
   public AdminAuth mockUnitTestAuthentication()
   {
     AdminAuth adminAuth = Mockito.mock(AdminAuth.class);
-    // TODO
+    Mockito.doReturn(getRealmModel()).when(adminAuth).getRealm();
+    Mockito.doReturn(getTestClient()).when(adminAuth).getClient();
+    Mockito.doReturn(getTestUser()).when(adminAuth).getUser();
+    AccessToken token = Mockito.mock(AccessToken.class);
+    Mockito.doReturn(token).when(adminAuth).getToken();
     return adminAuth;
   }
 
@@ -227,6 +252,7 @@ public abstract class KeycloakScimManagementTest
     deleteFromTable(RoleEntity.class);
     deleteFromTable(ClientEntity.class);
     deleteFromTable(RealmEntity.class);
+    deleteFromTable(AdminEventEntity.class);
     log.debug("cleaned tables successfully");
   }
 
@@ -276,5 +302,13 @@ public abstract class KeycloakScimManagementTest
   {
     return ((BigInteger)getEntityManager().createNativeQuery("select count(*) from " + tableName)
                                           .getSingleResult()).intValue();
+  }
+
+  /**
+   * @return an admin event store provider that is used to check the current queries within the database
+   */
+  public EventStoreProvider getAdminEventStoreProvider()
+  {
+    return KEYCLOAK_MOCK_SETUP.getEventStoreProvider();
   }
 }

@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.keycloak.events.admin.OperationType;
+import org.keycloak.events.admin.ResourceType;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ModelException;
 import org.keycloak.models.RealmModel;
@@ -37,6 +39,7 @@ import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.ScimX509Certificate;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
+import de.captaingoldfish.scim.sdk.keycloak.audit.ScimAdminEventBuilder;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimKeycloakContext;
 import de.captaingoldfish.scim.sdk.server.endpoints.Context;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceHandler;
@@ -70,8 +73,16 @@ public class UserHandler extends ResourceHandler<User>
     }
     UserModel userModel = keycloakSession.users().addUser(keycloakSession.getContext().getRealm(), username);
     userModel = userToModel(user, userModel);
-    log.info("created user with username: {}", userModel.getUsername());
-    return modelToUser(userModel);
+    User newUser = modelToUser(userModel);
+    {
+      ScimAdminEventBuilder adminEventAuditer = ((ScimKeycloakContext)context).getAdminEventAuditer();
+      adminEventAuditer.createEvent(OperationType.CREATE,
+                                    ResourceType.USER,
+                                    String.format("users/%s", userModel.getId()),
+                                    newUser);
+    }
+    log.debug("Created user with username: {}", userModel.getUsername());
+    return newUser;
   }
 
   /**
@@ -134,8 +145,16 @@ public class UserHandler extends ResourceHandler<User>
     }
     userModel = userToModel(userToUpdate, userModel);
     userModel.setSingleAttribute(AttributeNames.RFC7643.LAST_MODIFIED, String.valueOf(Instant.now().toEpochMilli()));
-    log.info("updated user with username: {}", userModel.getUsername());
-    return modelToUser(userModel);
+    User user = modelToUser(userModel);
+    {
+      ScimAdminEventBuilder adminEventAuditer = ((ScimKeycloakContext)context).getAdminEventAuditer();
+      adminEventAuditer.createEvent(OperationType.UPDATE,
+                                    ResourceType.USER,
+                                    String.format("users/%s", userModel.getId()),
+                                    user);
+    }
+    log.debug("Updated user with username: {}", userModel.getUsername());
+    return user;
   }
 
   /**
@@ -151,7 +170,14 @@ public class UserHandler extends ResourceHandler<User>
       throw new ResourceNotFoundException("resource with id '" + id + "' does not exist");
     }
     keycloakSession.users().removeUser(keycloakSession.getContext().getRealm(), userModel);
-    log.info("deleted user with username: {}", userModel.getUsername());
+    {
+      ScimAdminEventBuilder adminEventAuditer = ((ScimKeycloakContext)context).getAdminEventAuditer();
+      adminEventAuditer.createEvent(OperationType.DELETE,
+                                    ResourceType.USER,
+                                    String.format("users/%s", userModel.getId()),
+                                    User.builder().id(userModel.getId()).userName(userModel.getUsername()).build());
+    }
+    log.debug("Deleted user with username: {}", userModel.getUsername());
   }
 
   /**
@@ -282,18 +308,24 @@ public class UserHandler extends ResourceHandler<User>
       emails.removeIf(MultiComplexNode::isPrimary);
       emails.add(Email.builder().primary(true).value(email).build());
     });
+    Name name = Name.builder()
+                    .givenName(userModel.getFirstName())
+                    .familyName(userModel.getLastName())
+                    .middlename(userModel.getFirstAttribute(AttributeNames.RFC7643.MIDDLE_NAME))
+                    .honorificPrefix(userModel.getFirstAttribute(AttributeNames.RFC7643.HONORIFIC_PREFIX))
+                    .honorificSuffix(userModel.getFirstAttribute(AttributeNames.RFC7643.HONORIFIC_SUFFIX))
+                    .formatted(userModel.getFirstAttribute(AttributeNames.RFC7643.FORMATTED))
+                    .build();
+    if (name.isEmpty())
+    {
+      name = null;
+    }
+
     User user = User.builder()
                     .id(userModel.getId())
                     .externalId(userModel.getFirstAttribute(AttributeNames.RFC7643.EXTERNAL_ID))
                     .userName(userModel.getUsername())
-                    .name(Name.builder()
-                              .givenName(userModel.getFirstName())
-                              .familyName(userModel.getLastName())
-                              .middlename(userModel.getFirstAttribute(AttributeNames.RFC7643.MIDDLE_NAME))
-                              .honorificPrefix(userModel.getFirstAttribute(AttributeNames.RFC7643.HONORIFIC_PREFIX))
-                              .honorificSuffix(userModel.getFirstAttribute(AttributeNames.RFC7643.HONORIFIC_SUFFIX))
-                              .formatted(userModel.getFirstAttribute(AttributeNames.RFC7643.FORMATTED))
-                              .build())
+                    .name(name)
                     .active(userModel.isEnabled())
                     .nickName(userModel.getFirstAttribute(AttributeNames.RFC7643.NICK_NAME))
                     .title(userModel.getFirstAttribute(AttributeNames.RFC7643.TITLE))

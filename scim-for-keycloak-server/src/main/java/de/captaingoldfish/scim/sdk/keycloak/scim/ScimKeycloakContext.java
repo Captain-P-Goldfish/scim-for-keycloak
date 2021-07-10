@@ -2,8 +2,9 @@ package de.captaingoldfish.scim.sdk.keycloak.scim;
 
 import org.keycloak.models.KeycloakSession;
 
+import de.captaingoldfish.scim.sdk.keycloak.audit.ScimAdminEventBuilder;
+import de.captaingoldfish.scim.sdk.keycloak.auth.ScimAuthorization;
 import de.captaingoldfish.scim.sdk.server.endpoints.Context;
-import de.captaingoldfish.scim.sdk.server.endpoints.authorize.Authorization;
 import lombok.Getter;
 
 
@@ -23,9 +24,30 @@ public class ScimKeycloakContext extends Context
   @Getter
   private final KeycloakSession keycloakSession;
 
-  public ScimKeycloakContext(KeycloakSession keycloakSession, Authorization authorization)
+  /**
+   * used to log admin events if on SCIM requests
+   */
+  @Getter
+  private ScimAdminEventBuilder adminEventAuditer;
+
+  public ScimKeycloakContext(KeycloakSession keycloakSession, ScimAuthorization authorization)
   {
     super(authorization);
     this.keycloakSession = keycloakSession;
+    this.adminEventAuditer = createAnonymousEventBuilder();
+    // if this consumer is called the adminEventAuditer will be overridden with an authenticated instance
+    authorization.setAdminAuthConsumer(adminAuth -> {
+      this.adminEventAuditer = new ScimAdminEventBuilder(keycloakSession, adminAuth);
+    });
+  }
+
+  /**
+   * creates an admin event builder for cases in which the authentication was deactivated on a specific resource
+   * endpoints. In such cases the {@link ScimAuthorization#adminAuthConsumer} will not be executed and thus the
+   * authentication object is missing for the admin event builder
+   */
+  private ScimAdminEventBuilder createAnonymousEventBuilder()
+  {
+    return new ScimAdminEventBuilder(keycloakSession, null);
   }
 }
