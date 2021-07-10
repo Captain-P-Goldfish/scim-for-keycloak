@@ -69,7 +69,8 @@ Copy the built artifact into the directory `${keycloak.home}/standalone/deployme
 2. Now open the web admin console of keycloak open the realm settings and select the `Themes` tab and select the `scim`
    theme for the admin console. Now reload the browser page and the `SCIM` menu link should be visible.
    ![theme-settings](images/theme-setting.png)
-3. The SCIM endpoints will be deactivated by default. To activate it for a realm toggle the "SCIM enabled" switch under the SCIM menu link.
+3. The SCIM endpoints will be `deactivated by default`. To activate it for a realm toggle the "SCIM enabled" switch
+   under the SCIM menu link.
 
 ## What is configurable?
 
