@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
+import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -41,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
  * @since 27.08.2020
  */
 @Slf4j
-public class GroupHandlerTest extends KeycloakScimManagementTest
+public class GroupHandlerTest extends AbstractScimEndpointTest
 {
 
   /**

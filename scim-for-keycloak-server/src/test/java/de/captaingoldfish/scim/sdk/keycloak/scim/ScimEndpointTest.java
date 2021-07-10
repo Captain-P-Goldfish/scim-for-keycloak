@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
  * @since 07.08.2020
  */
 @Slf4j
-public class ScimEndpointTest extends KeycloakScimManagementTest
+public class ScimEndpointTest extends AbstractScimEndpointTest
 {
 
   /**
@@ -123,6 +123,7 @@ public class ScimEndpointTest extends KeycloakScimManagementTest
     Mockito.doReturn(newRealm).when(context).getRealm();
     ScimConfiguration.getScimEndpoint(getKeycloakSession(), true);
     Assertions.assertEquals(2, ScimConfigurationBridge.getScimResourceEndpoints().size());
+    enableScim();
 
     // now try to load the users from the other realm. An empty list should be returned
     {
@@ -133,6 +134,43 @@ public class ScimEndpointTest extends KeycloakScimManagementTest
       String responseString = (String)response.getEntity();
       ListResponse listResponse = JsonHelper.readJsonDocument(responseString, ListResponse.class);
       Assertions.assertEquals(0, listResponse.getTotalResults());
+    }
+  }
+
+  /**
+   * creates a second realm and verifies that scim is disabled for the new realm
+   */
+  @Test
+  public void testScimDisabledForNewRealm()
+  {
+
+    // try to load the users from the default realm. A single user should be returned
+    {
+      HttpServletRequest request = RequestBuilder.builder(getScimEndpoint()).endpoint(EndpointPaths.USERS).build();
+      Response response = getScimEndpoint().handleScimRequest(request);
+      Assertions.assertEquals(HttpStatus.OK, response.getStatus());
+
+      String responseString = (String)response.getEntity();
+      ListResponse listResponse = JsonHelper.readJsonDocument(responseString, ListResponse.class);
+      Assertions.assertEquals(1, listResponse.getTotalResults());
+    }
+
+    KeycloakContext context = getKeycloakSession().getContext();
+    RealmModel newRealm = getKeycloakSession().realms().createRealm("2ndRealm");
+    Mockito.doReturn(newRealm).when(context).getRealm();
+    ScimConfiguration.getScimEndpoint(getKeycloakSession(), true);
+    Assertions.assertEquals(2, ScimConfigurationBridge.getScimResourceEndpoints().size());
+
+    // now try to load the users from the other realm. It should fail because SCIM is not enabled
+    try
+    {
+      HttpServletRequest request = RequestBuilder.builder(getScimEndpoint()).endpoint(EndpointPaths.USERS).build();
+      getScimEndpoint().handleScimRequest(request);
+      Assertions.fail("this point must not be reached");
+    }
+    catch (NotFoundException ex)
+    {
+      log.trace("everything's fine", ex);
     }
   }
 
@@ -149,6 +187,7 @@ public class ScimEndpointTest extends KeycloakScimManagementTest
     {
       Mockito.doReturn(newRealm).when(context).getRealm();
       ScimConfiguration.getScimEndpoint(getKeycloakSession(), true);
+      enableScim(); // for the second realm
       Assertions.assertEquals(2, ScimConfigurationBridge.getScimResourceEndpoints().size());
     }
 
