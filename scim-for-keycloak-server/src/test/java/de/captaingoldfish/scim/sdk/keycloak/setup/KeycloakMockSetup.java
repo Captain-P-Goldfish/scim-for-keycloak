@@ -2,6 +2,7 @@ package de.captaingoldfish.scim.sdk.keycloak.setup;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
@@ -189,7 +190,7 @@ class KeycloakMockSetup
     realmModel.setDefaultRole(roleModel);
     realmModel.setPasswordPolicy(PasswordPolicy.build().build(keycloakSession));
     Mockito.doReturn(realmModel).when(keycloakContext).getRealm();
-    List<RealmModel> realms = keycloakSession.realms().getRealms();
+    List<RealmModel> realms = keycloakSession.realms().getRealmsStream().collect(Collectors.toList());
     Assertions.assertEquals(1, realms.size());
     log.debug("test-realm successfully created: {} - {}", realmModel.getId(), realmModel.getName());
     createUser();

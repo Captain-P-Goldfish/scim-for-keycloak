@@ -67,7 +67,7 @@ public class UserHandler extends ResourceHandler<User>
   {
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     final String username = user.getUserName().get();
-    if (keycloakSession.users().getUserByUsername(username, keycloakSession.getContext().getRealm()) != null)
+    if (keycloakSession.users().getUserByUsername(keycloakSession.getContext().getRealm(), username) != null)
     {
       throw new ConflictException("the username '" + username + "' is already taken");
     }
@@ -95,7 +95,7 @@ public class UserHandler extends ResourceHandler<User>
                           Context context)
   {
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
-    UserModel userModel = keycloakSession.users().getUserById(id, keycloakSession.getContext().getRealm());
+    UserModel userModel = keycloakSession.users().getUserById(keycloakSession.getContext().getRealm(), id);
     if (userModel == null)
     {
       return null; // causes a resource not found exception you may also throw it manually
@@ -133,8 +133,8 @@ public class UserHandler extends ResourceHandler<User>
   {
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     UserModel userModel = keycloakSession.users()
-                                         .getUserById(userToUpdate.getId().get(),
-                                                      keycloakSession.getContext().getRealm());
+                                         .getUserById(keycloakSession.getContext().getRealm(),
+                                                      userToUpdate.getId().get());
     if (userModel == null)
     {
       return null; // causes a resource not found exception you may also throw it manually
@@ -164,7 +164,7 @@ public class UserHandler extends ResourceHandler<User>
   public void deleteResource(String id, Context context)
   {
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
-    UserModel userModel = keycloakSession.users().getUserById(id, keycloakSession.getContext().getRealm());
+    UserModel userModel = keycloakSession.users().getUserById(keycloakSession.getContext().getRealm(), id);
     if (userModel == null)
     {
       throw new ResourceNotFoundException("resource with id '" + id + "' does not exist");

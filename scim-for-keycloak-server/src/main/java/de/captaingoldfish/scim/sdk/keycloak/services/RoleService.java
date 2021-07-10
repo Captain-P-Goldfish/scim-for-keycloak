@@ -198,7 +198,7 @@ public class RoleService extends AbstractService
   private void addRoleToUser(RoleModel roleModel, String userId)
   {
     UserModel userModel = getKeycloakSession().users()
-                                              .getUserById(userId, getKeycloakSession().getContext().getRealm());
+                                              .getUserById(getKeycloakSession().getContext().getRealm(), userId);
     if (userModel == null)
     {
       throw new ResourceNotFoundException("role cannot be granted to non existing user with id '" + userId + "'");
