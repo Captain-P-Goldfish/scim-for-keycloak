@@ -43,7 +43,7 @@ import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.ScimX509Certificate;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimConfigurationBridge;
-import de.captaingoldfish.scim.sdk.keycloak.setup.KeycloakScimManagementTest;
+import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
 import de.captaingoldfish.scim.sdk.keycloak.setup.RequestBuilder;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceEndpoint;
 import de.captaingoldfish.scim.sdk.server.schemas.ResourceType;
@@ -55,7 +55,7 @@ import lombok.extern.slf4j.Slf4j;
  * @since 18.08.2020
  */
 @Slf4j
-public class UserHandlerTest extends KeycloakScimManagementTest
+public class UserHandlerTest extends AbstractScimEndpointTest
 {
 
   /**

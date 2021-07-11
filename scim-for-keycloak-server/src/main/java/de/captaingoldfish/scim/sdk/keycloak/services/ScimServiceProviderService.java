@@ -57,7 +57,7 @@ public class ScimServiceProviderService extends AbstractService
   {
     return ScimServiceProviderEntity.builder()
                                     .realmId(getKeycloakSession().getContext().getRealm().getId())
-                                    .enabled(true)
+                                    .enabled(false)
                                     .filterSupported(true)
                                     .filterMaxResults(50)
                                     .sortSupported(true)
@@ -98,7 +98,7 @@ public class ScimServiceProviderService extends AbstractService
 
     scimServiceProviderEntity.setEnabled(Optional.ofNullable(serviceProvider.get("enabled"))
                                                  .map(JsonNode::booleanValue)
-                                                 .orElse(true));
+                                                 .orElse(false));
     scimServiceProviderEntity.setFilterSupported(serviceProvider.getFilterConfig().isSupported());
     scimServiceProviderEntity.setFilterMaxResults(serviceProvider.getFilterConfig().getMaxResults());
     scimServiceProviderEntity.setSortSupported(serviceProvider.getSortConfig().isSupported());
