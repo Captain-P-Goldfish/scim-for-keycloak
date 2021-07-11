@@ -32,6 +32,7 @@ Thanks to *Raffael Grob* for providing this manual.
 | 12.0.x   | :heavy_check_mark: | kc-12-b2                   | 1.9.2            |
 | 13.0.0   | :heavy_check_mark: | kc-13-b1                   | 1.9.2            |
 | 13.0.1   | :heavy_check_mark: | kc-13-b2                   | 1.11.0           |
+| 13.0.1   | :heavy_check_mark: | kc-13-b3                   | 1.11.0           |
 
 ## Versioning
 
