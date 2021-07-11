@@ -1,6 +1,7 @@
 |  Branch | Circle CI Status |
 | :------ | :--------------- | 
 | master  | [![CircleCI](https://circleci.com/gh/Captain-P-Goldfish/scim-for-keycloak/tree/master.svg?style=shield)](https://circleci.com/gh/Captain-P-Goldfish/scim-for-keycloak/tree/master)
+
 # What is SCIM-for-keycloak?
 
 It is a full SCIM implementation that is easily integrated into keycloak and is also easily configurable within the web
@@ -18,7 +19,6 @@ in the wiki:
 
 [Use with Microsoft Azure AD](https://github.com/Captain-P-Goldfish/scim-for-keycloak/wiki/Use-with-Microsoft-Azure-AD)
 Thanks to *Raffael Grob* for providing this manual.
-
 
 ## Keycloak support matrix
 
@@ -101,6 +101,19 @@ Copy the built artifact into the directory `${keycloak.home}/standalone/deployme
    . `If no roles are applied to an endpoint the API will assume the authorization to be disabled.`
    ![theme-settings](images/resource-type-auth-config.png)  
    The role settings are of course only respected if authentication is enabled.
+
+## Admin-Events (kc-13-b3, kc-14-b2+)
+
+If admin events are enabled the SCIM endpoint implementations will fire admin events of the following types:
+
+* User [CREATE, UPDATE, DELETE]
+* Group [CREATE, UPDATE, DELETE]
+   * User GroupMembership [CREATE, DELETE]
+   * Group GroupMembership [CREATE, DELETE]
+* RealmRole [CREATE, UPDATE, DELETE]
+
+Any event that triggers a `GroupMembership` change will also cause either a `Group_Create` event or a `Group_Update`
+event depending on the fact if the resource is getting created or updated.
 
 ## Disadvantages
 
