@@ -17,6 +17,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 
 import de.captaingoldfish.scim.sdk.common.constants.AttributeNames;
+import de.captaingoldfish.scim.sdk.common.constants.EndpointPaths;
 import de.captaingoldfish.scim.sdk.common.constants.ResourceTypeNames;
 import de.captaingoldfish.scim.sdk.common.constants.enums.SortOrder;
 import de.captaingoldfish.scim.sdk.common.exceptions.ConflictException;
@@ -196,14 +197,12 @@ public class GroupHandler extends ResourceHandler<Group>
   {
     KeycloakSession keycloakSession = scimKeycloakContext.getKeycloakSession();
 
-    Set<String> expectedSubGroupMemberIds = group.getMembers()
-                                                 .stream()
-                                                 .filter(groupMember -> groupMember.getType().isPresent()
-                                                                        && groupMember.getType()
-                                                                                      .get()
-                                                                                      .equalsIgnoreCase("Group"))
-                                                 .map(groupMember -> groupMember.getValue().get())
-                                                 .collect(Collectors.toSet());
+    Set<String> expectedSubGroupMemberIds = group.getMembers().stream().filter(groupMember -> {
+      return (groupMember.getType().map(type -> type.equals(ResourceTypeNames.GROUPS)).orElse(false)
+              || groupMember.getRef()
+                            .map(ref -> ref.matches(String.format(".*?%s/[\\w\\-]+", EndpointPaths.GROUPS)))
+                            .orElse(false));
+    }).map(groupMember -> groupMember.getValue().get()).collect(Collectors.toSet());
     Set<GroupModel> subGroupsToLeaveGroup = groupModel.getSubGroupsStream().collect(Collectors.toSet());
 
     ScimAdminEventBuilder adminEventAuditer = scimKeycloakContext.getAdminEventAuditer();
@@ -269,14 +268,12 @@ public class GroupHandler extends ResourceHandler<Group>
                                      RealmModel realmModel)
   {
     KeycloakSession keycloakSession = scimKeycloakContext.getKeycloakSession();
-    Set<String> expectedUserMemberIds = group.getMembers()
-                                             .stream()
-                                             .filter(groupMember -> groupMember.getType().isPresent()
-                                                                    && groupMember.getType()
-                                                                                  .get()
-                                                                                  .equalsIgnoreCase("User"))
-                                             .map(groupMember -> groupMember.getValue().get())
-                                             .collect(Collectors.toSet());
+    Set<String> expectedUserMemberIds = group.getMembers().stream().filter(groupMember -> {
+      return (groupMember.getType().map(type -> type.equals(ResourceTypeNames.USER)).orElse(false)
+              || groupMember.getRef()
+                            .map(ref -> ref.matches(String.format(".*?%s/[\\w\\-]+", EndpointPaths.USERS)))
+                            .orElse(false));
+    }).map(groupMember -> groupMember.getValue().get()).collect(Collectors.toSet());
     List<UserModel> usersToLeaveGroup = keycloakSession.users()
                                                        .getGroupMembersStream(realmModel, groupModel)
                                                        .collect(Collectors.toList());
