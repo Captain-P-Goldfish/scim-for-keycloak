@@ -31,7 +31,6 @@ import de.captaingoldfish.scim.sdk.keycloak.entities.ScimResourceTypeEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimServiceProviderEntity;
 import de.captaingoldfish.scim.sdk.keycloak.scim.administration.ServiceProviderResource;
 import de.captaingoldfish.scim.sdk.keycloak.services.ScimResourceTypeService;
-import de.captaingoldfish.scim.sdk.keycloak.setup.KeycloakScimManagementTest;
 import de.captaingoldfish.scim.sdk.keycloak.setup.RequestBuilder;
 import de.captaingoldfish.scim.sdk.server.schemas.ResourceType;
 import de.captaingoldfish.scim.sdk.server.schemas.custom.EndpointControlFeature;

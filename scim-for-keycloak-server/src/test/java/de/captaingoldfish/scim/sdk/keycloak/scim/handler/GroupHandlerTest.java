@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
-import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,7 +31,7 @@ import de.captaingoldfish.scim.sdk.common.resources.Group;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Member;
 import de.captaingoldfish.scim.sdk.common.response.ErrorResponse;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
-import de.captaingoldfish.scim.sdk.keycloak.setup.KeycloakScimManagementTest;
+import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
 import de.captaingoldfish.scim.sdk.keycloak.setup.RequestBuilder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,7 +46,7 @@ public class GroupHandlerTest extends AbstractScimEndpointTest
 
   /**
    * will verify that a member is being removed from a group if no longer present in the members section
-   * 
+   *
    * @see <a href="https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/54">
    *      https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/54 </a>
    */
@@ -145,6 +144,51 @@ public class GroupHandlerTest extends AbstractScimEndpointTest
                                      .map(GroupModel::getName)
                                      .anyMatch(name -> name.equals(marioClub.getName())));
     }
+  }
+
+  /**
+   * this test will use the ref-attribute to set the resource-member link for a group and a member and will
+   * check that the relationship is correctly setup
+   */
+  @Test
+  public void testCreateGroupWithUserAndGroupMembersOnReferenceBase()
+  {
+    // members
+    UserModel superMario = getKeycloakSession().users().addUser(getRealmModel(), "supermario");
+    GroupModel retroStudios = getKeycloakSession().groups().createGroup(getRealmModel(), "retro studios");
+
+    Group nintendo = Group.builder()
+                          .displayName("nintendo")
+                          .members(Arrays.asList(Member.builder()
+                                                       .value(superMario.getId())
+                                                       .ref(String.format("http://localhost/scim/v2%s/%s",
+                                                                          EndpointPaths.USERS,
+                                                                          superMario.getId()))
+                                                       .build(),
+                                                 Member.builder()
+                                                       .value(retroStudios.getId())
+                                                       .ref(String.format("http://localhost/scim/v2%s/%s",
+                                                                          EndpointPaths.GROUPS,
+                                                                          retroStudios.getId()))
+                                                       .build()))
+                          .build();
+
+    Assertions.assertTrue(nintendo.getMembers().stream().anyMatch(member -> !member.getType().isPresent()));
+
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .endpoint(EndpointPaths.GROUPS)
+                                               .method(HttpMethod.POST)
+                                               .requestBody(nintendo.toString())
+                                               .build();
+
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
+
+    Group createdGroup = JsonHelper.readJsonDocument((String)response.getEntity(), Group.class);
+    GroupModel groupModel = getKeycloakSession().groups().getGroupById(getRealmModel(), createdGroup.getId().get());
+
+    Assertions.assertTrue(groupModel.getSubGroupsStream().anyMatch(g -> g.getId().equals(retroStudios.getId())));
+    Assertions.assertTrue(superMario.isMemberOf(groupModel));
   }
 
   /**
