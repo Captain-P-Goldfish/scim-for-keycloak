@@ -4,7 +4,7 @@
 
 ## Donations
 
-If you like this work and want to support me you'll be able to treat me to cup of coffee :-)
+If you like this work and want to support me you'll be able to treat me to a cup of coffee :-)
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?hosted_button_id=LLRM6ZVL4G9PJ)
 
@@ -79,7 +79,7 @@ Copy the built artifact into the directory `${keycloak.home}/standalone/deployme
 If you open up the SCIM endpoints to a specific realm make sure you setup access rights properly because access is by
 default granted to all clients and to all users. This is of course a problematic behaviour in a real world scenario, so
 you should restrict the access to specific clients and to users with specific roles as described in
-chapter ['What is configurable?'](#What is configurable?)
+chapter [What is configurable?](#what-is-configurable)
 
 ## How to configure the SCIM endpoints
 
