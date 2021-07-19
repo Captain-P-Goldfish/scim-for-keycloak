@@ -2,7 +2,7 @@
 | :------ | :--------------- |
 | master  | [![CircleCI](https://circleci.com/gh/Captain-P-Goldfish/scim-for-keycloak/tree/master.svg?style=shield)](https://circleci.com/gh/Captain-P-Goldfish/scim-for-keycloak/tree/master)
 
-# Donations
+## Donations
 
 If you like this work and want to support me you'll be able to treat me to cup of coffee :-)
 
@@ -71,6 +71,13 @@ Checkout the git tag that you want to build:
 Copy the built artifact into the directory `${keycloak.home}/standalone/deployments` of a keycloak server.  
 **NOTE:** *If the server is running during deployment you need to restart it!*
 
+## Security Considerations
+
+If you open up the SCIM endpoints to a specific realm make sure you setup access rights properly because access is by
+default granted to all clients and to all users. This is of course a problematic behaviour in a real world scenario, so
+you should restrict the access to specific clients and to users with specific roles as described in
+chapter ['What is configurable?'](#What is configurable?)
+
 ## How to configure the SCIM endpoints
 
 1. Deploy the `scim-for-keycloak.ear` file into your server. If the server is currently running you need to restart it!
@@ -79,6 +86,11 @@ Copy the built artifact into the directory `${keycloak.home}/standalone/deployme
    ![theme-settings](images/theme-setting.png)
 3. The SCIM endpoints will be `deactivated by default`. To activate it for a realm toggle the "SCIM enabled" switch
    under the SCIM menu link.
+
+## Disabled by default
+
+Earlier versions of scim-for-keycloak (kc-13-b2 and before and kc-14-b1) did enable the SCIM endpoints by default. The
+newer versions will have them disabled by default.
 
 ## What is configurable?
 
