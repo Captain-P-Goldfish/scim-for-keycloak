@@ -1,6 +1,13 @@
 |  Branch | Circle CI Status |
-| :------ | :--------------- | 
+| :------ | :--------------- |
 | master  | [![CircleCI](https://circleci.com/gh/Captain-P-Goldfish/scim-for-keycloak/tree/master.svg?style=shield)](https://circleci.com/gh/Captain-P-Goldfish/scim-for-keycloak/tree/master)
+
+# Donations
+
+If you like this work and want to support me you'll be able to treat me to cup of coffee :-)
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?hosted_button_id=LLRM6ZVL4G9PJ)
+
 # What is SCIM-for-keycloak?
 
 It is a full SCIM implementation that is easily integrated into keycloak and is also easily configurable within the web
