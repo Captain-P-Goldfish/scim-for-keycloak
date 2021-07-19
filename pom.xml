@@ -6,7 +6,7 @@
 
     <groupId>de.captaingoldfish</groupId>
     <artifactId>scim-for-keycloak</artifactId>
-    <version>kc-13-b4</version>
+    <version>kc-13-b5-SNAPSHOT</version>
 
     <name>SCIM for Keycloak</name>
     <description>A third party module that extends keycloak by SCIM functionality</description>
