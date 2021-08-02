@@ -16,7 +16,7 @@
         <module.name>de.captaingoldfish.scim.sdk.keycloak.scim.tests</module.name>
 
         <!-- version conflicts -->
-        <version.commons.compress>1.19</version.commons.compress>
+        <version.commons.compress>1.21</version.commons.compress>
         <version.jna>5.6.0</version.jna>
         <version.okio>2.9.0</version.okio>
 
