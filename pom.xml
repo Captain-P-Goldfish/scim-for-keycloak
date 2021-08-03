@@ -6,7 +6,7 @@
 
     <groupId>de.captaingoldfish</groupId>
     <artifactId>scim-for-keycloak</artifactId>
-    <version>kc-14-b4-SNAPSHOT</version>
+    <version>kc-15-b1-SNAPSHOT</version>
 
     <name>SCIM for Keycloak</name>
     <description>A third party module that extends keycloak by SCIM functionality</description>
@@ -39,7 +39,7 @@
         <!--suppress UnresolvedMavenProperty -->
         <formatter-path>${project.parent.basedir}</formatter-path>
 
-        <version.keycloak>14.0.0</version.keycloak>
+        <version.keycloak>15.0.0</version.keycloak>
         <version.scim.sdk>1.11.0</version.scim.sdk>
 
         <version.sun.javax.activation>1.2.0</version.sun.javax.activation>
