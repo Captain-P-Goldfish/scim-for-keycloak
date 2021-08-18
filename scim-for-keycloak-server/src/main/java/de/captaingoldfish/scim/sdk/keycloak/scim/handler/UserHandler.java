@@ -73,6 +73,10 @@ public class UserHandler extends ResourceHandler<User>
     }
     UserModel userModel = keycloakSession.users().addUser(keycloakSession.getContext().getRealm(), username);
     userModel = userToModel(user, userModel);
+    if (isChangePasswordSupported() && user.getPassword().isPresent())
+    {
+      setPassword(keycloakSession, user.getPassword().get(), userModel);
+    }
     User newUser = modelToUser(userModel);
     {
       ScimAdminEventBuilder adminEventAuditer = ((ScimKeycloakContext)context).getAdminEventAuditer();
