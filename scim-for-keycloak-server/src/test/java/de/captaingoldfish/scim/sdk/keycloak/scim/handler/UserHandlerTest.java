@@ -184,6 +184,7 @@ public class UserHandlerTest extends AbstractScimEndpointTest
 
     Random random = new Random();
     String name = "goldfish";
+    String pw = UUID.randomUUID().toString();
 
     User user = User.builder()
                     .userName(name)
@@ -205,6 +206,7 @@ public class UserHandlerTest extends AbstractScimEndpointTest
                     .preferredLanguage("de")
                     .timeZone("Europe/Berlin")
                     .profileUrl("http://localhost/" + name)
+                    .password(pw)
                     .emails(Arrays.asList(Email.builder().value(name + "@test.de").primary(true).build(),
                                           Email.builder().value(name + "_the_second@test.de").build()))
                     .phoneNumbers(Arrays.asList(PhoneNumber.builder()
@@ -255,6 +257,8 @@ public class UserHandlerTest extends AbstractScimEndpointTest
                                                .build();
     Response response = getScimEndpoint().handleScimRequest(request);
     Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
+
+    UserCredentialManager credentialManager = getKeycloakSession().userCredentialManager();
 
     final String userId;
     User createdUser = JsonHelper.readJsonDocument((String)response.getEntity(), User.class);
@@ -311,7 +315,7 @@ public class UserHandlerTest extends AbstractScimEndpointTest
       Assertions.assertEquals(user.getEnterpriseUser().get(), createdUser.getEnterpriseUser().get());
     }
 
-    // check primary email
+    // check primary email and password
     {
       UserModel userModel = getKeycloakSession().users().getUserById(getRealmModel(), userId);
       Assertions.assertNotNull(userModel);
@@ -323,6 +327,11 @@ public class UserHandlerTest extends AbstractScimEndpointTest
                                   .get(),
                               userModel.getEmail());
 
+      UserCredentialModel erroneousCredentialModel = UserCredentialModel.password("something-wrong");
+      UserCredentialModel correctCredentialModel = UserCredentialModel.password(pw);
+
+      Assertions.assertFalse(credentialManager.isValid(getRealmModel(), userModel, erroneousCredentialModel));
+      Assertions.assertTrue(credentialManager.isValid(getRealmModel(), userModel, correctCredentialModel));
     }
 
     // check for created admin event
