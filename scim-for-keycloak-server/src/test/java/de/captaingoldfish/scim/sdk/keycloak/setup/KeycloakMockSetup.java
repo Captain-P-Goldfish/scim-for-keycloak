@@ -159,6 +159,8 @@ class KeycloakMockSetup
                      Stream.of(new PasswordCredentialProviderFactory()),
                      Stream.of(new PasswordCredentialProviderFactory()),
                      Stream.of(new PasswordCredentialProviderFactory()),
+                     Stream.of(new PasswordCredentialProviderFactory()),
+                     Stream.of(new PasswordCredentialProviderFactory()),
                      Stream.of(new PasswordCredentialProviderFactory()))
            .when(keycloakSessionFactory)
            .getProviderFactoriesStream(CredentialProvider.class);
