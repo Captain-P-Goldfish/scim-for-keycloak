@@ -1,5 +1,6 @@
 package de.captaingoldfish.scim.sdk.keycloak.setup;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -154,16 +155,18 @@ class KeycloakMockSetup
   protected void setupPasswordManagingSettings()
   {
     Mockito.doReturn(new UserCredentialStoreManager(keycloakSession)).when(keycloakSession).userCredentialManager();
-    Mockito.doReturn(Stream.of(new PasswordCredentialProviderFactory()),
-                     Stream.of(new PasswordCredentialProviderFactory()),
-                     Stream.of(new PasswordCredentialProviderFactory()),
-                     Stream.of(new PasswordCredentialProviderFactory()),
-                     Stream.of(new PasswordCredentialProviderFactory()),
-                     Stream.of(new PasswordCredentialProviderFactory()),
-                     Stream.of(new PasswordCredentialProviderFactory()),
-                     Stream.of(new PasswordCredentialProviderFactory()))
-           .when(keycloakSessionFactory)
-           .getProviderFactoriesStream(CredentialProvider.class);
+    // provider password credential provider factory streams for password tests
+    {
+      List<Stream<PasswordCredentialProviderFactory>> passwordCredentialProviderStreams = new ArrayList<>();
+      // 20 is just a random number that should exceed the number that is actually needed
+      for ( int i = 0 ; i < 20 ; i++ )
+      {
+        passwordCredentialProviderStreams.add(Stream.of(new PasswordCredentialProviderFactory()));
+      }
+      Mockito.doReturn(Stream.of(new PasswordCredentialProviderFactory()), passwordCredentialProviderStreams.toArray())
+             .when(keycloakSessionFactory)
+             .getProviderFactoriesStream(CredentialProvider.class);
+    }
     Mockito.doReturn(new PasswordCredentialProvider(keycloakSession))
            .when(keycloakSession)
            .getProvider(CredentialProvider.class, PasswordCredentialProviderFactory.PROVIDER_ID);
