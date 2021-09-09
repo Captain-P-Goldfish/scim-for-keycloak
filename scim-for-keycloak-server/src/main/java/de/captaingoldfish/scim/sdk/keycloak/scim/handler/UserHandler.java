@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.events.admin.OperationType;
@@ -59,6 +58,36 @@ public class UserHandler extends ResourceHandler<User>
 
   public static final String PRIMARY_SUFFIX = "_primary";
 
+  // This is branch keycloak 15
+
+  // private static final String SCIM_DISPLAY_NAME = "displayName";
+
+  // private static final String SCIM_FORMATTED_NAME = "formattedName";
+
+  // private static final String SCIM_HONORIC_PREFIX = "honoricPrefix";
+
+  // private static final String SCIM_HONORIC_SUFFIX = "honoricSuffix";
+
+  private static final String SCIM_IS_IMPORTED = "isImported";
+
+  private static final String SCIM_LDAP_ID = "LDAP_ID";
+
+  // private static final String SCIM_MIDDLE_NAME = "middleName";
+
+  // private static final String SCIM_ORGANIZATION = "company";
+
+  private static final String SCIM_TELPEHONE_NUMBER = "phoneNumber";
+
+  private static final String SCIM_MOBILE_TELPEHONE_NUMBER = "mobileNumber";
+
+  /**
+   * an attribute that is added to users created by the scim protocol
+   */
+  private static final String SCIM_USER = "scim-user";
+
+
+  private static final String KEYCLOAK_DEBUG = System.getProperty("keycloak.debug");
+
   /**
    * {@inheritDoc}
    */
@@ -71,8 +100,21 @@ public class UserHandler extends ResourceHandler<User>
     {
       throw new ConflictException("the username '" + username + "' is already taken");
     }
+    Optional<Email> emailOpt = user.getEmails()
+                                   .stream()
+                                   .filter(MultiComplexNode::isPrimary)
+                                   .findAny()
+                                   .filter(value -> value.getValue().isPresent());
+    if (emailOpt.isPresent() && keycloakSession.users()
+                                               .getUserByEmail(emailOpt.get().getValue().orElse("xx"),
+                                                               keycloakSession.getContext().getRealm()) != null)
+    {
+      throw new ConflictException("the email '" + emailOpt.get().getValue().get() + "' is already taken");
+
+    }
+
     UserModel userModel = keycloakSession.users().addUser(keycloakSession.getContext().getRealm(), username);
-    userModel = userToModel(user, userModel);
+    userModel = userToModel(user, userModel, true);
     User newUser = modelToUser(userModel);
     {
       ScimAdminEventBuilder adminEventAuditer = ((ScimKeycloakContext)context).getAdminEventAuditer();
@@ -96,7 +138,7 @@ public class UserHandler extends ResourceHandler<User>
   {
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     UserModel userModel = keycloakSession.users().getUserById(keycloakSession.getContext().getRealm(), id);
-    if (userModel == null)
+    if (userModel == null || !Boolean.parseBoolean(userModel.getFirstAttribute(SCIM_USER)))
     {
       return null; // causes a resource not found exception you may also throw it manually
     }
@@ -120,8 +162,21 @@ public class UserHandler extends ResourceHandler<User>
     // TODO in order to filter on database level the feature "autoFiltering" must be disabled and the JPA criteria
     // api should be used
     RealmModel realmModel = keycloakSession.getContext().getRealm();
-    Stream<UserModel> userModels = keycloakSession.users().getUsersStream(realmModel);
-    List<User> userList = userModels.map(this::modelToUser).collect(Collectors.toList());
+    List<UserModel> userModels = keycloakSession.users().getUsers(realmModel);
+    List<User> userList = new ArrayList<>();
+
+    for ( UserModel userModel : userModels )
+    {
+      if (Boolean.parseBoolean(userModel.getFirstAttribute(SCIM_USER)))
+      {
+        User add = modelToUser(userModel);
+        if (KEYCLOAK_DEBUG != null)
+        {
+          log.info(this.getClass().getName() + " listResources User " + add.toPrettyString());
+        }
+        userList.add(add);
+      }
+    }
     return PartialListResponse.<User> builder().totalResults(userList.size()).resources(userList).build();
   }
 
@@ -135,15 +190,44 @@ public class UserHandler extends ResourceHandler<User>
     UserModel userModel = keycloakSession.users()
                                          .getUserById(keycloakSession.getContext().getRealm(),
                                                       userToUpdate.getId().get());
-    if (userModel == null)
+    if (userModel == null || !Boolean.parseBoolean(userModel.getFirstAttribute(SCIM_USER)))
     {
       return null; // causes a resource not found exception you may also throw it manually
     }
+    // PrÃ¼fung: wenn userName geÃ¤ndert, darf es den userName noch nicht geben
+    String username = userToUpdate.getUserName().get();
+    if (username != null && !username.equalsIgnoreCase(userModel.getUsername()))
+    {
+      if (keycloakSession.users().getUserByUsername(username, keycloakSession.getContext().getRealm()) != null)
+      {
+        throw new ConflictException("the username '" + username + "' is already taken");
+      }
+    }
+    // Dito Email
+    Optional<Email> emailOpt = userToUpdate.getEmails()
+                                           .stream()
+                                           .filter(MultiComplexNode::isPrimary)
+                                           .findAny()
+                                           .filter(value -> value.getValue().isPresent());
+    if (emailOpt.isPresent())
+    {
+      String email = emailOpt.get().getValue().get();
+      if (email != null && !email.equalsIgnoreCase(userModel.getEmail()))
+      {
+        if (keycloakSession.users()
+                           .getUserByEmail(emailOpt.get().getValue().orElse("xx"),
+                                           keycloakSession.getContext().getRealm()) != null)
+        {
+          throw new ConflictException("the email '" + email + "' is already taken");
+        }
+      }
+    }
+
     if (isChangePasswordSupported() && userToUpdate.getPassword().isPresent())
     {
       setPassword(keycloakSession, userToUpdate.getPassword().get(), userModel);
     }
-    userModel = userToModel(userToUpdate, userModel);
+    userModel = userToModel(userToUpdate, userModel, false);
     userModel.setSingleAttribute(AttributeNames.RFC7643.LAST_MODIFIED, String.valueOf(Instant.now().toEpochMilli()));
     User user = modelToUser(userModel);
     {
@@ -165,7 +249,7 @@ public class UserHandler extends ResourceHandler<User>
   {
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     UserModel userModel = keycloakSession.users().getUserById(keycloakSession.getContext().getRealm(), id);
-    if (userModel == null)
+    if (userModel == null || !Boolean.parseBoolean(userModel.getFirstAttribute(SCIM_USER)))
     {
       throw new ResourceNotFoundException("resource with id '" + id + "' does not exist");
     }
@@ -212,13 +296,19 @@ public class UserHandler extends ResourceHandler<User>
    *
    * @param user the scim user instance
    * @param userModel the keycloak user instance
+   * @param isCreation this is a create request
    * @return the updated keycloak user instance
    */
-  private UserModel userToModel(User user, UserModel userModel)
+  private UserModel userToModel(User user, UserModel userModel, boolean isCreation)
   {
+    final boolean[] imported = {false};
+    // TODO csbrogi fix this
+    // user.isImported().ifPresent(isImported -> imported[0] = isImported);
     user.getExternalId()
         .ifPresent(externalId -> userModel.setSingleAttribute(AttributeNames.RFC7643.EXTERNAL_ID, externalId));
     user.isActive().ifPresent(userModel::setEnabled);
+    userModel.setSingleAttribute(SCIM_IS_IMPORTED, String.valueOf(imported[0]));
+    userModel.setSingleAttribute(SCIM_USER, String.valueOf(true));
     user.getName().ifPresent(name -> {
       name.getGivenName().ifPresent(userModel::setFirstName);
       name.getFamilyName().ifPresent(userModel::setLastName);
@@ -246,7 +336,32 @@ public class UserHandler extends ResourceHandler<User>
         .findAny()
         .flatMap(MultiComplexNode::getValue)
         .ifPresent(userModel::setEmail);
+    for ( PhoneNumber number : user.getPhoneNumbers() )
+    {
+      if (number.getType().isPresent() && number.getValue().isPresent() && "work".equals(number.getType().get()))
+      {
+        userModel.setSingleAttribute(SCIM_TELPEHONE_NUMBER, number.getValue().get());
+      }
+      else if (number.getType().isPresent() && number.getValue().isPresent() && "mobile".equals(number.getType().get()))
+      {
+        userModel.setSingleAttribute(SCIM_MOBILE_TELPEHONE_NUMBER, number.getValue().get());
+      }
+    }
 
+    // Das Attribut LDAP_ID wird nur beim Anlegen gesetzt
+    if (isCreation)
+    {
+      // TODO csbrogi: handle LDAP_ID
+      // if (user.getLdapId().isPresent())
+      // {
+      // userModel.setSingleAttribute(SCIM_LDAP_ID, user.getLdapId().get());
+      // }
+      // else if (user.getExternalId().isPresent())
+      if (user.getExternalId().isPresent())
+      {
+        userModel.setSingleAttribute(SCIM_LDAP_ID, user.getExternalId().get());
+      }
+    }
     setMultiAttribute(user::getEmails, AttributeNames.RFC7643.EMAILS, userModel);
     setMultiAttribute(user::getPhoneNumbers, AttributeNames.RFC7643.PHONE_NUMBERS, userModel);
     setMultiAttribute(user::getAddresses, AttributeNames.RFC7643.ADDRESSES, userModel);
@@ -256,6 +371,10 @@ public class UserHandler extends ResourceHandler<User>
     setMultiAttribute(user::getRoles, AttributeNames.RFC7643.ROLES, userModel);
     setMultiAttribute(user::getX509Certificates, AttributeNames.RFC7643.X509_CERTIFICATES, userModel);
 
+    if (user.getExternalId().isPresent())
+    {
+      userModel.setSingleAttribute(AttributeNames.RFC7643.EXTERNAL_ID, user.getExternalId().get());
+    }
     userModel.setSingleAttribute(AttributeNames.RFC7643.COST_CENTER,
                                  user.getEnterpriseUser().flatMap(EnterpriseUser::getCostCenter).orElse(null));
     userModel.setSingleAttribute(AttributeNames.RFC7643.DEPARTMENT,

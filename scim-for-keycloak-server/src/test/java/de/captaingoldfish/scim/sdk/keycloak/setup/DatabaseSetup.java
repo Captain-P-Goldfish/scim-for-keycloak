@@ -123,7 +123,7 @@ class DatabaseSetup
   {
     EntityManager newEntityManager = ENTITY_MANAGER_FACTORY.createEntityManager();
     JpaUserProvider jpaUserProvider = new JpaUserProvider(keycloakSession, newEntityManager);
-    JpaRealmProvider jpaRealmProvider = new JpaRealmProvider(keycloakSession, newEntityManager);
+    JpaRealmProvider jpaRealmProvider = new JpaRealmProvider(keycloakSession, newEntityManager, null);
     Mockito.doReturn(new UserStorageManager(keycloakSession)).when(keycloakSession).users();
     Mockito.doReturn(jpaUserProvider).when(keycloakSession).userLocalStorage();
     Mockito.doReturn(jpaRealmProvider).when(keycloakSession).realms();
