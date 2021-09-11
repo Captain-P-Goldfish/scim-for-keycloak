@@ -11,7 +11,7 @@ import de.captaingoldfish.scim.sdk.keycloak.tests.setup.LocalComposition;
 /**
  * execute frontend tests with a local already running keycloak setup. (the local tests are simply for *
  * increasing development performance)
- * 
+ *
  * @author Pascal Knueppel
  * @since 11.12.2020
  */

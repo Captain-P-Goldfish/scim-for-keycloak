@@ -39,8 +39,8 @@
         <!--suppress UnresolvedMavenProperty -->
         <formatter-path>${project.parent.basedir}</formatter-path>
 
-        <version.keycloak>15.0.0</version.keycloak>
-        <version.scim.sdk>1.11.0</version.scim.sdk>
+        <version.keycloak>15.0.2</version.keycloak>
+        <version.scim.sdk>1.12.0</version.scim.sdk>
 
         <version.sun.javax.activation>1.2.0</version.sun.javax.activation>
         <version.javax.activation>1.1.1</version.javax.activation>
