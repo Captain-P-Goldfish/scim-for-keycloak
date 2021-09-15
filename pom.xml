@@ -57,6 +57,15 @@
         <version.maven.surefire.plugin>3.0.0-M5</version.maven.surefire.plugin>
     </properties>
 
+    <repositories>
+
+        <repository>
+            <id>project.local</id>
+            <name>project</name>
+            <url>file:${project.basedir}/../../repo</url>
+        </repository>
+    </repositories>
+
     <dependencyManagement>
         <dependencies>
             <!-- base setup dependencies -->

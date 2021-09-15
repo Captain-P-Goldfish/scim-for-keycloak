@@ -16,6 +16,7 @@
         <dependency>
             <groupId>de.captaingoldfish</groupId>
             <artifactId>scim-sdk-common</artifactId>
+            <version>1.12</version>
         </dependency>
     </dependencies>
 
