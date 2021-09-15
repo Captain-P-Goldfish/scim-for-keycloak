@@ -302,8 +302,7 @@ public class UserHandler extends ResourceHandler<User>
   private UserModel userToModel(User user, UserModel userModel, boolean isCreation)
   {
     final boolean[] imported = {false};
-    // TODO csbrogi fix this
-    // user.isImported().ifPresent(isImported -> imported[0] = isImported);
+    user.isImported().ifPresent(isImported -> imported[0] = isImported);
     user.getExternalId()
         .ifPresent(externalId -> userModel.setSingleAttribute(AttributeNames.RFC7643.EXTERNAL_ID, externalId));
     user.isActive().ifPresent(userModel::setEnabled);
@@ -351,13 +350,12 @@ public class UserHandler extends ResourceHandler<User>
     // Das Attribut LDAP_ID wird nur beim Anlegen gesetzt
     if (isCreation)
     {
-      // TODO csbrogi: handle LDAP_ID
-      // if (user.getLdapId().isPresent())
-      // {
-      // userModel.setSingleAttribute(SCIM_LDAP_ID, user.getLdapId().get());
-      // }
-      // else if (user.getExternalId().isPresent())
-      if (user.getExternalId().isPresent())
+      if (user.getLdapId().isPresent())
+      {
+        userModel.setSingleAttribute(SCIM_LDAP_ID, user.getLdapId().get());
+      }
+      else if (user.getExternalId().isPresent())
+      // if (user.getExternalId().isPresent())
       {
         userModel.setSingleAttribute(SCIM_LDAP_ID, user.getExternalId().get());
       }
@@ -443,13 +441,16 @@ public class UserHandler extends ResourceHandler<User>
     User user = User.builder()
                     .id(userModel.getId())
                     .externalId(userModel.getFirstAttribute(AttributeNames.RFC7643.EXTERNAL_ID))
+                    .ldapId(userModel.getFirstAttribute(SCIM_LDAP_ID))
                     .userName(userModel.getUsername())
                     .name(name)
                     .active(userModel.isEnabled())
+                    .imported(Boolean.parseBoolean(userModel.getFirstAttribute(SCIM_IS_IMPORTED)))
                     .nickName(userModel.getFirstAttribute(AttributeNames.RFC7643.NICK_NAME))
                     .title(userModel.getFirstAttribute(AttributeNames.RFC7643.TITLE))
                     .displayName(userModel.getFirstAttribute(AttributeNames.RFC7643.DISPLAY_NAME))
                     .userType(userModel.getFirstAttribute(AttributeNames.RFC7643.USER_TYPE))
+                    .externalId(userModel.getFirstAttribute(AttributeNames.RFC7643.EXTERNAL_ID))
                     .locale(userModel.getFirstAttribute(AttributeNames.RFC7643.LOCALE))
                     .preferredLanguage(userModel.getFirstAttribute(AttributeNames.RFC7643.PREFERRED_LANGUAGE))
                     .timeZone(userModel.getFirstAttribute(AttributeNames.RFC7643.TIMEZONE))
