@@ -18,6 +18,11 @@
             <artifactId>scim-sdk-common</artifactId>
             <version>1.12</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${version.jackson}</version>
+        </dependency>
     </dependencies>
 
 </project>
