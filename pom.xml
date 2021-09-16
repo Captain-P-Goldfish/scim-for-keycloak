@@ -25,8 +25,8 @@
         <module>scim-for-keycloak-resources</module>
         <module>scim-for-keycloak-server</module>
         <module>scim-for-keycloak-deployment</module>
-        <module>scim-for-keycloak-client</module>
-        <module>scim-for-keycloak-frontend-integration-tests</module>
+<!--        <module>scim-for-keycloak-client</module>-->
+<!--        <module>scim-for-keycloak-frontend-integration-tests</module>-->
     </modules>
 
     <properties>
