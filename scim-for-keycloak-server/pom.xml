@@ -14,6 +14,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${version.apache.commons.lang3}</version>
+        </dependency>
+        <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-core</artifactId>
             <scope>provided</scope>
@@ -56,11 +61,12 @@
         <dependency>
             <groupId>de.captaingoldfish</groupId>
             <artifactId>scim-sdk-common</artifactId>
-            <version>1.12</version>
+            <version>1.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>de.captaingoldfish</groupId>
             <artifactId>scim-sdk-server</artifactId>
+            <version>1.12-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <artifactId>javax.ws.rs-api</artifactId>

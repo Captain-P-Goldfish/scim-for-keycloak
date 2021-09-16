@@ -20,6 +20,17 @@
             <artifactId>scim-for-keycloak-server</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>de.captaingoldfish</groupId>
+            <artifactId>scim-sdk-server</artifactId>
+            <version>1.12-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>javax.ws.rs-api</artifactId>
+                    <groupId>javax.ws.rs</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <build>
