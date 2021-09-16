@@ -53,7 +53,11 @@
             <artifactId>jboss-servlet-api_4.0_spec</artifactId>
             <scope>provided</scope>
         </dependency>
-
+        <dependency>
+            <groupId>de.captaingoldfish</groupId>
+            <artifactId>scim-sdk-common</artifactId>
+            <version>1.12</version>
+        </dependency>
         <dependency>
             <groupId>de.captaingoldfish</groupId>
             <artifactId>scim-sdk-server</artifactId>
