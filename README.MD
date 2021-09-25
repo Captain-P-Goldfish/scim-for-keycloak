@@ -1,6 +1,7 @@
 |  Branch | Circle CI Status |
 | :------ | :--------------- |
 | master  | [![CircleCI](https://circleci.com/gh/Captain-P-Goldfish/scim-for-keycloak/tree/master.svg?style=shield)](https://circleci.com/gh/Captain-P-Goldfish/scim-for-keycloak/tree/master)
+| | the build is not broken. This is currently an error on circle-ci |
 
 ## Donations
 
