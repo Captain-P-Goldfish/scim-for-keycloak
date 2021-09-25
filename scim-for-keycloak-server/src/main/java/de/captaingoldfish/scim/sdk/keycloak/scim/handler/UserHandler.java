@@ -350,7 +350,13 @@ public class UserHandler extends ResourceHandler<User>
                                                        AttributeNames.RFC7643.X509_CERTIFICATES,
                                                        userModel))
                     .meta(Meta.builder()
-                              .created(Instant.ofEpochMilli(userModel.getCreatedTimestamp()))
+                              .created(Optional.ofNullable(userModel.getCreatedTimestamp())
+                                               .map(Instant::ofEpochMilli)
+                                               .orElseGet(() -> {
+                                                 log.warn("User with ID '{}' has no created timestamp",
+                                                          userModel.getId());
+                                                 return Instant.now();
+                                               }))
                               .lastModified(getLastModified(userModel))
                               .build())
                     .build();
@@ -403,7 +409,7 @@ public class UserHandler extends ResourceHandler<User>
     }
     else
     {
-      return Instant.ofEpochMilli(userModel.getCreatedTimestamp());
+      return Optional.ofNullable(userModel.getCreatedTimestamp()).map(Instant::ofEpochMilli).orElse(Instant.now());
     }
   }
 }

@@ -41,6 +41,7 @@ import de.captaingoldfish.scim.sdk.common.resources.multicomplex.MultiComplexNod
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PhoneNumber;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.ScimX509Certificate;
+import de.captaingoldfish.scim.sdk.common.response.ListResponse;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
 import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimConfigurationBridge;
@@ -360,7 +361,7 @@ public class UserHandlerTest extends AbstractScimEndpointTest
    * this test must result in an admin-event entry that has an anonymous user and client entered into the table
    */
   @Test
-  public void createUserWithDeactivatedAuthentication()
+  public void testCreateUserWithDeactivatedAuthentication()
   {
     ResourceEndpoint resourceEndpoint = ScimConfigurationBridge.getScimResourceEndpoints()
                                                                .get(getRealmModel().getName());
@@ -401,5 +402,29 @@ public class UserHandlerTest extends AbstractScimEndpointTest
       }
       Assertions.assertEquals(createdUser, JsonHelper.readJsonDocument(adminEvent.getRepresentation(), User.class));
     }
+  }
+
+  /**
+   * verifies that no NullPointerException will occur if a user has a deleted created timestamp
+   */
+  @Test
+  public void testListUsersWithOneUserHavingNoCreatedTimestamp()
+  {
+    UserModel goldfish = getKeycloakSession().users().addUser(getRealmModel(), "goldfish");
+    getKeycloakSession().users().addUser(getRealmModel(), "mario");
+    goldfish.setCreatedTimestamp(null);
+
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .method(HttpMethod.GET)
+                                               .endpoint(EndpointPaths.USERS)
+                                               .build();
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.OK, response.getStatus());
+
+    ListResponse listResponse = JsonHelper.readJsonDocument((String)response.getEntity(), ListResponse.class);
+    // the two created users plus the one default user created by the test-setup
+    Assertions.assertEquals(3, listResponse.getTotalResults());
+    goldfish = getKeycloakSession().users().getUserById(getRealmModel(), goldfish.getId());
+    Assertions.assertNull(goldfish.getCreatedTimestamp());
   }
 }
