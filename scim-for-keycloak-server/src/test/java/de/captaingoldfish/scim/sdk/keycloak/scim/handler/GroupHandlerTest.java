@@ -194,7 +194,7 @@ public class GroupHandlerTest extends AbstractScimEndpointTest
   /**
    * will verify that creating a group with a none existing member causes a
    * {@link de.captaingoldfish.scim.sdk.common.exceptions.ResourceNotFoundException}
-   * 
+   *
    * @see <a href="https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/55">
    *      https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/55</a>
    */
@@ -224,7 +224,7 @@ public class GroupHandlerTest extends AbstractScimEndpointTest
 
   /**
    * verifies that groups can be created if their names are prefixes of other group names
-   * 
+   *
    * @see <a href="https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/56">
    *      https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/56</a>
    */
@@ -247,7 +247,7 @@ public class GroupHandlerTest extends AbstractScimEndpointTest
 
   /**
    * verifies that a group with a duplicate name cannot be created
-   * 
+   *
    * @see <a href="https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/56">
    *      https://github.com/Captain-P-Goldfish/SCIM-SDK/issues/56</a>
    */

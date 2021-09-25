@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -22,6 +23,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.keycloak.models.KeycloakSession;
 
 import de.captaingoldfish.scim.sdk.common.constants.HttpHeader;
@@ -164,7 +166,16 @@ public class ScimEndpoint extends AbstractEndpoint
     while (enumeration != null && enumeration.hasMoreElements())
     {
       String headerName = enumeration.nextElement();
-      httpHeaders.put(headerName, request.getHeader(headerName));
+      String headerValue = request.getHeader(headerName);
+
+      boolean isContentTypeHeader = HttpHeader.CONTENT_TYPE_HEADER.toLowerCase(Locale.ROOT)
+                                                                  .equals(headerName.toLowerCase(Locale.ROOT));
+      boolean isApplicationJson = StringUtils.startsWithIgnoreCase(headerValue, "application/json");
+      if (isContentTypeHeader && isApplicationJson)
+      {
+        headerValue = HttpHeader.SCIM_CONTENT_TYPE;
+      }
+      httpHeaders.put(headerName, headerValue);
     }
     return httpHeaders;
   }

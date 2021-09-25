@@ -2,6 +2,10 @@ package de.captaingoldfish.scim.sdk.keycloak.scim;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.function.Function;
 
 import javax.servlet.http.HttpServletRequest;
@@ -22,6 +26,7 @@ import org.mockito.Mockito;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 
 import de.captaingoldfish.scim.sdk.common.constants.EndpointPaths;
+import de.captaingoldfish.scim.sdk.common.constants.HttpHeader;
 import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
 import de.captaingoldfish.scim.sdk.common.constants.ResourceTypeNames;
 import de.captaingoldfish.scim.sdk.common.resources.ServiceProvider;
@@ -364,5 +369,26 @@ public class ScimEndpointTest extends AbstractScimEndpointTest
       Assertions.assertEquals(1, authorization.getRolesDelete().size());
       Assertions.assertEquals(delete.getName(), authorization.getRolesDelete().iterator().next());
     }
+  }
+
+  /**
+   * this test will show that the content-type "application/json" will be correctly replaced with
+   * "application/scim+json"
+   */
+  @Test
+  public void testCreateGroupWithApplicationJsonContentType()
+  {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HttpHeader.CONTENT_TYPE_HEADER, "application/json");
+
+    HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+    Mockito.doReturn(Collections.enumeration(headers.keySet())).when(servletRequest).getHeaderNames();
+    Mockito.doReturn(headers.get(HttpHeader.CONTENT_TYPE_HEADER).toUpperCase(Locale.ROOT))
+           .when(servletRequest)
+           .getHeader(HttpHeader.CONTENT_TYPE_HEADER);
+
+    Map<String, String> httpHeaders = getScimEndpoint().getHttpHeaders(servletRequest);
+    Assertions.assertEquals(1, httpHeaders.size());
+    Assertions.assertEquals(HttpHeader.SCIM_CONTENT_TYPE, httpHeaders.get(HttpHeader.CONTENT_TYPE_HEADER));
   }
 }

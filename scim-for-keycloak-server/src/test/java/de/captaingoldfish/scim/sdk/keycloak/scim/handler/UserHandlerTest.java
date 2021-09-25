@@ -360,7 +360,7 @@ public class UserHandlerTest extends AbstractScimEndpointTest
    * this test must result in an admin-event entry that has an anonymous user and client entered into the table
    */
   @Test
-  public void createÛserWithDeactivatedAuthentication()
+  public void createUserWithDeactivatedAuthentication()
   {
     ResourceEndpoint resourceEndpoint = ScimConfigurationBridge.getScimResourceEndpoints()
                                                                .get(getRealmModel().getName());
