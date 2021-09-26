@@ -56,6 +56,11 @@ This project will use the following versioning pattern
 Releases will be only tagged in git and not be uploaded to any repository. Please build the necessary artifacts with the
 following description yourself.
 
+## Release Notes
+
+To see the current release-notes take a look into the release
+section: https://github.com/Captain-P-Goldfish/scim-for-keycloak/releases
+
 ## How to build
 
 You need a git, JDK and maven installation on your computer
