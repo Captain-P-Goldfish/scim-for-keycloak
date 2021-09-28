@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
+import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ModelException;
 import org.keycloak.models.RealmModel;
@@ -37,6 +38,7 @@ import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PersonRole;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PhoneNumber;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.ScimX509Certificate;
+import de.captaingoldfish.scim.sdk.common.resources.multicomplex.GroupNode;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
 import de.captaingoldfish.scim.sdk.keycloak.audit.ScimAdminEventBuilder;
@@ -325,6 +327,13 @@ public class UserHandler extends ResourceHandler<User>
       name = null;
     }
 
+    List<GroupNode> groups = userModel.getGroupsStream()
+                                      .map(groupModel -> GroupNode.builder()
+                                                                  .display(groupModel.getName())
+                                                                  .value(groupModel.getId())
+                                                                  .build())
+                                      .collect(Collectors.toList());
+
     User user = User.builder()
                     .id(userModel.getId())
                     .externalId(userModel.getFirstAttribute(AttributeNames.RFC7643.EXTERNAL_ID))
@@ -346,6 +355,7 @@ public class UserHandler extends ResourceHandler<User>
                     .entitlements(getAttributeList(Entitlement.class, AttributeNames.RFC7643.ENTITLEMENTS, userModel))
                     .photos(getAttributeList(Photo.class, AttributeNames.RFC7643.PHOTOS, userModel))
                     .roles(getAttributeList(PersonRole.class, AttributeNames.RFC7643.ROLES, userModel))
+                    .groups(groups)
                     .x509Certificates(getAttributeList(ScimX509Certificate.class,
                                                        AttributeNames.RFC7643.X509_CERTIFICATES,
                                                        userModel))
