@@ -64,7 +64,9 @@ section: https://github.com/Captain-P-Goldfish/scim-for-keycloak/releases
 
 ## How to build
 
-You need a git, JDK and maven installation on your computer
+You need a git, JDK and maven installation on your computer. A manual in how to prepare java and maven for
+non-java-developers can be found in the wiki:
+https://github.com/Captain-P-Goldfish/scim-for-keycloak/wiki/Manual:-building-scim-for-keycloak-with-java-and-maven
 
 Checkout the git tag that you want to build:
 
