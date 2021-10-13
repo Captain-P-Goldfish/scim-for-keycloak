@@ -95,9 +95,14 @@ public class UserHandler extends ResourceHandler<User>
   public User createResource(User user, Context context)
   {
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
+    if (KEYCLOAK_DEBUG != null)
+    {
+      log.info(this.getClass().getName() + " create user Request " + user.toPrettyString());
+    }
     final String username = user.getUserName().get();
     if (keycloakSession.users().getUserByUsername(keycloakSession.getContext().getRealm(), username) != null)
     {
+      log.error(this.getClass().getName() + " create user Request: the username '" + username + "' is already taken");
       throw new ConflictException("the username '" + username + "' is already taken");
     }
     Optional<Email> emailOpt = user.getEmails()
@@ -109,6 +114,8 @@ public class UserHandler extends ResourceHandler<User>
                                                .getUserByEmail(emailOpt.get().getValue().orElse("xx"),
                                                                keycloakSession.getContext().getRealm()) != null)
     {
+      log.error(this.getClass().getName() + " create user Request: the email '" + emailOpt.get().getValue().get()
+                + "' is already taken");
       throw new ConflictException("the email '" + emailOpt.get().getValue().get() + "' is already taken");
 
     }
@@ -124,6 +131,10 @@ public class UserHandler extends ResourceHandler<User>
                                     newUser);
     }
     log.debug("Created user with username: {}", userModel.getUsername());
+    if (KEYCLOAK_DEBUG != null)
+    {
+      log.info(this.getClass().getName() + " created user User " + newUser.toPrettyString());
+    }
     return newUser;
   }
 
@@ -142,7 +153,12 @@ public class UserHandler extends ResourceHandler<User>
     {
       return null; // causes a resource not found exception you may also throw it manually
     }
-    return modelToUser(userModel);
+    User user = modelToUser(userModel);
+    if (KEYCLOAK_DEBUG != null)
+    {
+      log.info("{} getResource {} returns {}", this.getClass().getName(), id, user.toPrettyString());
+    }
+    return user;
   }
 
   /**
@@ -172,7 +188,7 @@ public class UserHandler extends ResourceHandler<User>
         User add = modelToUser(userModel);
         if (KEYCLOAK_DEBUG != null)
         {
-          log.info(this.getClass().getName() + " listResources User " + add.toPrettyString());
+          log.info("{} listResources User {}", this.getClass().getName(), add.toPrettyString());
         }
         userList.add(add);
       }
@@ -196,10 +212,12 @@ public class UserHandler extends ResourceHandler<User>
     }
     // PrÃ¼fung: wenn userName geÃ¤ndert, darf es den userName noch nicht geben
     String username = userToUpdate.getUserName().get();
-    if (username != null && !username.equalsIgnoreCase(userModel.getUsername()))
+    if (!username.equalsIgnoreCase(userModel.getUsername()))
     {
       if (keycloakSession.users().getUserByUsername(username, keycloakSession.getContext().getRealm()) != null)
       {
+        log.info("{} updateResource error: the username {} is already taken", this.getClass().getName(), username);
+
         throw new ConflictException("the username '" + username + "' is already taken");
       }
     }
@@ -212,12 +230,13 @@ public class UserHandler extends ResourceHandler<User>
     if (emailOpt.isPresent())
     {
       String email = emailOpt.get().getValue().get();
-      if (email != null && !email.equalsIgnoreCase(userModel.getEmail()))
+      if (!email.equalsIgnoreCase(userModel.getEmail()))
       {
         if (keycloakSession.users()
                            .getUserByEmail(emailOpt.get().getValue().orElse("xx"),
                                            keycloakSession.getContext().getRealm()) != null)
         {
+          log.info("{} updateResource error: the email {} is already taken", this.getClass().getName(), email);
           throw new ConflictException("the email '" + email + "' is already taken");
         }
       }
@@ -236,6 +255,10 @@ public class UserHandler extends ResourceHandler<User>
                                     ResourceType.USER,
                                     String.format("users/%s", userModel.getId()),
                                     user);
+    }
+    if (KEYCLOAK_DEBUG != null)
+    {
+      log.info("{} updateResource returns {}", this.getClass().getName(), user.toPrettyString());
     }
     log.debug("Updated user with username: {}", userModel.getUsername());
     return user;
@@ -261,7 +284,7 @@ public class UserHandler extends ResourceHandler<User>
                                     String.format("users/%s", userModel.getId()),
                                     User.builder().id(userModel.getId()).userName(userModel.getUsername()).build());
     }
-    log.debug("Deleted user with username: {}", userModel.getUsername());
+    log.info("Deleted user with username: {}", userModel.getUsername());
   }
 
   /**
