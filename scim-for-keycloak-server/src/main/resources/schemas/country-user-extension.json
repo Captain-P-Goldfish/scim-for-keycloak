@@ -1,0 +1,38 @@
+{
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:Schema"
+  ],
+  "id": "urn:ietf:params:scim:schemas:extension:country:2.0:User",
+  "name": "UserCountry",
+  "description": "User country extension",
+  "attributes": [
+    {
+      "name": "countries",
+      "type": "string",
+      "description": "...",
+      "mutability": "readWrite",
+      "returned": "default",
+      "uniqueness": "none",
+      "multiValued": true,
+      "required": false,
+      "caseExact": false
+    },
+    {
+      "name": "businessLine",
+      "type": "string",
+      "description": "...",
+      "mutability": "readWrite",
+      "returned": "default",
+      "uniqueness": "none",
+      "multiValued": true,
+      "required": false,
+      "caseExact": false
+    }
+  ],
+  "meta": {
+    "resourceType": "Schema",
+    "created": "2019-10-18T14:51:11+02:00",
+    "lastModified": "2019-10-18T14:51:11+02:00",
+    "location": "/Schemas/User"
+  }
+}

@@ -8,6 +8,7 @@ import org.keycloak.models.RealmModel;
 
 import de.captaingoldfish.scim.sdk.common.resources.ServiceProvider;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimResourceTypeEntity;
+import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUserEndpoint;
 import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.RoleEndpointDefinition;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.GroupHandler;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.RealmRoleHandler;
@@ -16,7 +17,6 @@ import de.captaingoldfish.scim.sdk.keycloak.services.ScimResourceTypeService;
 import de.captaingoldfish.scim.sdk.keycloak.services.ScimServiceProviderService;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceEndpoint;
 import de.captaingoldfish.scim.sdk.server.endpoints.base.GroupEndpointDefinition;
-import de.captaingoldfish.scim.sdk.server.endpoints.base.UserEndpointDefinition;
 import de.captaingoldfish.scim.sdk.server.schemas.ResourceType;
 import de.captaingoldfish.scim.sdk.server.schemas.custom.ResourceTypeFeatures;
 import lombok.AccessLevel;
@@ -77,7 +77,7 @@ public final class ScimConfiguration
 
     ScimResourceTypeService resourceTypeService = new ScimResourceTypeService(keycloakSession);
 
-    ResourceType userResourceType = resourceEndpoint.registerEndpoint(new UserEndpointDefinition(new UserHandler()));
+    ResourceType userResourceType = resourceEndpoint.registerEndpoint(new CustomUserEndpoint(new UserHandler()));
     userResourceType.setFeatures(ResourceTypeFeatures.builder().autoFiltering(true).autoSorting(true).build());
     ScimResourceTypeEntity userResourceTypeEntity = resourceTypeService.getOrCreateResourceTypeEntry(userResourceType);
     resourceTypeService.updateResourceType(userResourceType, userResourceTypeEntity);
