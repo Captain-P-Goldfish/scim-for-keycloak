@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.keycloak.events.admin.AdminEvent;
 import org.keycloak.events.admin.OperationType;
+import org.keycloak.models.GroupModel;
 import org.keycloak.models.UserCredentialManager;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
@@ -36,6 +37,7 @@ import de.captaingoldfish.scim.sdk.common.resources.complex.Name;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Address;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Email;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Entitlement;
+import de.captaingoldfish.scim.sdk.common.resources.multicomplex.GroupNode;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Ims;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.MultiComplexNode;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PhoneNumber;
@@ -440,5 +442,44 @@ public class UserHandlerTest extends AbstractScimEndpointTest
     Assertions.assertEquals(3, listResponse.getTotalResults());
     goldfish = getKeycloakSession().users().getUserById(getRealmModel(), goldfish.getId());
     Assertions.assertNull(goldfish.getCreatedTimestamp());
+  }
+
+  /**
+   * verifies that the associated groups are returned if a user is accessed
+   */
+  @Test
+  public void testReturnUserWithGroups()
+  {
+    UserModel superMario = getKeycloakSession().users().addUser(getRealmModel(), "supermario");
+
+    GroupModel nintendo = getKeycloakSession().groups().createGroup(getRealmModel(), "nintendo");
+    GroupModel marioClub = getKeycloakSession().groups().createGroup(getRealmModel(), "mario club");
+
+    superMario.joinGroup(nintendo);
+    superMario.joinGroup(marioClub);
+
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .method(HttpMethod.GET)
+                                               .endpoint(String.format("%s/%s",
+                                                                       EndpointPaths.USERS,
+                                                                       superMario.getId()))
+                                               .build();
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.OK, response.getStatus());
+
+    User user = JsonHelper.readJsonDocument((String)response.getEntity(), User.class);
+    Assertions.assertEquals(2, user.getGroups().size());
+    GroupNode nintendoNode = user.getGroups()
+                                 .stream()
+                                 .filter(g -> g.getDisplay().get().equals(nintendo.getName()))
+                                 .findAny()
+                                 .get();
+    Assertions.assertEquals("direct", nintendoNode.getType().get());
+    GroupNode marioClubNode = user.getGroups()
+                                  .stream()
+                                  .filter(g -> g.getDisplay().get().equals(marioClub.getName()))
+                                  .findAny()
+                                  .get();
+    Assertions.assertEquals("direct", marioClubNode.getType().get());
   }
 }
