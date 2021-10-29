@@ -31,6 +31,7 @@ import de.captaingoldfish.scim.sdk.common.resources.complex.Name;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Address;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Email;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Entitlement;
+import de.captaingoldfish.scim.sdk.common.resources.multicomplex.GroupNode;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Ims;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.MultiComplexNode;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PersonRole;
@@ -325,11 +326,16 @@ public class UserHandler extends ResourceHandler<User>
       name = null;
     }
 
+    List<GroupNode> groups = userModel.getGroupsStream().map(groupModel -> {
+      return GroupNode.builder().display(groupModel.getName()).value(groupModel.getId()).type("direct").build();
+    }).collect(Collectors.toList());
+
     User user = User.builder()
                     .id(userModel.getId())
                     .externalId(userModel.getFirstAttribute(AttributeNames.RFC7643.EXTERNAL_ID))
                     .userName(userModel.getUsername())
                     .name(name)
+                    .groups(groups)
                     .active(userModel.isEnabled())
                     .nickName(userModel.getFirstAttribute(AttributeNames.RFC7643.NICK_NAME))
                     .title(userModel.getFirstAttribute(AttributeNames.RFC7643.TITLE))
