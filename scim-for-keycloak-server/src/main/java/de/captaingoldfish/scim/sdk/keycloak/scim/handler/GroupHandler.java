@@ -1,6 +1,7 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim.handler;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -9,7 +10,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
 import org.keycloak.models.GroupModel;
@@ -60,7 +60,7 @@ public class GroupHandler extends ResourceHandler<Group>
     }
     GroupModel groupModel = keycloakSession.getContext().getRealm().createGroup(groupName);
 
-    Instant now = Instant.now();
+    Instant now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
     groupModel.setAttribute(AttributeNames.RFC7643.CREATED, Collections.singletonList(now.toString()));
     groupModel.setAttribute(AttributeNames.RFC7643.LAST_MODIFIED, Collections.singletonList(now.toString()));
 
@@ -133,7 +133,8 @@ public class GroupHandler extends ResourceHandler<Group>
       return null; // causes a resource not found exception you may also throw it manually
     }
 
-    groupModel.setAttribute(AttributeNames.RFC7643.LAST_MODIFIED, Collections.singletonList(Instant.now().toString()));
+    groupModel.setAttribute(AttributeNames.RFC7643.LAST_MODIFIED,
+                            Collections.singletonList(Instant.now().truncatedTo(ChronoUnit.MILLIS).toString()));
 
     groupModel = groupToModel((ScimKeycloakContext)context, groupToUpdate, groupModel);
     Group group = modelToGroup(keycloakSession, groupModel);
