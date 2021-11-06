@@ -300,7 +300,10 @@ public class GroupHandler extends ResourceHandler<Group>
       return doNotRemoveFromGroup;
     });
     usersToLeaveGroup.forEach(userModel -> {
-      userModel.leaveGroup(groupModel);
+      // this line makes sure that we are getting the cache-representation of the user so that both database and
+      // cache will be updated
+      UserModel oldMember = keycloakSession.users().getUserById(realmModel, userModel.getId());
+      oldMember.leaveGroup(groupModel);
       adminEventAuditer.createEvent(OperationType.DELETE,
                                     ResourceType.GROUP_MEMBERSHIP,
                                     String.format("users/%s/groups/%s", userModel.getId(), groupModel.getId()),
