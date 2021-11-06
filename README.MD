@@ -45,6 +45,7 @@ Thanks to *Raffael Grob* for providing this manual.
 | 14.0.x   | :heavy_check_mark: | kc-14-b3                   | 1.11.0           |
 | 15.0.x   | :heavy_check_mark: | kc-15-b1                   | 1.12.0           |
 | 15.0.x   | :heavy_check_mark: | kc-15-b2                   | 1.12.1           |
+| 15.0.x   | :heavy_check_mark: | kc-15-b3                   | 1.12.1           |
 
 ## Versioning
 
