@@ -47,6 +47,7 @@
 
         <!-- test dependencies -->
         <version.h2>1.4.200</version.h2>
+        <version.log4j2>2.14.1</version.log4j2>
 
         <!-- plugin versions -->
         <version.maven.ear.plugin>3.1.0</version.maven.ear.plugin>
@@ -110,6 +111,18 @@
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
                 <version>${version.h2}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${version.log4j2}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j-impl</artifactId>
+                <version>${version.log4j2}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
