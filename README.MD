@@ -56,8 +56,8 @@ This project will use the following versioning pattern
 
 ## Releases
 
-Releases will be only tagged in git and not be uploaded to any repository. Please build the necessary artifacts with the
-following description yourself.
+Starting with version kc-16-b1 I will upload the built artifacts to github into the release section. Any previous
+versions must still be build manually as described below.
 
 ## Release Notes
 
