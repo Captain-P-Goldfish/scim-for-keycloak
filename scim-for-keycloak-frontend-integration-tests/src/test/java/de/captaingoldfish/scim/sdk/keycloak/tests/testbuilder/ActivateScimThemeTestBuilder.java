@@ -50,9 +50,6 @@ public class ActivateScimThemeTestBuilder extends AbstractTestBuilder
       webDriver.navigate().refresh();
     }));
     dynamicTests.add(getClickScimMenuTest());
-    dynamicTests.add(DynamicTest.dynamicTest("verify database settings", () -> {
-
-    }));
     return dynamicTests;
   }
 }

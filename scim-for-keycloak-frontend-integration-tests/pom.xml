@@ -7,7 +7,7 @@
     <parent>
         <groupId>de.captaingoldfish</groupId>
         <artifactId>scim-for-keycloak</artifactId>
-        <version>kc-15-b4-SNAPSHOT</version>
+        <version>kc-16-b1-SNAPSHOT</version>
     </parent>
 
     <artifactId>scim-for-keycloak-frontend-integration-tests</artifactId>
@@ -86,6 +86,12 @@
                 <groupId>com.microsoft.sqlserver</groupId>
                 <artifactId>mssql-jdbc</artifactId>
                 <version>${version.mssql.connector}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-api</artifactId>
+                <version>${version.selenium}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

@@ -48,6 +48,24 @@ public class ServiceProviderConfigTestBuilder extends AbstractTestBuilder
     /* ******************************************************************************************************* */
     dynamicTests.add(getClickScimMenuTest());
     /* ******************************************************************************************************* */
+    dynamicTests.add(DynamicTest.dynamicTest("reset data to default settings", () -> {
+      WebElement bulkSupportedCheckbox = webDriver.findElement(By.id("bulkSupported"));
+      if (!bulkSupportedCheckbox.isSelected())
+      {
+        Assertions.assertTrue(setCheckboxElement(By.id("bulkSupported"), ResetValues.BULK_SUPPORTED));
+        WebElement saveButton = wait.until(d -> d.findElement(By.id("save")));
+        saveButton.click();
+        getKeycloakCheckboxElement(By.id("enabled")); // wait until page is completely rebuilt
+      }
+      setCheckboxElement(By.id("enabled"), ResetValues.ENABLED);
+      setCheckboxElement(By.id("filterSupported"), ResetValues.FILTER_SUPPORTED);
+      setCheckboxElement(By.id("sortSupported"), ResetValues.SORT_SUPPORTED);
+      setCheckboxElement(By.id("patchSupported"), ResetValues.PATCH_SUPPORTED);
+      setCheckboxElement(By.id("etagSupported"), ResetValues.ETAG_SUPPORTED);
+      setCheckboxElement(By.id("changePasswordSupported"), ResetValues.CHANGE_PASSWORD_SUPPORTED);
+      setCheckboxElement(By.id("bulkSupported"), ResetValues.BULK_SUPPORTED);
+    }));
+    /* ******************************************************************************************************* */
     dynamicTests.add(DynamicTest.dynamicTest("change values of service provider", () -> {
       WebElement maxResultsInput = webDriver.findElement(By.id("filterMaxResults"));
       maxResultsInput.clear();
@@ -99,6 +117,10 @@ public class ServiceProviderConfigTestBuilder extends AbstractTestBuilder
       {
         Assertions.assertTrue(setCheckboxElement(By.id("enabled"), ResetValues.ENABLED));
         WebElement saveButton = wait.until(d -> d.findElement(By.id("save")));
+        saveButton.click();
+
+        Assertions.assertTrue(setCheckboxElement(By.id("bulkSupported"), ResetValues.BULK_SUPPORTED));
+        saveButton = wait.until(d -> d.findElement(By.id("save")));
         saveButton.click();
       }
 

@@ -4,7 +4,7 @@
     <parent>
         <groupId>de.captaingoldfish</groupId>
         <artifactId>scim-for-keycloak</artifactId>
-        <version>kc-15-b4-SNAPSHOT</version>
+        <version>kc-16-b1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
