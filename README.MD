@@ -29,7 +29,7 @@ Thanks to *Raffael Grob* for providing this manual.
 ## Keycloak support matrix
 
 | version | supported          | scim-for-keycloak version                                                               | SCIM-SDK Version |
-|:--------| :----------------- |:----------------------------------------------------------------------------------------|------------------|
+|:--------|:-------------------|:----------------------------------------------------------------------------------------|------------------|
 | lower   | :x:                | -                                                                                       |                  |
 | 9.0.x   | :x:                | You may find an older working version at https://github.com/Captain-P-Goldfish/SCIM-SDK |                  | 
 | 10.0.x  | :x:                | You may find an older working version at https://github.com/Captain-P-Goldfish/SCIM-SDK |                  |  
@@ -46,7 +46,8 @@ Thanks to *Raffael Grob* for providing this manual.
 | 15.0.x  | :heavy_check_mark: | kc-15-b1                                                                                | 1.12.0           |
 | 15.0.x  | :heavy_check_mark: | kc-15-b2                                                                                | 1.12.1           |
 | 15.0.x  | :heavy_check_mark: | kc-15-b3                                                                                | 1.12.1           |
-| 16.0.x  | :heavy_check_mark: | kc-16-b1                                                                                | 1.12.3           |
+| 16.0.x  | :x:                | kc-16-b1 (BROKEN)                                                                       | 1.12.3           |
+| 16.0.x  | :heavy_check_mark: | kc-16-b2                                                                                | 1.12.3           |
 
 ## Versioning
 
