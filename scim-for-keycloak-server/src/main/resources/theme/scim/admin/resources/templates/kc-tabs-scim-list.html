@@ -1,0 +1,20 @@
+<div>
+  <h1>
+    <span>{{:: 'scim.configuration' | translate}}</span>
+  </h1>
+  
+  <ul class="nav nav-tabs">
+    <li data-ng-class="{active: path[3] == 'service-provider'}">
+      <a href="#/realms/{{realm.realm}}/scim/service-provider/settings"
+         id="service-provider-tab">
+        {{:: 'service.provider.tab.menu' | translate}}
+      </a>
+    </li>
+    <li data-ng-class="{active: path[3] == 'resource-type-list'}" data-ng-show="!disableSCIM">
+      <a href="#/realms/{{realm.realm}}/scim/resource-type-list"
+         id="resource-types-list-tab">
+        {{:: 'resource.type.tab.menu' | translate}}
+      </a>
+    </li>
+  </ul>
+</div>

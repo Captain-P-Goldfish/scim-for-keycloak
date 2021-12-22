@@ -1,0 +1,242 @@
+<div class="col-sm-9 col-md-10 col-sm-push-3 col-md-push-2">
+    
+    <kc-tabs-scim-list></kc-tabs-scim-list>
+    
+    <div class="col-md-push-2">
+        <h1>{{:: 'service.provider.heading' | translate }}</h1>
+        
+        <kc-tabs-service-provider></kc-tabs-service-provider>
+        
+        <form class="form-horizontal" name="serviceProviderForm" novalidate>
+            
+            <fieldset class="border-top">
+                <div class="form-group clearfix block">
+                    <label class="col-md-2 control-label"
+                           for="enabled">{{:: 'service.provider.enabled' | translate }}</label>
+                    <div class="col-md-6">
+                        <input data-ng-model="serviceProvider.enabled"
+                               id="enabled"
+                               name="enabled"
+                               off-text="{{:: 'offText' | translate}}"
+                               on-text="{{:: 'onText' | translate}}"
+                               onoffswitch />
+                    </div>
+                    <kc-tooltip>{{:: 'service.provider.enabled.tooltip' | translate}}</kc-tooltip>
+                </div>
+            </fieldset>
+            
+            <div class="form-group">
+                <label class="col-md-2 control-label ng-binding ng-scope"
+                       for="filterMaxResults">
+                    {{:: 'filter.max.results' | translate }}
+                </label>
+                <div class="col-md-6 time-selector">
+                    <input
+                      class="form-control ng-pristine ng-valid ng-not-empty ng-valid-min ng-valid-max ng-valid-required ng-touched"
+                      data-ng-disabled="disableSCIM"
+                      data-ng-model="serviceProvider.filter.maxResults"
+                      id="filterMaxResults"
+                      max="31536000"
+                      min="1"
+                      name="filterMaxResults"
+                      required=""
+                      type="number">
+                </div>
+                <kc-tooltip class="hidden">{{:: 'filter.max.results.tooltip' | translate}}</kc-tooltip>
+            </div>
+            
+            <fieldset class="border-top">
+                <div class="form-group clearfix block">
+                    <label class="col-md-2 control-label"
+                           for="filterSupported">{{:: 'filter.supported' | translate }}</label>
+                    <div class="col-md-6">
+                        <input data-ng-disabled="disableSCIM"
+                               data-ng-model="serviceProvider.filter.supported"
+                               id="filterSupported"
+                               name="filterSupported"
+                               off-text="{{:: 'offText' | translate}}"
+                               on-text="{{:: 'onText' | translate}}"
+                               onoffswitch />
+                    </div>
+                    <kc-tooltip>{{:: 'filter.supported.tooltip' | translate}}</kc-tooltip>
+                </div>
+            </fieldset>
+            
+            <fieldset class="border-top">
+                <div class="form-group clearfix block">
+                    <label class="col-md-2 control-label"
+                           for="sortSupported">{{:: 'sort.supported' | translate }}</label>
+                    <div class="col-md-6">
+                        <input data-ng-disabled="disableSCIM"
+                               data-ng-model="serviceProvider.sort.supported"
+                               id="sortSupported"
+                               name="sortSupported"
+                               off-text="{{:: 'offText' | translate}}"
+                               on-text="{{:: 'onText' | translate}}"
+                               onoffswitch />
+                    </div>
+                    <kc-tooltip>{{:: 'sort.supported.tooltip' | translate}}</kc-tooltip>
+                </div>
+            </fieldset>
+            
+            <fieldset class="border-top">
+                <div class="form-group clearfix block">
+                    <label class="col-md-2 control-label"
+                           for="patchSupported">{{:: 'patch.supported' | translate }}</label>
+                    <div class="col-md-6">
+                        <input data-ng-disabled="disableSCIM"
+                               data-ng-model="serviceProvider.patch.supported"
+                               id="patchSupported"
+                               name="patchSupported"
+                               off-text="{{:: 'offText' | translate}}"
+                               on-text="{{:: 'onText' | translate}}"
+                               onoffswitch />
+                    </div>
+                    <kc-tooltip>{{:: 'patch.supported.tooltip' | translate}}</kc-tooltip>
+                </div>
+            </fieldset>
+            
+            <fieldset class="border-top">
+                <div class="form-group clearfix block">
+                    <label class="col-md-2 control-label"
+                           for="etagSupported">{{:: 'etag.supported' | translate}}</label>
+                    <div class="col-md-6">
+                        <input data-ng-disabled="disableSCIM"
+                               data-ng-model="serviceProvider.etag.supported"
+                               id="etagSupported"
+                               name="etagSupported"
+                               off-text="{{:: 'offText' | translate}}"
+                               on-text="{{:: 'onText' | translate}}"
+                               onoffswitch />
+                    </div>
+                    <kc-tooltip>{{:: 'etag.supported.tooltip' | translate}}</kc-tooltip>
+                </div>
+            </fieldset>
+            
+            <fieldset class="border-top">
+                <div class="form-group clearfix block">
+                    <label class="col-md-2 control-label"
+                           for="changePasswordSupported">
+                        {{:: 'change.password.supported' | translate }}
+                    </label>
+                    <div class="col-md-6">
+                        <input data-ng-disabled="disableSCIM"
+                               data-ng-model="serviceProvider.changePassword.supported"
+                               id="changePasswordSupported"
+                               name="changePasswordSupported"
+                               off-text="{{:: 'offText' | translate}}"
+                               on-text="{{:: 'onText' | translate}}"
+                               onoffswitch />
+                    </div>
+                    <kc-tooltip>{{:: 'change.password.supported.tooltip' | translate}}</kc-tooltip>
+                </div>
+            </fieldset>
+            
+            <div class="form-group">
+                <label class="col-md-2 control-label"
+                       for="bulkSupported">
+                    {{:: 'bulk.config' | translate }}
+                </label>
+                
+                <div class="col-md-6 time-selector">
+                    
+                    <div class="form-group">
+                        <label class="col-md-4 control-label"
+                               for="bulkMaxOperations">
+                            {{:: 'bulk.supported' | translate }}
+                        </label>
+                        <div class="col-md-6">
+                            <input data-ng-disabled="disableSCIM"
+                                   data-ng-model="serviceProvider.bulk.supported"
+                                   id="bulkSupported"
+                                   name="bulkSupported"
+                                   off-text="{{:: 'offText' | translate}}"
+                                   on-text="{{:: 'onText' | translate}}"
+                                   onoffswitch />
+                        </div>
+                        <kc-tooltip>{{:: 'bulk.supported.tooltip' | translate}}</kc-tooltip>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="col-md-4 control-label"
+                               for="bulkMaxOperations">
+                            {{:: 'bulk.max.operations' | translate }}
+                        </label>
+                        <div class="col-md-6">
+                            <input class="form-control"
+                                   data-ng-disabled="!serviceProvider.bulk.supported || disableSCIM"
+                                   data-ng-model="serviceProvider.bulk.maxOperations"
+                                   id="bulkMaxOperations"
+                                   max="31536000"
+                                   min="1"
+                                   name="bulkMaxOperations"
+                                   required=""
+                                   type="number">
+                        </div>
+                        <kc-tooltip>{{:: 'bulk.max.operations.tooltip' | translate}}</kc-tooltip>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="col-md-4 control-label"
+                               for="maxPayloadSize">
+                            {{:: 'bulk.max.payload.size' | translate }}
+                        </label>
+                        <div class="col-md-6">
+                            <input class="form-control"
+                                   data-ng-disabled="!serviceProvider.bulk.supported || disableSCIM"
+                                   data-ng-model="serviceProvider.bulk.maxPayloadSize"
+                                   id="maxPayloadSize"
+                                   max="31536000"
+                                   min="1"
+                                   name="maxPayloadSize"
+                                   required=""
+                                   type="number">
+                        </div>
+                        <kc-tooltip>{{:: 'bulk.max.payload.size.tooltip' | translate}}</kc-tooltip>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="col-md-2 control-label ng-binding"
+                       for="serviceProviderCreated">{{:: 'created' | translate}}</label>
+                <div class="col-md-6">
+                    <input autofocus=""
+                           class="form-control ng-pristine ng-valid ng-not-empty ng-valid-required ng-touched"
+                           data-ng-value="serviceProvider.meta.created | date:'dd.MM.yyyy HH:mm:ss Z'"
+                           disabled
+                           id="serviceProviderCreated"
+                           kc-no-reserved-chars=""
+                           name="serviceProviderCreated"
+                           type="text">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="col-md-2 control-label ng-binding"
+                       for="serviceProviderLastModified">{{:: 'last.modified' | translate}}</label>
+                <div class="col-md-6">
+                    <input autofocus=""
+                           class="form-control ng-pristine ng-valid ng-not-empty ng-valid-required ng-touched"
+                           data-ng-value="serviceProvider.meta.lastModified  | date:'dd.MM.yyyy HH:mm:ss Z'"
+                           disabled
+                           id="serviceProviderLastModified"
+                           kc-no-reserved-chars=""
+                           name="serviceProviderLastModified"
+                           type="text">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <div class="col-md-10 col-md-offset-2" data-ng-show="access.viewScim">
+                    <button data-ng-disabled="!changed" id="save" kc-save>{{:: 'save' | translate}}</button>
+                    <button data-ng-disabled="!changed" id="cancel" kc-reset>{{:: 'cancel' | translate}}
+                    </button>
+                </div>
+            </div>
+        
+        </form>
+    </div>
+</div>
+
+<kc-menu></kc-menu>

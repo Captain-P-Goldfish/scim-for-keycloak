@@ -1,0 +1,388 @@
+<div class="col-sm-9 col-md-10 col-sm-push-3 col-md-push-2">
+    
+    <ol class="breadcrumb">
+        <li><a href="#/realms/{{realm.realm}}/scim/resource-type-list">
+            {{:: 'resource.type.tab.menu' | translate}}</a></li>
+        <li>{{resource.name}}</li>
+    </ol>
+    
+    <kc-tabs-scim-list></kc-tabs-scim-list>
+    
+    <div class="col-md-push-2">
+        <h1>{{:: 'Resource Type Configuration' | translate }}</h1>
+        
+        <kc-tabs-resource-type></kc-tabs-resource-type>
+        
+        <form class="form-horizontal" name="serviceProviderForm" novalidate>
+            
+            <fieldset class="border-top">
+                <div class="form-group clearfix block">
+                    <label class="col-md-2 control-label"
+                           for="authenticated">
+                        {{:: 'resource.type.features.authorization.authenticated' | translate }}</label>
+                    <div class="col-md-6">
+                        <input data-ng-model="requiresAuthentication"
+                               id="authenticated"
+                               name="authenticated"
+                               off-text="{{:: 'offText' | translate}}"
+                               on-text="{{:: 'onText' | translate}}"
+                               onoffswitch />
+                    </div>
+                    <kc-tooltip>{{:: 'resource.type.features.authorization.authenticated.tooltip' | translate}}
+                    </kc-tooltip>
+                </div>
+            </fieldset>
+            
+            <div class="form-group">
+                <div class="col-md-10 col-md-offset-2" data-ng-show="access.viewScim">
+                    <button data-ng-disabled="!changed" id="save" kc-save>{{:: 'save' | translate}}</button>
+                    <button data-ng-disabled="!changed" id="cancel" kc-reset>{{:: 'cancel' | translate}}
+                    </button>
+                </div>
+            </div>
+            
+            <fieldset data-ng-show="requiresAuthentication" id="fieldset-common-roles">
+                <legend collapsed>
+                    <span class="text">{{:: 'resource.type.tabs.common.roles' | translate}}</span>
+                    <kc-tooltip>{{:: 'resource.type.tabs.common.roles.tooltip' | translate}}</kc-tooltip>
+                </legend>
+                
+                <div class="form-group">
+                    <label class="col-md-2 control-label" class="control-label">{{:: 'realm-roles' | translate}}</label>
+                    
+                    <div class="col-md-10">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="control-label" for="available-common">
+                                    {{:: 'available-roles' | translate}}
+                                </label>
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAvailableRoles"
+                                        data-ng-multiple="true"
+                                        id="available-common"
+                                        multiple
+                                        realmMappings
+                                        size="5">
+                                    <option data-ng-repeat="role in availableRoles.roles | orderBy:'name'"
+                                            title="{{role}}" value="{{role}}">
+                                        {{role}}
+                                    </option>
+                                </select>
+                                <button class="btn btn-default"
+                                        data-ng-click="updateRoleAccess(availableRoles.roles,
+                                                                        featureAuth.roles,
+                                                                        selectedAvailableRoles)"
+                                        id="add-common-role"
+                                        type="submit">
+                                    {{:: 'add-selected' | translate}} <i class="fa fa-angle-right"></i>
+                                </button>
+                                <kc-tooltip>{{:: 'resource.type.add.selected.tooltip' | translate}}</kc-tooltip>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label class="control-label" for="assigned-common">
+                                    {{:: 'assigned-roles' | translate}}
+                                </label>
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAssignedRoles"
+                                        data-ng-multiple="true"
+                                        id="assigned-common"
+                                        multiple
+                                        size="5">
+                                    <option data-ng-repeat="r in featureAuth.roles | orderBy:'name'"
+                                            title="{{r}}" value="{{r}}">
+                                        {{r}}
+                                    </option>
+                                </select>
+                                <button class="btn btn-default"
+                                        data-ng-click="updateRoleAccess(featureAuth.roles,
+                                                                        availableRoles.roles,
+                                                                        selectedAssignedRoles)"
+                                        id="remove-common-role"
+                                        type="submit">
+                                    <i class="fa fa-angle-double-left"></i> {{:: 'remove-selected' | translate}}
+                                </button>
+                                <kc-tooltip>{{:: 'resource.type.remove.selected.tooltip' | translate}}</kc-tooltip>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            
+            <fieldset data-ng-show="requiresAuthentication" id="fieldset-create-roles">
+                <legend collapsed>
+                    <span class="text">{{:: 'resource.type.tabs.common.roles.create' | translate}}</span>
+                    <kc-tooltip>{{:: 'resource.type.tabs.common.roles.create.tooltip' | translate}}</kc-tooltip>
+                </legend>
+                
+                <div class="form-group">
+                    <label class="col-md-2 control-label" class="control-label">{{:: 'realm-roles' | translate}}</label>
+                    
+                    <div class="col-md-10">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="control-label" for="available-create">
+                                    {{:: 'available-roles' | translate}}
+                                </label>
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAvailableRolesCreate"
+                                        data-ng-multiple="true"
+                                        id="available-create"
+                                        multiple
+                                        realmMappings
+                                        size="5">
+                                    <option data-ng-repeat="role in availableRoles.rolesCreate | orderBy:'name'"
+                                            title="{{role}}" value="{{role}}">
+                                        {{role}}
+                                    </option>
+                                </select>
+                                <button class="btn btn-default"
+                                        data-ng-click="updateRoleAccess(availableRoles.rolesCreate,
+                                                                        featureAuth.rolesCreate,
+                                                                        selectedAvailableRolesCreate)"
+                                        id="add-create-role"
+                                        type="submit">
+                                    {{:: 'add-selected' | translate}} <i class="fa fa-angle-right"></i>
+                                </button>
+                                <kc-tooltip>{{:: 'resource.type.add.selected.tooltip' | translate}}</kc-tooltip>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label class="control-label" for="assigned-create">
+                                    {{:: 'assigned-roles' | translate}}
+                                </label>
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAssignedRolesCreate"
+                                        data-ng-multiple="true"
+                                        id="assigned-create"
+                                        multiple
+                                        size="5">
+                                    <option data-ng-repeat="r in featureAuth.rolesCreate | orderBy:'name'"
+                                            title="{{r}}" value="{{r}}">
+                                        {{r}}
+                                    </option>
+                                </select>
+                                <button class="btn btn-default"
+                                        data-ng-click="updateRoleAccess(featureAuth.rolesCreate,
+                                                                        availableRoles.rolesCreate,
+                                                                        selectedAssignedRolesCreate)"
+                                        id="remove-create-role"
+                                        type="submit">
+                                    <i class="fa fa-angle-double-left"></i> {{:: 'remove-selected' | translate}}
+                                </button>
+                                <kc-tooltip>{{:: 'resource.type.remove.selected.tooltip' | translate}}</kc-tooltip>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            
+            <fieldset data-ng-show="requiresAuthentication" id="fieldset-get-roles">
+                <legend collapsed>
+                    <span class="text">{{:: 'resource.type.tabs.common.roles.get' | translate}}</span>
+                    <kc-tooltip>{{:: 'resource.type.tabs.common.roles.get.tooltip' | translate}}</kc-tooltip>
+                </legend>
+                
+                <div class="form-group">
+                    <label class="col-md-2 control-label" class="control-label">{{:: 'realm-roles' | translate}}</label>
+                    
+                    <div class="col-md-10">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="control-label" for="available-get">
+                                    {{:: 'available-roles' | translate}}
+                                </label>
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAvailableRolesGet"
+                                        data-ng-multiple="true"
+                                        id="available-get"
+                                        multiple
+                                        realmMappings
+                                        size="5">
+                                    <option data-ng-repeat="role in availableRoles.rolesGet | orderBy:'name'"
+                                            title="{{role}}" value="{{role}}">
+                                        {{role}}
+                                    </option>
+                                </select>
+                                <button class="btn btn-default"
+                                        data-ng-click="updateRoleAccess(availableRoles.rolesGet,
+                                                                        featureAuth.rolesGet,
+                                                                        selectedAvailableRolesGet)"
+                                        id="add-get-role"
+                                        type="submit">
+                                    {{:: 'add-selected' | translate}} <i class="fa fa-angle-right"></i>
+                                </button>
+                                <kc-tooltip>{{:: 'resource.type.add.selected.tooltip' | translate}}</kc-tooltip>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label class="control-label" for="assigned-get">
+                                    {{:: 'assigned-roles' | translate}}
+                                </label>
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAssignedRolesGet"
+                                        data-ng-multiple="true"
+                                        id="assigned-get"
+                                        multiple
+                                        size="5">
+                                    <option data-ng-repeat="r in featureAuth.rolesGet | orderBy:'name'"
+                                            title="{{r}}" value="{{r}}">
+                                        {{r}}
+                                    </option>
+                                </select>
+                                <button class="btn btn-default"
+                                        data-ng-click="updateRoleAccess(featureAuth.rolesGet,
+                                                                        availableRoles.rolesGet,
+                                                                        selectedAssignedRolesGet)"
+                                        id="remove-get-role"
+                                        type="submit">
+                                    <i class="fa fa-angle-double-left"></i> {{:: 'remove-selected' | translate}}
+                                </button>
+                                <kc-tooltip>{{:: 'resource.type.remove.selected.tooltip' | translate}}</kc-tooltip>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            
+            <fieldset data-ng-show="requiresAuthentication" id="fieldset-update-roles">
+                <legend collapsed>
+                    <span class="text">{{:: 'resource.type.tabs.common.roles.update' | translate}}</span>
+                    <kc-tooltip>{{:: 'resource.type.tabs.common.roles.update.tooltip' | translate}}</kc-tooltip>
+                </legend>
+                
+                <div class="form-group">
+                    <label class="col-md-2 control-label" class="control-label">{{:: 'realm-roles' | translate}}</label>
+                    
+                    <div class="col-md-10">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="control-label" for="available-update">
+                                    {{:: 'available-roles' | translate}}
+                                </label>
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAvailableRolesUpdate"
+                                        data-ng-multiple="true"
+                                        id="available-update"
+                                        multiple
+                                        realmMappings
+                                        size="5">
+                                    <option data-ng-repeat="role in availableRoles.rolesUpdate | orderBy:'name'"
+                                            title="{{role}}" value="{{role}}">
+                                        {{role}}
+                                    </option>
+                                </select>
+                                <button class="btn btn-default"
+                                        data-ng-click="updateRoleAccess(availableRoles.rolesUpdate,
+                                                                        featureAuth.rolesUpdate,
+                                                                        selectedAvailableRolesUpdate)"
+                                        id="add-update-role"
+                                        type="submit">
+                                    {{:: 'add-selected' | translate}} <i class="fa fa-angle-right"></i>
+                                </button>
+                                <kc-tooltip>{{:: 'resource.type.add.selected.tooltip' | translate}}</kc-tooltip>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label class="control-label" for="assigned-update">
+                                    {{:: 'assigned-roles' | translate}}
+                                </label>
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAssignedRolesUpdate"
+                                        data-ng-multiple="true"
+                                        id="assigned-update"
+                                        multiple
+                                        size="5">
+                                    <option data-ng-repeat="r in featureAuth.rolesUpdate | orderBy:'name'"
+                                            title="{{r}}" value="{{r}}">
+                                        {{r}}
+                                    </option>
+                                </select>
+                                <button class="btn btn-default"
+                                        data-ng-click="updateRoleAccess(featureAuth.rolesUpdate,
+                                                                        availableRoles.rolesUpdate,
+                                                                        selectedAssignedRolesUpdate)"
+                                        id="remove-update-role"
+                                        type="submit">
+                                    <i class="fa fa-angle-double-left"></i> {{:: 'remove-selected' | translate}}
+                                </button>
+                                <kc-tooltip>{{:: 'resource.type.remove.selected.tooltip' | translate}}</kc-tooltip>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            
+            <fieldset data-ng-show="requiresAuthentication" id="fieldset-delete-roles">
+                <legend collapsed>
+                    <span class="text">{{:: 'resource.type.tabs.common.roles.delete' | translate}}</span>
+                    <kc-tooltip>{{:: 'resource.type.tabs.common.roles.delete.tooltip' | translate}}</kc-tooltip>
+                </legend>
+                
+                <div class="form-group">
+                    <label class="col-md-2 control-label" class="control-label">{{:: 'realm-roles' | translate}}</label>
+                    
+                    <div class="col-md-10">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="control-label" for="available-delete">
+                                    {{:: 'available-roles' | translate}}
+                                </label>
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAvailableRolesDelete"
+                                        data-ng-multiple="true"
+                                        id="available-delete"
+                                        multiple
+                                        realmMappings
+                                        size="5">
+                                    <option data-ng-repeat="role in availableRoles.rolesDelete | orderBy:'name'"
+                                            title="{{role}}" value="{{role}}">
+                                        {{role}}
+                                    </option>
+                                </select>
+                                <button class="btn btn-default"
+                                        data-ng-click="updateRoleAccess(availableRoles.rolesDelete,
+                                                                        featureAuth.rolesDelete,
+                                                                        selectedAvailableRolesDelete)"
+                                        id="add-delete-role"
+                                        type="submit">
+                                    {{:: 'add-selected' | translate}} <i class="fa fa-angle-right"></i>
+                                </button>
+                                <kc-tooltip>{{:: 'resource.type.add.selected.tooltip' | translate}}</kc-tooltip>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label class="control-label" for="assigned-delete">
+                                    {{:: 'assigned-roles' | translate}}
+                                </label>
+                                <select class="form-control overflow-select"
+                                        data-ng-model="selectedAssignedRolesDelete"
+                                        data-ng-multiple="true"
+                                        id="assigned-delete"
+                                        multiple
+                                        size="5">
+                                    <option data-ng-repeat="r in featureAuth.rolesDelete | orderBy:'name'"
+                                            title="{{r}}" value="{{r}}">
+                                        {{r}}
+                                    </option>
+                                </select>
+                                <button class="btn btn-default"
+                                        data-ng-click="updateRoleAccess(featureAuth.rolesDelete,
+                                                                        availableRoles.rolesDelete,
+                                                                        selectedAssignedRolesDelete)"
+                                        id="remove-delete-role"
+                                        type="submit">
+                                    <i class="fa fa-angle-double-left"></i> {{:: 'remove-selected' | translate}}
+                                </button>
+                                <kc-tooltip>{{:: 'resource.type.remove.selected.tooltip' | translate}}</kc-tooltip>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        
+        </form>
+    </div>
+</div>
+
+<kc-menu></kc-menu>
