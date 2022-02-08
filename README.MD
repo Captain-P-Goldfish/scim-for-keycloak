@@ -48,6 +48,7 @@ Thanks to *Raffael Grob* for providing this manual.
 | 15.0.x  | :heavy_check_mark: | kc-15-b3                                                                                | 1.12.1           |
 | 16.0.x  | :x:                | kc-16-b1 (BROKEN)                                                                       | 1.12.3           |
 | 16.0.x  | :heavy_check_mark: | kc-16-b2                                                                                | 1.12.3           |
+| 16.1.x  | :heavy_check_mark: | kc-16-b3                                                                                | 1.12.4           |
 
 ## Versioning
 
