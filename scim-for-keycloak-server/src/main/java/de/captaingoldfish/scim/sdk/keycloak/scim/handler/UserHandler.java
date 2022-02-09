@@ -97,7 +97,11 @@ public class UserHandler extends ResourceHandler<User>
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     if (KEYCLOAK_DEBUG != null)
     {
-      log.info(this.getClass().getName() + " create user Request " + user.toPrettyString());
+      RealmModel realmModel = keycloakSession.getContext().getRealm();
+      log.info("{} Realm: {} create user Request {}",
+               this.getClass().getName(),
+               realmModel.getName(),
+               user.toPrettyString());
     }
     final String username = user.getUserName().get();
     if (keycloakSession.users().getUserByUsername(keycloakSession.getContext().getRealm(), username) != null)
@@ -133,7 +137,12 @@ public class UserHandler extends ResourceHandler<User>
     log.debug("Created user with username: {}", userModel.getUsername());
     if (KEYCLOAK_DEBUG != null)
     {
-      log.info(this.getClass().getName() + " created user User " + newUser.toPrettyString());
+      RealmModel realmModel = keycloakSession.getContext().getRealm();
+
+      log.info("{} Realm: {} created user User returns {}",
+               this.getClass().getName(),
+               realmModel.getName(),
+               newUser.toPrettyString());
     }
     return newUser;
   }
@@ -156,7 +165,13 @@ public class UserHandler extends ResourceHandler<User>
     User user = modelToUser(userModel);
     if (KEYCLOAK_DEBUG != null)
     {
-      log.info("{} getResource {} returns {}", this.getClass().getName(), id, user.toPrettyString());
+      RealmModel realmModel = keycloakSession.getContext().getRealm();
+
+      log.info("{} Realm: {} getResource {} returns {}",
+               this.getClass().getName(),
+               realmModel.getName(),
+               id,
+               user.toPrettyString());
     }
     return user;
   }
@@ -188,7 +203,10 @@ public class UserHandler extends ResourceHandler<User>
         User add = modelToUser(userModel);
         if (KEYCLOAK_DEBUG != null)
         {
-          log.info("{} listResources User {}", this.getClass().getName(), add.toPrettyString());
+          log.info("{} Realm: {} listResources User {}",
+                   this.getClass().getName(),
+                   realmModel.getName(),
+                   add.toPrettyString());
         }
         userList.add(add);
       }
@@ -203,9 +221,8 @@ public class UserHandler extends ResourceHandler<User>
   public User updateResource(User userToUpdate, Context context)
   {
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
-    UserModel userModel = keycloakSession.users()
-                                         .getUserById(keycloakSession.getContext().getRealm(),
-                                                      userToUpdate.getId().get());
+    RealmModel realmModel = keycloakSession.getContext().getRealm();
+    UserModel userModel = keycloakSession.users().getUserById(realmModel, userToUpdate.getId().get());
     if (userModel == null || !Boolean.parseBoolean(userModel.getFirstAttribute(SCIM_USER)))
     {
       return null; // causes a resource not found exception you may also throw it manually
@@ -214,10 +231,13 @@ public class UserHandler extends ResourceHandler<User>
     String username = userToUpdate.getUserName().get();
     if (!username.equalsIgnoreCase(userModel.getUsername()))
     {
-      if (keycloakSession.users().getUserByUsername(username, keycloakSession.getContext().getRealm()) != null)
-      {
-        log.info("{} updateResource error: the username {} is already taken", this.getClass().getName(), username);
 
+      if (keycloakSession.users().getUserByUsername(username, realmModel) != null)
+      {
+        log.error("{} Realm: {} updateResource error: the username {} is already taken",
+                  this.getClass().getName(),
+                  realmModel.getName(),
+                  username);
         throw new ConflictException("the username '" + username + "' is already taken");
       }
     }
@@ -232,11 +252,12 @@ public class UserHandler extends ResourceHandler<User>
       String email = emailOpt.get().getValue().get();
       if (!email.equalsIgnoreCase(userModel.getEmail()))
       {
-        if (keycloakSession.users()
-                           .getUserByEmail(emailOpt.get().getValue().orElse("xx"),
-                                           keycloakSession.getContext().getRealm()) != null)
+        if (keycloakSession.users().getUserByEmail(emailOpt.get().getValue().orElse("xx"), realmModel) != null)
         {
-          log.info("{} updateResource error: the email {} is already taken", this.getClass().getName(), email);
+          log.error("{} Realm: {} updateResource error: the email {} is already taken",
+                    this.getClass().getName(),
+                    realmModel.getName(),
+                    email);
           throw new ConflictException("the email '" + email + "' is already taken");
         }
       }
@@ -258,9 +279,12 @@ public class UserHandler extends ResourceHandler<User>
     }
     if (KEYCLOAK_DEBUG != null)
     {
-      log.info("{} updateResource returns {}", this.getClass().getName(), user.toPrettyString());
+      log.info("{} Realm: {} updateResource returns {}",
+               this.getClass().getName(),
+               realmModel.getName(),
+               user.toPrettyString());
     }
-    log.debug("Updated user with username: {}", userModel.getUsername());
+    log.debug("Realm: {} Updated user with username: {}", realmModel.getName(), userModel.getUsername());
     return user;
   }
 
@@ -284,7 +308,12 @@ public class UserHandler extends ResourceHandler<User>
                                     String.format("users/%s", userModel.getId()),
                                     User.builder().id(userModel.getId()).userName(userModel.getUsername()).build());
     }
-    log.info("Deleted user with username: {}", userModel.getUsername());
+    RealmModel realmModel = keycloakSession.getContext().getRealm();
+
+    log.info("{} Realm: {} Deleted user with username: {}",
+             this.getClass().getName(),
+             realmModel.getName(),
+             userModel.getUsername());
   }
 
   /**
