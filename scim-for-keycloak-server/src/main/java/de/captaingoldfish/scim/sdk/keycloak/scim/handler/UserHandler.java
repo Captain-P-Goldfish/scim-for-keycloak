@@ -236,6 +236,7 @@ public class UserHandler extends ResourceHandler<User>
       name.getFormatted()
           .ifPresent(formatted -> userModel.setSingleAttribute(AttributeNames.RFC7643.FORMATTED, formatted));
     });
+	userModel.setUsername(user.getUserName().get());
     userModel.setSingleAttribute(AttributeNames.RFC7643.NICK_NAME, user.getNickName().orElse(null));
     userModel.setSingleAttribute(AttributeNames.RFC7643.TITLE, user.getTitle().orElse(null));
     userModel.setSingleAttribute(AttributeNames.RFC7643.DISPLAY_NAME, user.getDisplayName().orElse(null));
