@@ -1,6 +1,8 @@
-|  Branch | Circle CI Status |
-| :------ | :--------------- |
-| master  | [![CircleCI](https://circleci.com/gh/Captain-P-Goldfish/scim-for-keycloak/tree/master.svg?style=shield)](https://circleci.com/gh/Captain-P-Goldfish/scim-for-keycloak/tree/master)
+| Branch | Circle CI Status                                                                             |
+|:-------|:---------------------------------------------------------------------------------------------|
+| master | build deactivated due to build problem on circle-ci. But the current version is still stable |
+
+[//]: # ( master   [![CircleCI]&#40;https://circleci.com/gh/Captain-P-Goldfish/scim-for-keycloak/tree/master.svg?style=shield&#41;]&#40;https://circleci.com/gh/Captain-P-Goldfish/scim-for-keycloak/tree/master&#41;)
 
 ## Donations
 
@@ -48,7 +50,7 @@ Thanks to *Raffael Grob* for providing this manual.
 | 15.0.x  | :heavy_check_mark: | kc-15-b3                                                                                | 1.12.1           |
 | 16.0.x  | :x:                | kc-16-b1 (BROKEN)                                                                       | 1.12.3           |
 | 16.0.x  | :heavy_check_mark: | kc-16-b2                                                                                | 1.12.3           |
-| 16.1.x  | :heavy_check_mark: | kc-16-b3                                                                                | 1.12.4           |
+| 16.1.x  | :x:                | kc-16-b3                                                                                | 1.12.4           |
 
 ## Versioning
 
