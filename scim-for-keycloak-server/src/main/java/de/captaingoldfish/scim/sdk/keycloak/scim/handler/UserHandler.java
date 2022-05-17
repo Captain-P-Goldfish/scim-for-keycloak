@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import de.captaingoldfish.scim.sdk.common.resources.multicomplex.*;
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
@@ -27,15 +28,6 @@ import de.captaingoldfish.scim.sdk.common.resources.User;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Manager;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Meta;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Name;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Address;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Email;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Entitlement;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Ims;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.MultiComplexNode;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PersonRole;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PhoneNumber;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.ScimX509Certificate;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
 import de.captaingoldfish.scim.sdk.keycloak.audit.ScimAdminEventBuilder;
@@ -203,10 +195,10 @@ public class UserHandler extends ResourceHandler<User>
         User add = modelToUser(userModel);
         if (KEYCLOAK_DEBUG != null)
         {
-          log.info("{} Realm: {} listResources User {}",
-                   this.getClass().getName(),
-                   realmModel.getName(),
-                   add.toPrettyString());
+          log.trace("{} Realm: {} listResources User {}",
+                    this.getClass().getName(),
+                    realmModel.getName(),
+                    add.toPrettyString());
         }
         userList.add(add);
       }
@@ -300,13 +292,15 @@ public class UserHandler extends ResourceHandler<User>
     {
       throw new ResourceNotFoundException("resource with id '" + id + "' does not exist");
     }
+    User user = modelToUser(userModel);
+
     keycloakSession.users().removeUser(keycloakSession.getContext().getRealm(), userModel);
     {
       ScimAdminEventBuilder adminEventAuditer = ((ScimKeycloakContext)context).getAdminEventAuditer();
       adminEventAuditer.createEvent(OperationType.DELETE,
                                     ResourceType.USER,
                                     String.format("users/%s", userModel.getId()),
-                                    User.builder().id(userModel.getId()).userName(userModel.getUsername()).build());
+                                    user);
     }
     RealmModel realmModel = keycloakSession.getContext().getRealm();
 
@@ -490,12 +484,17 @@ public class UserHandler extends ResourceHandler<User>
       name = null;
     }
 
+    // List<GroupNode> groups = userModel.getGroupsStream().map(groupModel -> {
+    // return GroupNode.builder().display(groupModel.getName()).value(groupModel.getId()).type("direct").build();
+    // }).collect(Collectors.toList());
+
     User user = User.builder()
                     .id(userModel.getId())
                     .externalId(userModel.getFirstAttribute(AttributeNames.RFC7643.EXTERNAL_ID))
                     .ldapId(userModel.getFirstAttribute(SCIM_LDAP_ID))
                     .userName(userModel.getUsername())
                     .name(name)
+                    // .groups(groups)
                     .active(userModel.isEnabled())
                     .imported(Boolean.parseBoolean(userModel.getFirstAttribute(SCIM_IS_IMPORTED)))
                     .nickName(userModel.getFirstAttribute(AttributeNames.RFC7643.NICK_NAME))

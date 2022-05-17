@@ -151,13 +151,15 @@ public class GroupHandler extends ResourceHandler<Group>
     {
       throw new ResourceNotFoundException("group with id '" + id + "' does not exist");
     }
+    Group group = modelToGroup(keycloakSession, groupModel);
+
     keycloakSession.getContext().getRealm().removeGroup(groupModel);
     {
       ScimAdminEventBuilder adminEventAuditer = ((ScimKeycloakContext)context).getAdminEventAuditer();
       adminEventAuditer.createEvent(OperationType.DELETE,
                                     ResourceType.GROUP,
                                     String.format("groups/%s", groupModel.getId()),
-                                    Group.builder().id(groupModel.getId()).displayName(groupModel.getName()).build());
+                                    group);
     }
     log.debug("Deleted group with name: {}", groupModel.getName());
   }
