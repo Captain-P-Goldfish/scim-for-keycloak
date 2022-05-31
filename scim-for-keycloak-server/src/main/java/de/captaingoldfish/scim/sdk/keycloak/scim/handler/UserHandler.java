@@ -50,15 +50,7 @@ public class UserHandler extends ResourceHandler<User>
 
   public static final String PRIMARY_SUFFIX = "_primary";
 
-  // This is branch keycloak 15
-
-  // private static final String SCIM_DISPLAY_NAME = "displayName";
-
-  // private static final String SCIM_FORMATTED_NAME = "formattedName";
-
-  // private static final String SCIM_HONORIC_PREFIX = "honoricPrefix";
-
-  // private static final String SCIM_HONORIC_SUFFIX = "honoricSuffix";
+  // This is branch keycloak 16
 
   private static final String SCIM_IS_IMPORTED = "isImported";
 
@@ -203,6 +195,7 @@ public class UserHandler extends ResourceHandler<User>
         userList.add(add);
       }
     }
+    log.info("UserHandler.listResources returns " + userList.size() + " Items");
     return PartialListResponse.<User> builder().totalResults(userList.size()).resources(userList).build();
   }
 

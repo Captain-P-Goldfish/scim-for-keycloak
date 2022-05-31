@@ -80,13 +80,16 @@ public class GroupHandler extends ResourceHandler<Group>
                            List<SchemaAttribute> excludedAttributes,
                            Context context)
   {
+    log.info("GroupHandler.getResource " + id);
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
     GroupModel groupModel = keycloakSession.getContext().getRealm().getGroupById(id);
     if (groupModel == null)
     {
       return null; // causes a resource not found exception you may also throw it manually
     }
-    return modelToGroup(keycloakSession, groupModel);
+    Group ret = modelToGroup(keycloakSession, groupModel);
+    log.info("GroupHandler.getResource returns " + ret.toPrettyString());
+    return ret;
   }
 
   /**
@@ -108,6 +111,7 @@ public class GroupHandler extends ResourceHandler<Group>
     Stream<GroupModel> groupModelsStream = keycloakSession.getContext().getRealm().getGroupsStream();
     List<Group> groupList = groupModelsStream.map(groupModel -> modelToGroup(keycloakSession, groupModel))
                                              .collect(Collectors.toList());
+    log.info(String.format("GroupHandler listResources returns %d Groups", groupList.size()));
     return PartialListResponse.<Group> builder()
                               .totalResults(keycloakSession.getContext().getRealm().getGroupsCount(false))
                               .resources(groupList)
@@ -135,7 +139,7 @@ public class GroupHandler extends ResourceHandler<Group>
                                     String.format("groups/%s", groupModel.getId()),
                                     group);
     }
-    log.debug("Updated group with name: {}", groupModel.getName());
+    log.info("Updated group with name: {}", groupModel.getName());
     return group;
   }
 
