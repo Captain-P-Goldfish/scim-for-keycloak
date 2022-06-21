@@ -22,7 +22,7 @@
 
         <!-- test dependencies -->
         <version.testcontainers>1.15.3</version.testcontainers>
-        <version.mysql.connector>8.0.21</version.mysql.connector>
+        <version.mysql.connector>8.0.28</version.mysql.connector>
         <version.mariadb.connector>2.6.2</version.mariadb.connector>
         <version.mssql.connector>8.4.0.jre8</version.mssql.connector>
         <version.selenium>3.141.59</version.selenium>
