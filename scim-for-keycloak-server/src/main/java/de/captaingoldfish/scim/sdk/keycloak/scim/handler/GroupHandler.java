@@ -275,7 +275,7 @@ public class GroupHandler extends ResourceHandler<Group>
   {
     KeycloakSession keycloakSession = scimKeycloakContext.getKeycloakSession();
     Set<String> expectedUserMemberIds = group.getMembers().stream().filter(groupMember -> {
-      return (groupMember.getType().map(type -> type.equals(ResourceTypeNames.USER)).orElse(false)
+      return (groupMember.getType().map(type -> type.equals(ResourceTypeNames.USER)).orElse(true)
               || groupMember.getRef()
                             .map(ref -> ref.matches(String.format(".*?%s/[\\w\\-]+", EndpointPaths.USERS)))
                             .orElse(false));
