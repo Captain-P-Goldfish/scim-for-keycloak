@@ -128,7 +128,7 @@ public class Authentication
     RealmModel currentRealm = keycloakSession.getContext().getRealm();
     RealmManager realmManager = new RealmManager(keycloakSession);
     String realmManagementClientId;
-    if (currentRealm.getId().equals("master"))
+    if (currentRealm.getName().equals("master"))
     {
       // could not find any matching constant in the keycloak project
       realmManagementClientId = "master-realm";
