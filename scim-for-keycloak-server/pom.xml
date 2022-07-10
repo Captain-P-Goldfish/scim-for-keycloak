@@ -6,7 +6,7 @@
     <parent>
         <groupId>de.captaingoldfish</groupId>
         <artifactId>scim-for-keycloak</artifactId>
-        <version>kc-17-b1-SNAPSHOT</version>
+        <version>kc-18-b1-SNAPSHOT</version>
     </parent>
 
     <artifactId>scim-for-keycloak-server</artifactId>
@@ -49,6 +49,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-core-spi</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.jboss.spec.javax.servlet</groupId>
             <artifactId>jboss-servlet-api_4.0_spec</artifactId>
             <scope>provided</scope>
@@ -69,6 +75,12 @@
             <artifactId>scim-for-keycloak-resources</artifactId>
         </dependency>
 
+        <!--        <dependency>-->
+        <!--            <groupId>javax.servlet</groupId>-->
+        <!--            <artifactId>javax.servlet-api</artifactId>-->
+        <!--            <version>4.0.1</version>-->
+        <!--        </dependency>-->
+
         <!-- test dependencies -->
         <dependency>
             <groupId>com.h2database</groupId>
@@ -86,6 +98,27 @@
         <finalName>${project.artifactId}</finalName>
 
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/libs</outputDirectory>
+                            <overWriteReleases>false</overWriteReleases>
+                            <includeScope>runtime</includeScope>
+                            <excludeScope>provided</excludeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
@@ -180,7 +213,7 @@
                             <file>
                                 ${project.basedir}/src/main/resources/theme/scim/admin/resources/templates/kc-menu.html
                             </file>
-                            <checksum>1be7bfe3acdc0eca8c6a32b4211e323b</checksum>
+                            <checksum>4eeb5dacf7db928b176018984c88bcdd</checksum>
                             <type>md5</type>
                         </requireFileChecksum>
                         <requireFileChecksum>

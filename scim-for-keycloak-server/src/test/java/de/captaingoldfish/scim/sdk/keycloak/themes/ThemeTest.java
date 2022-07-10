@@ -28,7 +28,7 @@ public class ThemeTest
   @Test
   public void testKcMenuIsUnchanged()
   {
-    final String hashOfKcMenu = "965db92676daeae3925adcb0ada3858c1075fdbb";
+    final String hashOfKcMenu = "37969b4f4807f208df40beb3041a516cc04b2e67";
     MessageDigest sha1DigestBuilder = MessageDigest.getInstance("SHA-1");
     final String kcMenuLocation = "/theme/base/admin/resources/templates/kc-menu.html";
     byte[] kcMenuBytes = IOUtils.toByteArray(getClass().getResourceAsStream(kcMenuLocation));

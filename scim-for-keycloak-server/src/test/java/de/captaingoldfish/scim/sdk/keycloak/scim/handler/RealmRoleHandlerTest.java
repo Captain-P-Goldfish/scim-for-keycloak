@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
 import org.junit.jupiter.api.Assertions;
@@ -26,7 +25,7 @@ import de.captaingoldfish.scim.sdk.keycloak.custom.resources.ChildRole;
 import de.captaingoldfish.scim.sdk.keycloak.custom.resources.RealmRole;
 import de.captaingoldfish.scim.sdk.keycloak.custom.resources.RoleAssociate;
 import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
-import de.captaingoldfish.scim.sdk.keycloak.setup.RequestBuilder;
+import de.captaingoldfish.scim.sdk.keycloak.setup.RequestMock;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -50,12 +49,8 @@ public class RealmRoleHandlerTest extends AbstractScimEndpointTest
     final String description = "admin role";
     RealmRole role = RealmRole.builder().name(roleName).description(description).build();
 
-    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
-                                               .endpoint(ROLES_ENDPOINT)
-                                               .method(HttpMethod.POST)
-                                               .requestBody(role.toString())
-                                               .build();
-    Response response = getScimEndpoint().handleScimRequest(request);
+    RequestMock.mockRequest(getScimEndpoint(), getKeycloakSession()).endpoint(ROLES_ENDPOINT).method(HttpMethod.POST);
+    Response response = getScimEndpoint().handleScimRequest(role.toString());
     Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
     RealmRole createdRole = JsonHelper.readJsonDocument((String)response.getEntity(), RealmRole.class);
     Assertions.assertEquals(roleName, createdRole.getName());
@@ -105,12 +100,8 @@ public class RealmRoleHandlerTest extends AbstractScimEndpointTest
 
     RealmRole role = RealmRole.builder().name(roleName).description(description).associates(associates).build();
 
-    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
-                                               .endpoint(ROLES_ENDPOINT)
-                                               .method(HttpMethod.POST)
-                                               .requestBody(role.toString())
-                                               .build();
-    Response response = getScimEndpoint().handleScimRequest(request);
+    RequestMock.mockRequest(getScimEndpoint(), getKeycloakSession()).endpoint(ROLES_ENDPOINT).method(HttpMethod.POST);
+    Response response = getScimEndpoint().handleScimRequest(role.toString());
     Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
 
     // validate SCIM representation
@@ -169,12 +160,8 @@ public class RealmRoleHandlerTest extends AbstractScimEndpointTest
 
     RealmRole role = RealmRole.builder().name(roleName).description(description).children(children).build();
 
-    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
-                                               .endpoint(ROLES_ENDPOINT)
-                                               .method(HttpMethod.POST)
-                                               .requestBody(role.toString())
-                                               .build();
-    Response response = getScimEndpoint().handleScimRequest(request);
+    RequestMock.mockRequest(getScimEndpoint(), getKeycloakSession()).endpoint(ROLES_ENDPOINT).method(HttpMethod.POST);
+    Response response = getScimEndpoint().handleScimRequest(role.toString());
     Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
 
 
@@ -252,12 +239,8 @@ public class RealmRoleHandlerTest extends AbstractScimEndpointTest
                                 .children(children)
                                 .build();
 
-      HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
-                                                 .endpoint(ROLES_ENDPOINT)
-                                                 .method(HttpMethod.POST)
-                                                 .requestBody(role.toString())
-                                                 .build();
-      Response response = getScimEndpoint().handleScimRequest(request);
+      RequestMock.mockRequest(getScimEndpoint(), getKeycloakSession()).endpoint(ROLES_ENDPOINT).method(HttpMethod.POST);
+      Response response = getScimEndpoint().handleScimRequest(role.toString());
       Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
       createdRole = JsonHelper.readJsonDocument((String)response.getEntity(), RealmRole.class);
     }
@@ -286,12 +269,10 @@ public class RealmRoleHandlerTest extends AbstractScimEndpointTest
                                         .children(children)
                                         .build();
 
-      HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
-                                                 .endpoint(ROLES_ENDPOINT + "/" + createdRole.getId().get())
-                                                 .method(HttpMethod.PUT)
-                                                 .requestBody(roleToUpdate.toString())
-                                                 .build();
-      Response response = getScimEndpoint().handleScimRequest(request);
+      RequestMock.mockRequest(getScimEndpoint(), getKeycloakSession())
+                 .endpoint(ROLES_ENDPOINT + "/" + createdRole.getId().get())
+                 .method(HttpMethod.PUT);
+      Response response = getScimEndpoint().handleScimRequest(roleToUpdate.toString());
       Assertions.assertEquals(HttpStatus.OK, response.getStatus());
       updatedRole = JsonHelper.readJsonDocument((String)response.getEntity(), RealmRole.class);
     }
@@ -444,23 +425,18 @@ public class RealmRoleHandlerTest extends AbstractScimEndpointTest
                                 .children(children)
                                 .build();
 
-      HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
-                                                 .endpoint(ROLES_ENDPOINT)
-                                                 .method(HttpMethod.POST)
-                                                 .requestBody(role.toString())
-                                                 .build();
-      Response response = getScimEndpoint().handleScimRequest(request);
+      RequestMock.mockRequest(getScimEndpoint(), getKeycloakSession()).endpoint(ROLES_ENDPOINT).method(HttpMethod.POST);
+      Response response = getScimEndpoint().handleScimRequest(role.toString());
       Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
       createdRole = JsonHelper.readJsonDocument((String)response.getEntity(), RealmRole.class);
     }
 
     // delete role
     {
-      HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
-                                                 .endpoint(ROLES_ENDPOINT + "/" + createdRole.getId().get())
-                                                 .method(HttpMethod.DELETE)
-                                                 .build();
-      Response response = getScimEndpoint().handleScimRequest(request);
+      RequestMock.mockRequest(getScimEndpoint(), getKeycloakSession())
+                 .endpoint(ROLES_ENDPOINT + "/" + createdRole.getId().get())
+                 .method(HttpMethod.DELETE);
+      Response response = getScimEndpoint().handleScimRequest(null);
       Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatus());
     }
 

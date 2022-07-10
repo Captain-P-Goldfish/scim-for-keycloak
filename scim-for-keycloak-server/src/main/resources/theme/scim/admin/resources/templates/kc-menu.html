@@ -1,6 +1,5 @@
-<div class="col-sm-3 col-md-2 col-sm-pull-9 col-md-pull-10 sidebar-pf sidebar-pf-left"
-     data-ng-controller="RealmDropdownCtrl"
-     kc-sidebar-resize>
+<div kc-sidebar-resize class="col-sm-3 col-md-2 col-sm-pull-9 col-md-pull-10 sidebar-pf sidebar-pf-left"
+     data-ng-controller="RealmDropdownCtrl">
   
   <div class="realm-selector">
     <h2 data-ng-show="current.realm">{{current.realm.realm | capitalize}} <i class="fa fa-angle-down"></i></h2>
@@ -8,12 +7,12 @@
     <div class="realm-dropmenu">
       <!-- if it has more than 5 it generates a scroll bar -->
       <ul>
-        <li data-ng-if="realm.realm != current.realm.realm" data-ng-repeat="realm in current.realms | orderBy:'realm'">
+        <li data-ng-repeat="realm in current.realms | orderBy:'realm'" data-ng-if="realm.realm != current.realm.realm">
           <a href="" ng-click="changeRealm(realm.realm)">{{realm.realm | capitalize}}</a>
         </li>
       </ul>
       <div class="realm-add" data-ng-show="auth.user && access.createRealm">
-        <a class="btn btn-sm btn-block btn-primary" href="#/create/realm">{{:: 'add-realm' | translate}}</a>
+        <a href="#/create/realm" class="btn btn-sm btn-block btn-primary">{{:: 'add-realm' | translate}}</a>
       </div>
     </div>
   </div>
@@ -22,7 +21,7 @@
        data-ng-show="current.realm && (access.viewRealm || access.queryClients || access.viewIdentityProviders)">
     <h2>{{:: 'configure' | translate}}</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li data-ng-class="((!path[2]
+      <li data-ng-show="access.viewRealm" data-ng-class="((!path[2]
     || path[2] == 'required-credentials'
     || path[2] == 'login-settings'
     || path[2] == 'keys'
@@ -34,39 +33,35 @@
     || path[2] == 'cache-settings'
     || path[2] == 'client-initial-access'
     || path[2] == 'defense'
-    || path[2] == 'keys-settings' || path[2] == 'smtp-settings' || path[2] == 'ldap-settings' || path[2] == 'auth-settings') && path[3] != 'clients') && 'active'"
-          data-ng-show="access.viewRealm">
-        <a href="#/realms/{{realm.realm}}"><span class="pficon pficon-settings"></span> {{:: 'realm-settings'
-                                                                                          | translate}}</a>
+    || path[2] == 'keys-settings' || path[2] == 'smtp-settings' || path[2] == 'ldap-settings' || path[2] == 'auth-settings') && path[3] != 'clients') && 'active'">
+        <a href="#/realms/{{realm.realm}}"><span class="pficon pficon-settings"></span>
+          {{:: 'realm-settings' | translate}}</a>
       </li>
-      <li data-ng-class="(path[1] == 'client' || path[2] == 'clients' || path[3] == 'clients') && 'active'"
-          data-ng-show="access.queryClients"><a
+      <li data-ng-show="access.queryClients"
+          data-ng-class="(isCreateEndpoint('client') || path[2] == 'clients' || path[3] == 'clients') && 'active'"><a
         href="#/realms/{{realm.realm}}/clients"><i class="fa fa-cube"></i> {{:: 'clients' | translate}}</a></li>
-      <li
-        data-ng-class="(path[1] == 'client-scope' || path[2] == 'client-scopes' || path[3] == 'client-scopes' || path[2] == 'default-client-scopes') && 'active'"
-        data-ng-show="access.viewClients">
+      <li data-ng-show="access.viewClients"
+          data-ng-class="(isCreateEndpoint('client-scope') || path[2] == 'client-scopes' || path[3] == 'client-scopes' || path[2] == 'default-client-scopes') && 'active'">
         <a href="#/realms/{{realm.realm}}/client-scopes"><i class="fa fa-cubes"></i> {{:: 'client-scopes' | translate}}</a>
       </li>
-      <li data-ng-class="(path[1] == 'role' || path[2] == 'roles' || path[2] == 'default-roles') && 'active'"
-          data-ng-show="access.viewRealm"><a
+      <li data-ng-show="access.viewRealm"
+          data-ng-class="(isCreateEndpoint('role') || path[2] == 'roles' || path[2] == 'default-roles') && 'active'"><a
         href="#/realms/{{realm.realm}}/roles"><i class="fa fa-tasks"></i> {{:: 'roles' | translate}}</a></li>
-      <li
-        data-ng-class="(path[1] == 'identity-provider' || path[2] == 'identity-provider-settings' || path[2] == 'identity-provider-mappers') && 'active'"
-        data-ng-show="access.viewIdentityProviders">
+      <li data-ng-show="access.viewIdentityProviders"
+          data-ng-class="(isCreateEndpoint('identity-provider') || path[2] == 'identity-provider-settings' || path[2] == 'identity-provider-mappers') && 'active'">
         <a href="#/realms/{{realm.realm}}/identity-provider-settings"><i class="fa fa-exchange"></i>
           {{:: 'identity-providers' | translate}}</a></li>
-      <li data-ng-class="(
-                        path[1] == 'user-storage'
+      <li data-ng-show="access.viewRealm" data-ng-class="(
+                       isCreateEndpoint('user-storage')
                         || path[2] == 'user-federation'
                         || path[2] == 'user-storage'
                         || path[2] == 'ldap-mappers'
-                        ) && 'active'" data-ng-show="access.viewRealm"><a
-        href="#/realms/{{realm.realm}}/user-federation"><i class="fa fa-database"></i>
+                        ) && 'active'"><a href="#/realms/{{realm.realm}}/user-federation"><i class="fa fa-database"></i>
         {{:: 'user-federation' | translate}}</a></li>
-      <li data-ng-class="(path[1] == 'authentication' || path[2] == 'authentication') && 'active'"
-          data-ng-show="access.viewRealm"><a
-        href="#/realms/{{realm.realm}}/authentication/flows"><i class="fa fa-lock"></i> {{:: 'authentication'
-                                                                                          | translate}}</a></li>
+      <li data-ng-show="access.viewRealm"
+          data-ng-class="(isCreateEndpoint('authentication') || path[2] == 'authentication') && 'active'"><a
+        href="#/realms/{{realm.realm}}/authentication/flows"><i class="fa fa-lock"></i>
+        {{:: 'authentication' | translate}}</a></li>
       <li data-ng-class="(path[1] == 'scim' || path[2] == 'scim') && 'active'"
           data-ng-show="access.viewScim"
           id="scim-menu">
@@ -82,30 +77,26 @@
        data-ng-show="current.realm && (access.viewRealm || access.queryGroups || access.queryUsers || access.viewEvents)">
     <h2>{{:: 'manage' | translate}}</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li data-ng-class="(path[1] == 'group' || path[2] == 'groups'
-                        || path[2] == 'default-groups') && 'active'" data-ng-show="access.queryGroups"><a
-        href="#/realms/{{realm.realm}}/groups"><span
+      <li data-ng-show="access.queryGroups" data-ng-class="(isCreateEndpoint('group') || path[2] == 'groups'
+                        || path[2] == 'default-groups') && 'active'"><a href="#/realms/{{realm.realm}}/groups"><span
         class="pficon pficon-users"></span> {{:: 'groups' | translate}}</a></li>
-      <li data-ng-class="(path[1] == 'user' || path[2] == 'users' || path[2] == 'users-permissions') && 'active'"
-          data-ng-show="access.queryUsers"><a
-        href="#/realms/{{realm.realm}}/users"><span class="pficon pficon-user"></span> {{:: 'users' | translate}}</a>
+      <li data-ng-show="access.queryUsers"
+          data-ng-class="(isCreateEndpoint('user') || path[2] == 'users' || path[2] == 'users-permissions') && 'active'">
+        <a href="#/realms/{{realm.realm}}/users"><span class="pficon pficon-user"></span> {{:: 'users' | translate}}</a>
       </li>
-      <li data-ng-class="(path[2] == 'sessions') && 'active'" data-ng-show="access.viewRealm"><a
+      <li data-ng-show="access.viewRealm" data-ng-class="(path[2] == 'sessions') && 'active'"><a
         href="#/realms/{{realm.realm}}/sessions/realm"><i class="fa fa-clock-o"></i> {{:: 'sessions' | translate}}</a>
       </li>
-      <li data-ng-class="(path[2] == 'events'
+      <li data-ng-show="access.viewEvents" data-ng-class="(path[2] == 'events'
                         || path[2] == 'events-settings'
-                        || path[2] == 'admin-events') && 'active'" data-ng-show="access.viewEvents"><a
-        href="#/realms/{{realm.realm}}/events"><i
+                        || path[2] == 'admin-events') && 'active'"><a href="#/realms/{{realm.realm}}/events"><i
         class="fa fa-calendar"></i> {{:: 'events' | translate}}</a></li>
       <li data-ng-show="access.manageRealm" ng-class="(path[2] =='partial-import') && 'active'"><a
-        href="#/realms/{{realm.realm}}/partial-import"><span class="pficon pficon-import"></span> {{:: 'import'
-                                                                                                    | translate}}</a>
-      </li>
+        href="#/realms/{{realm.realm}}/partial-import"><span class="pficon pficon-import"></span>
+        {{:: 'import' | translate}}</a></li>
       <li data-ng-show="access.manageRealm" ng-class="(path[2] =='partial-export') && 'active'"><a
-        href="#/realms/{{realm.realm}}/partial-export"><span class="pficon pficon-export"></span> {{:: 'export'
-                                                                                                    | translate}}</a>
-      </li>
+        href="#/realms/{{realm.realm}}/partial-export"><span class="pficon pficon-export"></span>
+        {{:: 'export' | translate}}</a></li>
     </ul>
   </div>
 </div>

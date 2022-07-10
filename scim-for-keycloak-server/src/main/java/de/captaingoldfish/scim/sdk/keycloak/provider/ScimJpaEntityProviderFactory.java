@@ -13,14 +13,12 @@ import org.keycloak.models.RoleModel;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimConfiguration;
 import de.captaingoldfish.scim.sdk.keycloak.services.ScimResourceTypeService;
 import de.captaingoldfish.scim.sdk.keycloak.services.ScimServiceProviderService;
-import lombok.extern.slf4j.Slf4j;
 
 
 /**
  * @author Pascal Knueppel
  * @since 02.08.2020
  */
-@Slf4j
 public class ScimJpaEntityProviderFactory implements JpaEntityProviderFactory
 {
 

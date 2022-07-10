@@ -1,16 +1,12 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -19,11 +15,11 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.resteasy.spi.HttpRequest;
 import org.keycloak.models.KeycloakSession;
 
 import de.captaingoldfish.scim.sdk.common.constants.HttpHeader;
@@ -75,7 +71,6 @@ public class ScimEndpoint extends AbstractEndpoint
   /**
    * handles all SCIM requests
    *
-   * @param request the server request object
    * @return the jax-rs response
    */
   @POST
@@ -85,7 +80,7 @@ public class ScimEndpoint extends AbstractEndpoint
   @DELETE
   @Path(ContextPaths.SCIM_ENDPOINT_PATH + "/{s:.*}")
   @Produces(HttpHeader.SCIM_CONTENT_TYPE)
-  public Response handleScimRequest(@Context HttpServletRequest request)
+  public Response handleScimRequest(String requestBody)
   {
     ScimServiceProviderService scimServiceProviderService = new ScimServiceProviderService(getKeycloakSession());
     Optional<ScimServiceProviderEntity> serviceProviderEntity = scimServiceProviderService.getServiceProviderEntity();
@@ -97,16 +92,30 @@ public class ScimEndpoint extends AbstractEndpoint
 
     ScimAuthorization scimAuthorization = new ScimAuthorization(getKeycloakSession(), authentication);
     ScimKeycloakContext scimKeycloakContext = new ScimKeycloakContext(getKeycloakSession(), scimAuthorization);
+    KeycloakSession keycloakSession = getKeycloakSession();
 
-    String query = request.getQueryString() == null ? "" : "?" + request.getQueryString();
-    ScimResponse scimResponse = resourceEndpoint.handleRequest(request.getRequestURL().toString() + query,
-                                                               HttpMethod.valueOf(request.getMethod()),
-                                                               getRequestBody(request),
+    final String url = keycloakSession.getContext().getUri().getAbsolutePath().toString();
+    String query = getQuery(keycloakSession.getContext().getUri().getQueryParameters());
+    final HttpRequest request = keycloakSession.getContext().getContextObject(HttpRequest.class);
+    ScimResponse scimResponse = resourceEndpoint.handleRequest(url + query,
+                                                               HttpMethod.valueOf(request.getHttpMethod()),
+                                                               requestBody,
                                                                getHttpHeaders(request),
                                                                null,
                                                                commitOrRollback(),
                                                                scimKeycloakContext);
     return scimResponse.buildResponse();
+  }
+
+  private String getQuery(MultivaluedMap<String, String> queryParameters)
+  {
+    if (queryParameters == null || queryParameters.isEmpty())
+    {
+      return "";
+    }
+    return "?" + queryParameters.entrySet().stream().map(entry -> {
+      return String.format("%s=%s", entry.getKey(), String.join(",", entry.getValue()));
+    }).collect(Collectors.joining("&"));
   }
 
   /**
@@ -136,37 +145,17 @@ public class ScimEndpoint extends AbstractEndpoint
   }
 
   /**
-   * reads the request body from the input stream of the request object
-   *
-   * @param request the request object
-   * @return the request body as string
-   */
-  public String getRequestBody(HttpServletRequest request)
-  {
-    try (InputStream inputStream = request.getInputStream())
-    {
-      return IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-    }
-    catch (IOException e)
-    {
-      throw new IllegalStateException(e.getMessage(), e);
-    }
-  }
-
-  /**
    * extracts the http headers from the request and puts them into a map
    *
-   * @param request the request object
+   * @param httpRequest the current request object
    * @return a map with the http-headers
    */
-  public Map<String, String> getHttpHeaders(HttpServletRequest request)
+  public Map<String, String> getHttpHeaders(HttpRequest httpRequest)
   {
     Map<String, String> httpHeaders = new HashMap<>();
-    Enumeration<String> enumeration = request.getHeaderNames();
-    while (enumeration != null && enumeration.hasMoreElements())
-    {
-      String headerName = enumeration.nextElement();
-      String headerValue = request.getHeader(headerName);
+
+    httpRequest.getHttpHeaders().getRequestHeaders().forEach((headerName, value) -> {
+      String headerValue = value.get(0);
 
       boolean isContentTypeHeader = HttpHeader.CONTENT_TYPE_HEADER.toLowerCase(Locale.ROOT)
                                                                   .equals(headerName.toLowerCase(Locale.ROOT));
@@ -176,7 +165,7 @@ public class ScimEndpoint extends AbstractEndpoint
         headerValue = HttpHeader.SCIM_CONTENT_TYPE;
       }
       httpHeaders.put(headerName, headerValue);
-    }
+    });
     return httpHeaders;
   }
 

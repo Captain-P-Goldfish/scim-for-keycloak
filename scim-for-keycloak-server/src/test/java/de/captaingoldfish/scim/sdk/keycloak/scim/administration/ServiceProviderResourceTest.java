@@ -21,6 +21,7 @@ import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimServiceProviderEntity;
 import de.captaingoldfish.scim.sdk.keycloak.services.ScimServiceProviderServiceBridge;
 import de.captaingoldfish.scim.sdk.keycloak.setup.KeycloakScimManagementTest;
+import lombok.SneakyThrows;
 
 
 /**
@@ -48,6 +49,7 @@ public class ServiceProviderResourceTest extends KeycloakScimManagementTest
   /**
    * verifies that the configuration can successfully be updated
    */
+  @SneakyThrows
   @Test
   public void testUpdateServiceProviderConfiguration()
   {
@@ -68,9 +70,9 @@ public class ServiceProviderResourceTest extends KeycloakScimManagementTest
                                                                            .maxPayloadSize(1L)
                                                                            .build())
                                                      .build();
-
     Response response = serviceProviderResource.updateServiceProviderConfig(serviceProvider.toString());
     Assertions.assertEquals(HttpStatus.OK, response.getStatus());
+    Thread.sleep(10); // this will make sure that the test does not fail due to timing issues
 
     verifyDatabaseSetupIsNotEqual(ScimServiceProviderServiceBridge.getDefaultServiceProvider(getKeycloakSession()));
     ServiceProvider updatedProvider = JsonHelper.readJsonDocument((String)response.getEntity(), ServiceProvider.class);
