@@ -25,11 +25,20 @@
         <version.mysql.connector>8.0.21</version.mysql.connector>
         <version.mariadb.connector>2.6.2</version.mariadb.connector>
         <version.mssql.connector>8.4.0.jre8</version.mssql.connector>
-        <version.selenium>3.141.59</version.selenium>
+        <version.selenium>4.1.4</version.selenium>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- base dependency versions -->
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-java</artifactId>
+                <version>${version.selenium}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!-- version conflicts -->
             <dependency>
                 <groupId>org.apache.commons</groupId>

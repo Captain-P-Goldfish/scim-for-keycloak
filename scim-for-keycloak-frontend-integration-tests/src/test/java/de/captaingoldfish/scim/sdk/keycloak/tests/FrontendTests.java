@@ -1,5 +1,6 @@
 package de.captaingoldfish.scim.sdk.keycloak.tests;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,7 +91,7 @@ public abstract class FrontendTests
    */
   private void loginOnAdminConsole(TestSetup testSetup, WebDriver webDriver)
   {
-    final WebDriverWait wait = new WebDriverWait(webDriver, 5000);
+    final WebDriverWait wait = new WebDriverWait(webDriver, Duration.ofSeconds(5));
     final String loginAddress = testSetup.getBrowserAccessUrl() + "/auth/admin/";
     webDriver.get(loginAddress);
 

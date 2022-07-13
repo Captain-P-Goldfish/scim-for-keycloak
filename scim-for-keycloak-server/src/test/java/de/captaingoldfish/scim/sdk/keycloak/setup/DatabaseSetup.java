@@ -143,6 +143,8 @@ class DatabaseSetup
    */
   private final void buildDatabase()
   {
+    // make sure that liquibase allows parsing of local file references
+    System.setProperty("liquibase.secureParsing", "false");
     // keycloak did implement a custom liquibase module that is used when executing the changesets. This
     // custom module needs the keycloakSession which it will retrieve from the ThreadLocalSessionContext
     ThreadLocalSessionContext.setCurrentSession(keycloakSession);
@@ -155,6 +157,7 @@ class DatabaseSetup
       ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor(ScimEndpointProviderFactory.class.getClassLoader());
       final Liquibase liquibaseKeycloak = new Liquibase("META-INF/jpa-changelog-master.xml", resourceAccessor, db);
       liquibaseKeycloak.update(new Contexts((String)null), new LabelExpression((String)null));
+
       final Liquibase liquibaseScimSdk = new Liquibase("META-INF/scim-changelog.xml", resourceAccessor, db);
       liquibaseScimSdk.update(new Contexts((String)null), new LabelExpression((String)null));
       log.debug("liquibase executed successfully");
