@@ -4,11 +4,30 @@
 
 [//]: # ( master   [![CircleCI]&#40;https://circleci.com/gh/Captain-P-Goldfish/scim-for-keycloak/tree/master.svg?style=shield&#41;]&#40;https://circleci.com/gh/Captain-P-Goldfish/scim-for-keycloak/tree/master&#41;)
 
+
+
 ## Donations
 
 If you like this work and want to support me you'll be able to treat me to a cup of coffee :-)
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?hosted_button_id=LLRM6ZVL4G9PJ)
+
+<!-- TOC -->
+* [What is SCIM-for-keycloak?](#what-is-scim-for-keycloak)
+  * [Keycloak support matrix](#keycloak-support-matrix)
+  * [Versioning](#versioning)
+  * [Releases](#releases)
+  * [Release Notes](#release-notes)
+  * [How to build](#how-to-build)
+  * [Deploy into keycloak server](#deploy-into-keycloak-server)
+  * [Security Considerations](#security-considerations)
+  * [How to configure the SCIM endpoints](#how-to-configure-the-scim-endpoints)
+  * [Disabled by default](#disabled-by-default)
+  * [What is configurable?](#what-is-configurable)
+  * [Admin-Events (kc-13-b3, kc-14-b2+)](#admin-events--kc-13-b3-kc-14-b2-)
+  * [Disadvantages](#disadvantages)
+  * [Grant management-access for configuration](#grant-management-access-for-configuration)
+<!-- TOC -->
 
 # What is SCIM-for-keycloak?
 
