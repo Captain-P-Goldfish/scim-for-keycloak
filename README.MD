@@ -49,30 +49,31 @@ Thanks to *Raffael Grob* for providing this manual.
 
 ## Keycloak support matrix
 
-| version | supported          | scim-for-keycloak version                                                               | SCIM-SDK Version |
-|:--------|:-------------------|:----------------------------------------------------------------------------------------|------------------|
-| lower   | :x:                | -                                                                                       |                  |
-| 9.0.x   | :x:                | You may find an older working version at https://github.com/Captain-P-Goldfish/SCIM-SDK |                  | 
-| 10.0.x  | :x:                | You may find an older working version at https://github.com/Captain-P-Goldfish/SCIM-SDK |                  |  
-| 11.0.x  | :heavy_check_mark: | kc-11-b1                                                                                | 1.8.3            |
-| 12.0.x  | :heavy_check_mark: | kc-12-b1                                                                                | 1.8.3            |
-| 12.0.x  | :heavy_check_mark: | kc-12-b2                                                                                | 1.9.2            |
-| 13.0.0  | :heavy_check_mark: | kc-13-b1                                                                                | 1.9.2            |
-| 13.0.1  | :heavy_check_mark: | kc-13-b2                                                                                | 1.11.0           |
-| 13.0.1  | :heavy_check_mark: | kc-13-b3                                                                                | 1.11.0           |
-| 13.0.1  | :heavy_check_mark: | kc-13-b4                                                                                | 1.11.0           |
-| 14.0.0  | :heavy_check_mark: | kc-14-b1                                                                                | 1.11.0           |
-| 14.0.0  | :heavy_check_mark: | kc-14-b2                                                                                | 1.11.0           |
-| 14.0.x  | :heavy_check_mark: | kc-14-b3                                                                                | 1.11.0           |
-| 15.0.x  | :heavy_check_mark: | kc-15-b1                                                                                | 1.12.0           |
-| 15.0.x  | :heavy_check_mark: | kc-15-b2                                                                                | 1.12.1           |
-| 15.0.x  | :heavy_check_mark: | kc-15-b3                                                                                | 1.12.1           |
-| 16.0.x  | :x:                | kc-16-b1 (BROKEN -(due to missing theme files)                                          | 1.12.3           |
-| 16.0.x  | :heavy_check_mark: | kc-16-b2                                                                                | 1.12.3           |
-| 16.1.x  | :x:                | kc-16-b3 (BROKEN - due to liquibase problem)                                            | 1.12.4           |
-| 16.1.x  | :heavy_check_mark: | kc-16-b4                                                                                | 1.12.4           |
-| 17.0.x  | :x:                | :x:                                                                                     | :x:              |
-| 18.0.x  | :heavy_check_mark: | kc-18-b1                                                                                | 1.13.4           |
+| version         | supported          | scim-for-keycloak version                                                               | SCIM-SDK Version |
+|:----------------|:-------------------|:----------------------------------------------------------------------------------------|------------------|
+| lower           | :x:                | -                                                                                       |                  |
+| 9.0.x           | :x:                | You may find an older working version at https://github.com/Captain-P-Goldfish/SCIM-SDK |                  | 
+| 10.0.x          | :x:                | You may find an older working version at https://github.com/Captain-P-Goldfish/SCIM-SDK |                  |  
+| 11.0.x          | :heavy_check_mark: | kc-11-b1                                                                                | 1.8.3            |
+| 12.0.x          | :heavy_check_mark: | kc-12-b1                                                                                | 1.8.3            |
+| 12.0.x          | :heavy_check_mark: | kc-12-b2                                                                                | 1.9.2            |
+| 13.0.0          | :heavy_check_mark: | kc-13-b1                                                                                | 1.9.2            |
+| 13.0.1          | :heavy_check_mark: | kc-13-b2                                                                                | 1.11.0           |
+| 13.0.1          | :heavy_check_mark: | kc-13-b3                                                                                | 1.11.0           |
+| 13.0.1          | :heavy_check_mark: | kc-13-b4                                                                                | 1.11.0           |
+| 14.0.0          | :heavy_check_mark: | kc-14-b1                                                                                | 1.11.0           |
+| 14.0.0          | :heavy_check_mark: | kc-14-b2                                                                                | 1.11.0           |
+| 14.0.x          | :heavy_check_mark: | kc-14-b3                                                                                | 1.11.0           |
+| 15.0.x          | :heavy_check_mark: | kc-15-b1                                                                                | 1.12.0           |
+| 15.0.x          | :heavy_check_mark: | kc-15-b2                                                                                | 1.12.1           |
+| 15.0.x          | :heavy_check_mark: | kc-15-b3                                                                                | 1.12.1           |
+| 16.0.x          | :x:                | kc-16-b1 (BROKEN -(due to missing theme files)                                          | 1.12.3           |
+| 16.0.x          | :heavy_check_mark: | kc-16-b2                                                                                | 1.12.3           |
+| 16.1.x          | :x:                | kc-16-b3 (BROKEN - due to liquibase problem)                                            | 1.12.4           |
+| 16.1.x          | :heavy_check_mark: | kc-16-b4                                                                                | 1.12.4           |
+| 17.0.x          | :x:                | :x:                                                                                     | :x:              |
+| 18.0.x          | :heavy_check_mark: | kc-18-b1                                                                                | 1.13.4           |
+| 18.0.x / 19.0.x | :heavy_check_mark: | kc-18-b2                                                                                | 1.13.4           |
 
 ## Versioning
 
