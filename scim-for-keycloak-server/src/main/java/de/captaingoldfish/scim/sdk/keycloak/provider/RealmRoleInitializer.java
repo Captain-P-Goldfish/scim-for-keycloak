@@ -58,9 +58,8 @@ public class RealmRoleInitializer
         final String wikiUrl = "https://github.com/Captain-P-Goldfish/scim-for-keycloak/wiki/Manually-fix:"
                                + "-Transaction-error-on-scim-sdk-server-database-initialization";
         log.warn("Transaction error on scim-sdk-server database initialization\n"
-                 + "This will only be a problem for first-time-setups but can be manually fixed by following"
-                 + "these instructions '{}'. This bug was already reported at keycloak. But until it was fixed are "
-                 + "stuck with it.",
+                 + "This is not necessarily a problem and can be ignored for most setups. See here '{}'. "
+                 + "This bug was already reported at keycloak. But until it was fixed we are stuck with it.",
                  wikiUrl);
       }
     }
