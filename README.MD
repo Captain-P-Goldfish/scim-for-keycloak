@@ -104,7 +104,7 @@ Checkout the git tag that you want to build:
    * `cd ${SCIM_FOR_KEYCLOAK_HOME}`
    * `mvn clean package -DskipTests`
 4. find the scim-for-keycloak artifact in:
-   `scim-for-keycloak/scim-for-keycloak-server/target/scim-for-keycloak-kc-${keycloak.version}-b${project.incremental.version}.ear`
+   `scim-for-keycloak/scim-for-keycloak-server/target/scim-for-keycloak-kc-${keycloak.version}-b${project.incremental.version}.jar`
 
 ## Deploy into keycloak server
 
@@ -120,7 +120,7 @@ chapter [What is configurable?](#what-is-configurable)
 
 ## How to configure the SCIM endpoints
 
-1. Deploy the `scim-for-keycloak.ear` file into your server. If the server is currently running you need to restart it!
+1. Deploy the `scim-for-keycloak.jar` file into your server. If the server is currently running you need to restart it!
 2. Now open the web admin console of keycloak open the realm settings and select the `Themes` tab and select the `scim`
    theme for the admin console. Now reload the browser page and the `SCIM` menu link should be visible.
    ![theme-settings](images/theme-setting.png)
