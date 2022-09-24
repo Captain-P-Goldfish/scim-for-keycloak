@@ -17,13 +17,14 @@ import org.keycloak.models.utils.PostMigrationEvent;
 import org.keycloak.provider.ProviderEvent;
 import org.keycloak.services.managers.RealmManager;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 
 /**
  * this class will initialize the role that is necessary to access and configure the scim configuration. This
  * class is inspired by beercloak:
- * 
+ *
  * @author Pascal Knueppel
  * @since 01.08.2020 - 19:21
  * @see <a href=" https://github.com/dteleguin/beercloak">inspired by beercloak</a>
@@ -41,12 +42,27 @@ public class RealmRoleInitializer
    * initializes the {@link #SCIM_ADMIN_ROLE} on all existing realms if not present and makes sure that the role
    * will also be added to all new created realms
    */
+  @SneakyThrows
   public static void initializeRoles(KeycloakSessionFactory keycloakSessionFactory)
   {
     if (isHotDeploying())
     {
       log.info("initializing scim-sdk-server");
-      KeycloakModelUtils.runJobInTransaction(keycloakSessionFactory, RealmRoleInitializer::setupRealmAccess);
+      try
+      {
+        KeycloakModelUtils.runJobInTransaction(keycloakSessionFactory, RealmRoleInitializer::setupRealmAccess);
+      }
+      catch (Exception ex)
+      {
+        log.error(ex.getMessage());
+        final String wikiUrl = "https://github.com/Captain-P-Goldfish/scim-for-keycloak/wiki/Manually-fix:"
+                               + "-Transaction-error-on-scim-sdk-server-database-initialization";
+        log.warn("Transaction error on scim-sdk-server database initialization\n"
+                 + "This will only be a problem for first-time-setups but can be manually fixed by following"
+                 + "these instructions '{}'. This bug was already reported at keycloak. But until it was fixed are "
+                 + "stuck with it.",
+                 wikiUrl);
+      }
     }
     else
     {
@@ -161,7 +177,7 @@ public class RealmRoleInitializer
   /**
    * adds the {@link #SCIM_ADMIN_ROLE} to the given client and adds it as a composite role into the given
    * parent-role
-   * 
+   *
    * @param client the client to which the client-role {@link #SCIM_ADMIN_ROLE} should be added
    * @param parent the parent-role that will get the newly created {@link #SCIM_ADMIN_ROLE} as a composite role
    *          member
