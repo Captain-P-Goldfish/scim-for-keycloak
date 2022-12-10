@@ -1,5 +1,6 @@
 package de.captaingoldfish.scim.sdk.keycloak.tests.testbuilder;
 
+import java.time.Duration;
 import java.util.List;
 
 import org.hamcrest.MatcherAssert;
@@ -50,7 +51,7 @@ public abstract class AbstractTestBuilder
     this.webDriver = webDriver;
     this.testSetup = testSetup;
     this.directKeycloakAccessSetup = directKeycloakAccessSetup;
-    this.wait = new WebDriverWait(webDriver, 5);
+    this.wait = new WebDriverWait(webDriver, Duration.ofSeconds(5));
   }
 
   /**

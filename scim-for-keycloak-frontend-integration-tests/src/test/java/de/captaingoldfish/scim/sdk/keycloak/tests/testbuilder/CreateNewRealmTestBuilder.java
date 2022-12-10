@@ -1,5 +1,6 @@
 package de.captaingoldfish.scim.sdk.keycloak.tests.testbuilder;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -51,7 +52,7 @@ public class CreateNewRealmTestBuilder extends AbstractTestBuilder
 
       wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("name"))).sendKeys(REALM_ID);
       webDriver.findElement(By.xpath("//button[text() = 'Create']")).click();
-      WebDriverWait waitForRealmCreate = new WebDriverWait(webDriver, 10);
+      WebDriverWait waitForRealmCreate = new WebDriverWait(webDriver, Duration.ofSeconds(10));
       waitForRealmCreate.until(d -> d.findElement(By.id("name")));
     }));
     // **********************************************************************************************************
