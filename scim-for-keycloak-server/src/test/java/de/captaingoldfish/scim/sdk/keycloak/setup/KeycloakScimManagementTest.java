@@ -4,6 +4,7 @@ import java.math.BigInteger;
 
 import javax.persistence.EntityManager;
 
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -241,6 +242,7 @@ public abstract class KeycloakScimManagementTest
     deleteFromTable(GroupRoleMappingEntity.class);
     deleteFromTable(UserAttributeEntity.class);
     deleteFromTable(CredentialEntity.class);
+    deleteFromTable(ScimUserAttributesEntity.class);
     deleteFromTable(UserEntity.class);
     deleteFromTable(GroupAttributeEntity.class);
     deleteFromTable(GroupEntity.class);

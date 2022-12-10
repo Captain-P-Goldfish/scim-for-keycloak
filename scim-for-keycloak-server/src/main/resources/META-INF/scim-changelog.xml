@@ -5,6 +5,10 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
+    <property name="clob_type" value="CLOB" dbms="h2, oracle"/>
+    <property name="clob_type" value="VARCHAR(max)" dbms="mssql"/>
+    <property name="clob_type" value="LONGTEXT" dbms="mysql, mariadb"/>
+
     <changeSet author="pascal knueppel" id="scim-sdk-1.0">
 
         <createTable tableName="SCIM_SERVICE_PROVIDER">
@@ -132,6 +136,215 @@
             <column name="SCIM_SERVICE_PROVIDER_ID" type="VARCHAR(36)"/>
         </createIndex>
 
+    </changeSet>
+
+    <!-- ****************************************************************************************************** -->
+
+    <changeSet author="pascal knueppel" id="scim-sdk-database-filtering">
+
+        <createTable tableName="USER_SCIM_ATTRIBUTES">
+            <column name="ID" type="VARCHAR(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_USER_SCIM_ATTRIBUTES_ID"/>
+            </column>
+            <column name="USER_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="USER_SCIM_ATTRIBUTES_FK"
+                             referencedTableName="USER_ENTITY"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="EXTERNAL_ID" type="VARCHAR(255)"/>
+            <column name="NAME_FORMATTED" type="VARCHAR(255)"/>
+            <column name="FAMILY_NAME" type="VARCHAR(255)"/>
+            <column name="GIVEN_NAME" type="VARCHAR(255)"/>
+            <column name="MIDDLE_NAME" type="VARCHAR(255)"/>
+            <column name="NAME_HONORIFIC_PREFIX" type="VARCHAR(255)"/>
+            <column name="NAME_HONORIFIC_SUFFIX" type="VARCHAR(255)"/>
+            <column name="DISPLAY_NAME" type="VARCHAR(255)"/>
+            <column name="NICK_NAME" type="VARCHAR(255)"/>
+            <column name="PROFILE_URL" type="VARCHAR(255)"/>
+            <column name="TITLE" type="VARCHAR(255)"/>
+            <column name="USER_TYPE" type="VARCHAR(255)"/>
+            <column name="PREFERRED_LANGUAGE" type="VARCHAR(255)"/>
+            <column name="LOCALE" type="VARCHAR(10)"/>
+            <column name="TIMEZONE" type="VARCHAR(255)"/>
+        </createTable>
+
+        <createIndex tableName="USER_SCIM_ATTRIBUTES" indexName="USER_SCIM_ATTRIBUTES_IDX">
+            <column name="USER_ID" type="VARCHAR(36)"/>
+        </createIndex>
+
+        <createTable tableName="SCIM_EMAILS">
+            <column name="ID" type="VARCHAR(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SCIM_EMAIL_ID"/>
+            </column>
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_EMAIL_USER_FK"
+                             referencedTableName="USER_SCIM_ATTRIBUTES"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="EMAIL_VALUE" type="VARCHAR(255)"/>
+            <column name="EMAIL_DISPLAY" type="VARCHAR(255)"/>
+            <column name="EMAIL_TYPE" type="VARCHAR(255)"/>
+            <column name="IS_PRIMARY" type="BOOLEAN"/>
+        </createTable>
+
+        <createIndex tableName="SCIM_EMAILS" indexName="PK_SCIM_EMAIL_IDX">
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)"/>
+        </createIndex>
+
+        <createTable tableName="SCIM_PHONENUMBERS">
+            <column name="ID" type="VARCHAR(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SCIM_PHONE_ID"/>
+            </column>
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_PHONE_USER_FK"
+                             referencedTableName="USER_SCIM_ATTRIBUTES"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="VALUE" type="VARCHAR(255)"/>
+            <column name="DISPLAY" type="VARCHAR(255)"/>
+            <column name="TYPE" type="VARCHAR(255)"/>
+            <column name="PRIMARY" type="BOOLEAN"/>
+        </createTable>
+
+        <createIndex tableName="SCIM_PHONENUMBERS" indexName="SCIM_PHONE_IDX">
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)"/>
+        </createIndex>
+
+        <createTable tableName="SCIM_IMS">
+            <column name="ID" type="VARCHAR(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SCIM_IMS_ID"/>
+            </column>
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_IMS_USER_FK"
+                             referencedTableName="USER_SCIM_ATTRIBUTES"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="VALUE" type="VARCHAR(255)"/>
+            <column name="DISPLAY" type="VARCHAR(255)"/>
+            <column name="TYPE" type="VARCHAR(255)"/>
+            <column name="PRIMARY" type="BOOLEAN"/>
+        </createTable>
+
+        <createIndex tableName="SCIM_IMS" indexName="SCIM_IMS_IDX">
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)"/>
+        </createIndex>
+
+        <createTable tableName="SCIM_PHOTOS">
+            <column name="ID" type="VARCHAR(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SCIM_PHOTOS_ID"/>
+            </column>
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_PHOTO_USER_FK"
+                             referencedTableName="USER_SCIM_ATTRIBUTES"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="VALUE" type="VARCHAR(255)"/>
+            <column name="DISPLAY" type="VARCHAR(255)"/>
+            <column name="TYPE" type="VARCHAR(255)"/>
+            <column name="PRIMARY" type="BOOLEAN"/>
+        </createTable>
+
+        <createIndex tableName="SCIM_PHOTOS" indexName="PK_SCIM_PHOTOS_IDX">
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)"/>
+        </createIndex>
+
+        <createTable tableName="SCIM_ENTITLEMENTS">
+            <column name="ID" type="VARCHAR(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SCIM_ENTITLEMENTS_ID"/>
+            </column>
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_ENTITLEMENTS_USER_FK"
+                             referencedTableName="USER_SCIM_ATTRIBUTES"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="VALUE" type="VARCHAR(255)"/>
+            <column name="DISPLAY" type="VARCHAR(255)"/>
+            <column name="TYPE" type="VARCHAR(255)"/>
+            <column name="PRIMARY" type="BOOLEAN"/>
+        </createTable>
+
+        <createIndex tableName="SCIM_ENTITLEMENTS" indexName="PK_SCIM_ENTITLEMENTS_IDX">
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)"/>
+        </createIndex>
+
+        <createTable tableName="SCIM_CERTIFICATES">
+            <column name="ID" type="VARCHAR(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SCIM_CERTIFICATE_ID"/>
+            </column>
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_CERTIFICATE_USER_FK"
+                             referencedTableName="USER_SCIM_ATTRIBUTES"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="VALUE" type="${clob_type}"/>
+            <column name="DISPLAY" type="VARCHAR(255)"/>
+            <column name="TYPE" type="VARCHAR(255)"/>
+            <column name="PRIMARY" type="BOOLEAN"/>
+        </createTable>
+
+        <createIndex tableName="SCIM_CERTIFICATES" indexName="PK_SCIM_CERTIFICATE_IDX">
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)"/>
+        </createIndex>
+
+        <createTable tableName="SCIM_ADDRESSES">
+            <column name="ID" type="VARCHAR(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SCIM_ADDRESSES_ID"/>
+            </column>
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_ADDRESSES_USER_FK"
+                             referencedTableName="USER_SCIM_ATTRIBUTES"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="FORMATTED" type="VARCHAR(255)"/>
+            <column name="STREET_ADDRESS" type="VARCHAR(255)"/>
+            <column name="LOCALITY" type="VARCHAR(255)"/>
+            <column name="REGION" type="VARCHAR(255)"/>
+            <column name="POSTALCODE" type="VARCHAR(255)"/>
+            <column name="COUNTRY" type="VARCHAR(255)"/>
+            <column name="TYPE" type="VARCHAR(255)"/>
+            <column name="PRIMARY" type="BOOLEAN"/>
+        </createTable>
+
+        <createIndex tableName="SCIM_ADDRESSES" indexName="PK_SCIM_ADDRESSES_IDX">
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ****************************************************************************************************** -->
+
+    <changeSet id="infocert-custom-extension" author="pascal knueppel">
+
+        <createTable tableName="USER_SCIM_COUNTRIES_EXT">
+            <column name="ID" type="VARCHAR(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_USER_COUNTRIES_EXT_ID"/>
+            </column>
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_USER_COUNTRIES_EXT_FK"
+                             referencedTableName="USER_SCIM_ATTRIBUTES"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="COUNTRY" type="VARCHAR(255)"/>
+        </createTable>
+
+        <createTable tableName="USER_SCIM_BUSINESS_LINE_EXT">
+            <column name="ID" type="VARCHAR(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_USER_BUSINESS_LINE_EXT_ID"/>
+            </column>
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_USER_BUSINESS_LINE_EXT_FK"
+                             referencedTableName="USER_SCIM_ATTRIBUTES"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="BUSINESS_LINE" type="VARCHAR(255)"/>
+        </createTable>
+
+        <createIndex tableName="USER_SCIM_BUSINESS_LINE_EXT" indexName="SCIM_USER_BUSINESS_LINE_IDX">
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)"/>
+        </createIndex>
+
+        <createIndex tableName="USER_SCIM_COUNTRIES_EXT" indexName="SCIM_USER_COUNTRIES_EXT_IDX">
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)"/>
+        </createIndex>
     </changeSet>
 
 </databaseChangeLog>
