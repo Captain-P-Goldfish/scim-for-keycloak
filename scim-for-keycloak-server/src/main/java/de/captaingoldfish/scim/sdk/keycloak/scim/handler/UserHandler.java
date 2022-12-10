@@ -5,11 +5,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
 import org.keycloak.models.KeycloakSession;
@@ -128,8 +130,17 @@ public class UserHandler extends ResourceHandler<CustomUser>
     // TODO in order to filter on database level the feature "autoFiltering" must be disabled and the JPA criteria
     // api should be used
     RealmModel realmModel = keycloakSession.getContext().getRealm();
+    StopWatch stopWatch = new StopWatch();
+    log.info("Starting to read users from database: {}", Instant.now());
+    stopWatch.start();
     Stream<UserModel> userModels = keycloakSession.users().getUsersStream(realmModel);
-    List<CustomUser> userList = userModels.map(this::modelToUser).collect(Collectors.toList());
+    log.info("Reading users from database took: {}ms", stopWatch.getTime(TimeUnit.MILLISECONDS));
+    stopWatch.reset();
+    stopWatch.start();
+    log.info("Parsing database users to SCIM representation: {}", Instant.now());
+    List<CustomUser> userList = userModels.parallel().map(this::modelToUser).collect(Collectors.toList());
+    log.info("Parsing of users took: {}ms", stopWatch.getTime(TimeUnit.MILLISECONDS));
+    stopWatch.stop();
     return PartialListResponse.<CustomUser> builder().totalResults(userList.size()).resources(userList).build();
   }
 
@@ -326,6 +337,9 @@ public class UserHandler extends ResourceHandler<CustomUser>
    */
   private CustomUser modelToUser(UserModel userModel)
   {
+    StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
+    log.info("Parsing user '{}' to SCIM representation: {}", userModel.getUsername(), Instant.now());
     List<Email> emails = getAttributeList(Email.class, AttributeNames.RFC7643.EMAILS, userModel);
 
     Optional.ofNullable(userModel.getEmail()).ifPresent(email -> {
@@ -345,7 +359,6 @@ public class UserHandler extends ResourceHandler<CustomUser>
     {
       name = null;
     }
-
     List<GroupNode> groups = userModel.getGroupsStream().map(groupModel -> {
       return GroupNode.builder().display(groupModel.getName()).value(groupModel.getId()).type("direct").build();
     }).collect(Collectors.toList());
@@ -409,6 +422,8 @@ public class UserHandler extends ResourceHandler<CustomUser>
     {
       user.setEnterpriseUser(enterpriseUser);
     }
+    log.info("Parsing of user '{}' took {}ms", userModel.getUsername(), stopWatch.getTime(TimeUnit.MILLISECONDS));
+    stopWatch.stop();
     return user;
   }
 

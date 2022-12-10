@@ -40,14 +40,15 @@
         <formatter-path>${project.parent.basedir}</formatter-path>
 
         <version.keycloak>15.0.2</version.keycloak>
-        <version.scim.sdk>1.12.2</version.scim.sdk>
+        <version.scim.sdk>1.15.2</version.scim.sdk>
 
         <version.sun.javax.activation>1.2.0</version.sun.javax.activation>
         <version.javax.activation>1.1.1</version.javax.activation>
 
         <!-- test dependencies -->
         <version.h2>1.4.200</version.h2>
-        <version.log4j2>2.14.1</version.log4j2>
+        <version.log4j2>2.19.0</version.log4j2>
+        <version.slf4j.api>2.0.5</version.slf4j.api>
 
         <!-- plugin versions -->
         <version.maven.ear.plugin>3.1.0</version.maven.ear.plugin>
@@ -125,6 +126,12 @@
                 <version>${version.log4j2}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j2-impl</artifactId>
+                <version>${version.log4j2}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -168,6 +175,14 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
         </dependency>
     </dependencies>
 

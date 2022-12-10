@@ -70,7 +70,7 @@ public class ScimEmailsEntity
    * if this is the primary email or not
    */
   @Column(name = "IS_PRIMARY")
-  private Boolean primary = false;
+  private boolean primary = false;
 
 
   @Builder

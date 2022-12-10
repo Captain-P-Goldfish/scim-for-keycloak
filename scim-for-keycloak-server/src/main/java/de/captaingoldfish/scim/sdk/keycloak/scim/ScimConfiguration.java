@@ -3,6 +3,8 @@ package de.captaingoldfish.scim.sdk.keycloak.scim;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUser2Endpoint;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.UserHandler2;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 
@@ -81,6 +83,13 @@ public final class ScimConfiguration
     userResourceType.setFeatures(ResourceTypeFeatures.builder().autoFiltering(true).autoSorting(true).build());
     ScimResourceTypeEntity userResourceTypeEntity = resourceTypeService.getOrCreateResourceTypeEntry(userResourceType);
     resourceTypeService.updateResourceType(userResourceType, userResourceTypeEntity);
+
+
+    ResourceType user2ResourceType = resourceEndpoint.registerEndpoint(new CustomUser2Endpoint(new UserHandler2()));
+    user2ResourceType.setFeatures(ResourceTypeFeatures.builder().autoFiltering(true).autoSorting(true).build());
+    ScimResourceTypeEntity user2ResourceTypeEntity = resourceTypeService.getOrCreateResourceTypeEntry(userResourceType);
+    resourceTypeService.updateResourceType(user2ResourceType, user2ResourceTypeEntity);
+
 
     ResourceType groupResourceType = resourceEndpoint.registerEndpoint(new GroupEndpointDefinition(new GroupHandler()));
     groupResourceType.setFeatures(ResourceTypeFeatures.builder().autoFiltering(true).autoSorting(true).build());

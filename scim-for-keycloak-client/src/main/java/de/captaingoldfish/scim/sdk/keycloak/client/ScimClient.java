@@ -74,6 +74,7 @@ public class ScimClient
                                                                                    .socketTimeout(120)
                                                                                    .requestTimeout(120)
                                                                                    .httpHeaders(defaultHeaders)
+                                                                                   .enableAutomaticBulkRequestSplitting(true)
                                                                                    .build());
     ServerResponse<ServiceProvider> response = scimRequestBuilder.get(ServiceProvider.class,
                                                                       EndpointPaths.SERVICE_PROVIDER_CONFIG,
@@ -81,9 +82,9 @@ public class ScimClient
                                                                  .sendRequest();
     ServiceProvider serviceProviderConfig = response.getResource();
 
-    deleteAllUsers(scimRequestBuilder);
-    deleteAllGroups(scimRequestBuilder);
-    createUsers(scimRequestBuilder, serviceProviderConfig);
+    // deleteAllUsers(scimRequestBuilder);
+    // deleteAllGroups(scimRequestBuilder);
+    createUsers(scimRequestBuilder);
     createGroups(scimRequestBuilder);
     updateGroups(scimRequestBuilder);
   }
@@ -95,7 +96,7 @@ public class ScimClient
     ScimClientConfig scimClientConfig = ScimClientConfig.builder()
                                                         .socketTimeout(120)
                                                         .requestTimeout(120)
-                                                        .basic("scim", "809e751e-dd1c-40c3-adab-a8ad393c9d82")
+                                                        .basic("scim-client", "j6kai5V4T23lnbCz0xKTBg8pJYdqdC2Z")
                                                         .build();
     try (ScimHttpClient scimHttpClient = new ScimHttpClient(scimClientConfig))
     {
@@ -121,30 +122,25 @@ public class ScimClient
   /**
    * create almost 5000 users on keycloak
    */
-  private static void createUsers(ScimRequestBuilder scimRequestBuilder, ServiceProvider serviceProviderConfig)
+  private static void createUsers(ScimRequestBuilder scimRequestBuilder)
   {
-    int maxOperations = serviceProviderConfig.getBulkConfig().getMaxOperations();
-    List<List<User>> bulkList = getUserList(maxOperations);
-    for ( int i = 0 ; i < 1 ; i++ )
+    List<User> bulkList = getUserList();
+    BulkBuilder bulkBuilder = scimRequestBuilder.bulk();
+    bulkList.parallelStream().forEach(user -> {
+      bulkBuilder.bulkRequestOperation(EndpointPaths.USERS)
+                 .bulkId(UUID.randomUUID().toString())
+                 .method(HttpMethod.POST)
+                 .data(user)
+                 .next();
+    });
+    ServerResponse<BulkResponse> response = bulkBuilder.sendRequest();
+    if (response.isSuccess())
     {
-      List<User> bulkUserList = bulkList.get(i);
-      BulkBuilder bulkBuilder = scimRequestBuilder.bulk();
-      bulkUserList.parallelStream().forEach(user -> {
-        bulkBuilder.bulkRequestOperation(EndpointPaths.USERS)
-                   .bulkId(UUID.randomUUID().toString())
-                   .method(HttpMethod.POST)
-                   .data(user)
-                   .next();
-      });
-      ServerResponse<BulkResponse> response = bulkBuilder.sendRequest();
-      if (response.isSuccess())
-      {
-        log.info("bulk request succeeded with response: {}", response.getResponseBody());
-      }
-      else
-      {
-        log.error("creating of users failed: " + response.getErrorResponse().getDetail().orElse(null));
-      }
+      log.info("bulk request succeeded with response: {}", response.getResponseBody());
+    }
+    else
+    {
+      log.error("creating of users failed: " + response.getErrorResponse().getDetail().orElse(null));
     }
   }
 
@@ -188,12 +184,9 @@ public class ScimClient
 
   /**
    * reads a lot of users and returns them as SCIM user instances
-   *
-   * @param maxOperations
    */
-  private static List<List<User>> getUserList(int maxOperations)
+  private static List<User> getUserList()
   {
-    List<List<User>> bulkOperationList = new ArrayList<>();
     List<User> userList = new ArrayList<>();
     try (InputStream inputStream = ScimClient.class.getResourceAsStream("/firstnames.txt");
       InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
@@ -253,18 +246,13 @@ public class ScimClient
                                                          .build()))
                          .meta(meta)
                          .build());
-        if (userList.size() == maxOperations)
-        {
-          bulkOperationList.add(userList);
-          userList = new ArrayList<>();
-        }
       }
     }
     catch (IOException e)
     {
       throw new IllegalStateException(e.getMessage(), e);
     }
-    return bulkOperationList;
+    return userList;
   }
 
   /**

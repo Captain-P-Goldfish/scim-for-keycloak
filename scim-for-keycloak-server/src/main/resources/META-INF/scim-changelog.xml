@@ -8,6 +8,8 @@
     <property name="clob_type" value="CLOB" dbms="h2, oracle"/>
     <property name="clob_type" value="VARCHAR(max)" dbms="mssql"/>
     <property name="clob_type" value="LONGTEXT" dbms="mysql, mariadb"/>
+    <property name="datetime" value="datetime"/>
+    <property name="datetime" value="datetime2" dbms="mssql"/>
 
     <changeSet author="pascal knueppel" id="scim-sdk-1.0">
 
@@ -166,6 +168,16 @@
             <column name="PREFERRED_LANGUAGE" type="VARCHAR(255)"/>
             <column name="LOCALE" type="VARCHAR(10)"/>
             <column name="TIMEZONE" type="VARCHAR(255)"/>
+            <!-- enterprise data -->
+            <column name="EP_EMPLOYEE_NUMBER" type="VARCHAR(255)"/>
+            <column name="EP_DEPARTMENT" type="VARCHAR(255)"/>
+            <column name="EP_COST_CENTER" type="VARCHAR(255)"/>
+            <column name="EP_DIVISION" type="VARCHAR(255)"/>
+            <column name="EP_ORGANIZATION" type="VARCHAR(255)"/>
+            <column name="EP_MANAGER_VALUE" type="VARCHAR(255)"/>
+            <column name="EP_MANAGER_REFERENCE" type="VARCHAR(255)"/>
+
+            <column name="LAST_MODIFIED" type="${datetime}"/>
         </createTable>
 
         <createIndex tableName="USER_SCIM_ATTRIBUTES" indexName="USER_SCIM_ATTRIBUTES_IDX">

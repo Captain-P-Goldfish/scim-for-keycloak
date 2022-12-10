@@ -1,5 +1,6 @@
 package de.captaingoldfish.scim.sdk.keycloak.entities;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,6 +12,8 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -33,8 +36,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "USER_SCIM_ATTRIBUTES")
+@NamedQueries({@NamedQuery(name = ScimUserAttributesEntity.GET_SCIM_USER_ATTRIBUTES_QUERY_NAME, query = "SELECT ua FROM ScimUserAttributesEntity ua WHERE ua.userEntity.id = :userId")})
 public class ScimUserAttributesEntity
 {
+
+  public static final String GET_SCIM_USER_ATTRIBUTES_QUERY_NAME = "getScimUserAttributes";
 
   /**
    * primary key
@@ -144,12 +150,61 @@ public class ScimUserAttributesEntity
   private String timezone;
 
   /**
+   * the enterprise user employee number
+   */
+  @Column(name = "EP_EMPLOYEE_NUMBER")
+  private String employeeNumber;
+
+  /**
+   * the enterprise user department
+   */
+  @Column(name = "EP_DEPARTMENT")
+  private String department;
+
+  /**
+   * the enterprise user cost center
+   */
+  @Column(name = "EP_COST_CENTER")
+  private String costCenter;
+
+  /**
+   * the enterprise user division
+   */
+  @Column(name = "EP_DIVISION")
+  private String division;
+
+  /**
+   * the enterprise user organization
+   */
+  @Column(name = "EP_ORGANIZATION")
+  private String organization;
+
+  /**
+   * the enterprise user organization
+   */
+  @Column(name = "EP_MANAGER_VALUE")
+  private String managerValue;
+
+  /**
+   * the enterprise user organization
+   */
+  @Column(name = "EP_MANAGER_REFERENCE")
+  private String managerReference;
+
+  /**
+   * the moment the user was updated the last time
+   */
+  @Column(name = "LAST_MODIFIED")
+  private Instant lastModified;
+
+  /**
    * list of scim emails
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ScimEmailsEntity> emails;
 
   @Builder
+
   public ScimUserAttributesEntity(String id,
                                   UserEntity userEntity,
                                   String externalId,
@@ -167,6 +222,14 @@ public class ScimUserAttributesEntity
                                   String preferredLanguage,
                                   String locale,
                                   String timezone,
+                                  String employeeNumber,
+                                  String department,
+                                  String costCenter,
+                                  String division,
+                                  String organization,
+                                  String managerValue,
+                                  String managerReference,
+                                  Instant lastModified,
                                   List<ScimEmailsEntity> emails)
   {
     this.id = Optional.ofNullable(id).orElse(KeycloakModelUtils.generateId());
@@ -186,6 +249,14 @@ public class ScimUserAttributesEntity
     this.preferredLanguage = preferredLanguage;
     this.locale = locale;
     this.timezone = timezone;
+    this.employeeNumber = employeeNumber;
+    this.department = department;
+    this.costCenter = costCenter;
+    this.division = division;
+    this.organization = organization;
+    this.managerValue = managerValue;
+    this.managerReference = managerReference;
+    this.lastModified = lastModified;
     this.emails = emails;
     Optional.ofNullable(this.emails).ifPresent(mails -> mails.forEach(mail -> mail.setUserAttributes(this)));
   }
