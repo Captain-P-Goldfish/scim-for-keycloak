@@ -240,14 +240,14 @@ public abstract class AbstractFiltering<T>
     if (filterNode instanceof AndExpressionNode)
     {
       AndExpressionNode andExpressionNode = (AndExpressionNode)filterNode;
-      return getFilterExpression(andExpressionNode.getLeftNode()) + " AND "
-             + getFilterExpression(andExpressionNode.getRightNode());
+      return "(" + getFilterExpression(andExpressionNode.getLeftNode()) + " AND "
+             + getFilterExpression(andExpressionNode.getRightNode()) + ")";
     }
     else if (filterNode instanceof OrExpressionNode)
     {
       OrExpressionNode orExpressionNode = (OrExpressionNode)filterNode;
-      return getFilterExpression(orExpressionNode.getLeftNode()) + " OR "
-             + getFilterExpression(orExpressionNode.getRightNode());
+      return "(" + getFilterExpression(orExpressionNode.getLeftNode()) + " OR "
+             + getFilterExpression(orExpressionNode.getRightNode()) + ")";
     }
     else if (filterNode instanceof NotExpressionNode)
     {

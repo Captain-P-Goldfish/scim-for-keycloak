@@ -16,9 +16,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.params.provider.Arguments;
 
+import de.captaingoldfish.scim.sdk.common.constants.AttributeNames;
 import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
 import de.captaingoldfish.scim.sdk.common.constants.enums.HttpMethod;
 import de.captaingoldfish.scim.sdk.common.resources.User;
+import de.captaingoldfish.scim.sdk.common.resources.base.ScimObjectNode;
 import de.captaingoldfish.scim.sdk.common.response.ErrorResponse;
 import de.captaingoldfish.scim.sdk.common.response.ListResponse;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
@@ -123,7 +125,22 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
                      Arguments.arguments("usertype eq \"plumber\"", 1, new User[]{superMarioScim}),
                      Arguments.arguments("preferredLanguage ne \"de\"", 1, new User[]{superMarioScim}),
                      Arguments.arguments("locale sw \"en\"", 1, new User[]{superMarioScim}),
-                     Arguments.arguments("timezone sw \"America\"", 1, new User[]{superMarioScim})
+                     Arguments.arguments("timezone sw \"America\"", 1, new User[]{superMarioScim}),
+                     Arguments.arguments("username eq \"donkey-kong\" or username eq \"link\"",
+                                         2,
+                                         new User[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("username co \"n\" and username co \"k\"",
+                                         2,
+                                         new User[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("username co \"i\" and (username co \"k\" or username co \"d\")",
+                                         1,
+                                         new User[]{linkScim}),
+                     Arguments.arguments("username co \"i\" and username co \"k\" or username co \"d\"",
+                                         2,
+                                         new User[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("username co \"i\" and not (username co \"k\" or username co \"d\")",
+                                         1,
+                                         new User[]{superMarioScim})
     //
     ).map(this::toFilterTest).collect(Collectors.toList());
   }
@@ -149,12 +166,19 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
                                                  .build();
       Response response = getScimEndpoint().handleScimRequest(request);
       Assertions.assertEquals(HttpStatus.OK, response.getStatus());
-      ListResponse<User> listResponse = JsonHelper.readJsonDocument(response.readEntity(String.class),
-                                                                    ListResponse.class);
+      ListResponse<ScimObjectNode> listResponse = JsonHelper.readJsonDocument(response.readEntity(String.class),
+                                                                              ListResponse.class);
       Assertions.assertEquals(1, listResponse.getStartIndex());
-      Assertions.assertEquals(expectedResults, listResponse.getTotalResults());
+      Assertions.assertEquals(expectedResults,
+                              listResponse.getTotalResults(),
+                              listResponse.getListedResources()
+                                          .stream()
+                                          .map(objectNode -> objectNode.get(AttributeNames.RFC7643.USER_NAME)
+                                                                       .textValue())
+                                          .collect(Collectors.toList())
+                                          .toString());
       Assertions.assertEquals(expectedResults, listResponse.getItemsPerPage());
-      List<User> resources = listResponse.getListedResources();
+      List<ScimObjectNode> resources = listResponse.getListedResources();
       Assertions.assertEquals(expectedResults, resources.size());
 
       if (expectedResults != 0)

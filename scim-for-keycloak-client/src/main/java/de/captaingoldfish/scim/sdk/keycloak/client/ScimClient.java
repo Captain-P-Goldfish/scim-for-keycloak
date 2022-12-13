@@ -82,11 +82,11 @@ public class ScimClient
                                                                  .sendRequest();
     ServiceProvider serviceProviderConfig = response.getResource();
 
-    // deleteAllUsers(scimRequestBuilder);
+//     deleteAllUsers(scimRequestBuilder);
     // deleteAllGroups(scimRequestBuilder);
-    createUsers(scimRequestBuilder);
-    createGroups(scimRequestBuilder);
-    updateGroups(scimRequestBuilder);
+//    createUsers(scimRequestBuilder);
+    // createGroups(scimRequestBuilder);
+    // updateGroups(scimRequestBuilder);
   }
 
   @SneakyThrows
@@ -96,7 +96,7 @@ public class ScimClient
     ScimClientConfig scimClientConfig = ScimClientConfig.builder()
                                                         .socketTimeout(120)
                                                         .requestTimeout(120)
-                                                        .basic("scim-client", "j6kai5V4T23lnbCz0xKTBg8pJYdqdC2Z")
+                                                        .basic("scim-client", "FHwtS2sEj2K2AENTFMEs1PjKOuctOu3Q")
                                                         .build();
     try (ScimHttpClient scimHttpClient = new ScimHttpClient(scimClientConfig))
     {
@@ -127,7 +127,7 @@ public class ScimClient
     List<User> bulkList = getUserList();
     BulkBuilder bulkBuilder = scimRequestBuilder.bulk();
     bulkList.parallelStream().forEach(user -> {
-      bulkBuilder.bulkRequestOperation(EndpointPaths.USERS)
+      bulkBuilder.bulkRequestOperation(EndpointPaths.USERS )
                  .bulkId(UUID.randomUUID().toString())
                  .method(HttpMethod.POST)
                  .data(user)
@@ -192,6 +192,7 @@ public class ScimClient
       InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
       BufferedReader reader = new BufferedReader(inputStreamReader))
     {
+      int counter = 0;
       Random random = new Random();
       String name;
       while ((name = reader.readLine()) != null)
@@ -246,13 +247,17 @@ public class ScimClient
                                                          .build()))
                          .meta(meta)
                          .build());
+        if (counter++ == 200)
+        {
+          break;
+        }
       }
     }
     catch (IOException e)
     {
       throw new IllegalStateException(e.getMessage(), e);
     }
-    return userList;
+    return userList.subList(100, userList.size());
   }
 
   /**
