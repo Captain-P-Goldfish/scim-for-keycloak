@@ -34,6 +34,7 @@ import de.captaingoldfish.scim.sdk.keycloak.audit.ScimAdminEventBuilder;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimKeycloakContext;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.UserFiltering;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
 import de.captaingoldfish.scim.sdk.server.endpoints.Context;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceHandler;
@@ -50,7 +51,13 @@ import lombok.extern.slf4j.Slf4j;
 public class UserHandler2 extends ResourceHandler<CustomUser>
 {
 
-
+  /**
+   * create a new user
+   * 
+   * @param user the resource to store
+   * @param context the current request context that holds additional useful information. This object is never
+   *          null
+   */
   @Override
   public CustomUser createResource(CustomUser user, Context context)
   {
@@ -83,6 +90,26 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
     return null;
   }
 
+  /**
+   * filter resources on database
+   * 
+   * @param startIndex the start index that has a minimum value of 1. So the given startIndex here will never be
+   *          lower than 1
+   * @param count the number of entries that should be returned to the client. The minimum value of this value
+   *          is 0.
+   * @param filter the parsed filter expression if the client has given a filter
+   * @param sortBy the attribute value that should be used for sorting
+   * @param sortOrder the sort order
+   * @param attributes the attributes that should be returned to the client. If the client sends this parameter
+   *          the evaluation of these parameters might help to improve database performance by omitting
+   *          unnecessary table joins
+   * @param excludedAttributes the attributes that should NOT be returned to the client. If the client send this
+   *          parameter the evaluation of these parameters might help to improve database performance by
+   *          omitting unnecessary table joins
+   * @param context the current request context that holds additional useful information. This object is never
+   *          null
+   * @return
+   */
   @Override
   public PartialListResponse<CustomUser> listResources(long startIndex,
                                                        int count,
@@ -93,7 +120,14 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
                                                        List<SchemaAttribute> excludedAttributes,
                                                        Context context)
   {
-    return null;
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
+    UserFiltering userFiltering = new UserFiltering(keycloakSession, startIndex, count, filter, sortBy, sortOrder);
+    long totalResults = userFiltering.countResources();
+    List<ScimUserAttributesEntity> userAttributesList = userFiltering.filterResources();
+    List<CustomUser> customUsers = userAttributesList.parallelStream()
+                                                     .map(this::databaseUserModelToScimModel)
+                                                     .collect(Collectors.toList());
+    return PartialListResponse.<CustomUser> builder().totalResults(totalResults).resources(customUsers).build();
   }
 
   @Override
@@ -111,6 +145,14 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
 
   /* ******************************************************************************************************** */
 
+  /**
+   * saves the SCIM representation of a user into the database
+   * 
+   * @param user the SCIM representation of a user
+   * @param userModel the keycloak representation of a user
+   * @param keycloakSession the current keycloak request context
+   * @return the saved database representation of the given SCIM user
+   */
   private ScimUserAttributesEntity persistUserInDatabase(CustomUser user,
                                                          UserModel userModel,
                                                          KeycloakSession keycloakSession)
@@ -140,6 +182,13 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
     return userAttributes;
   }
 
+  /**
+   * parses the SCIM representation of a user into its database email representations
+   * 
+   * @param user the user that may have zero or more emails
+   * @param userModel the userModel will receive the primary-email if one is present as base-email
+   * @return the list of database email representations from the SCIM user
+   */
   private List<ScimEmailsEntity> scimEmailsToDatabaseEmails(CustomUser user, UserModel userModel)
   {
     List<ScimEmailsEntity> emails = new ArrayList<>();
@@ -195,6 +244,12 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
                                            .orElse(null));
   }
 
+  /**
+   * parses a current database representation into its SCIM representation
+   * 
+   * @param userAttributes the database representation of a user
+   * @return the SCIM representation of the user
+   */
   private CustomUser databaseUserModelToScimModel(ScimUserAttributesEntity userAttributes)
   {
     UserEntity userEntity = userAttributes.getUserEntity();
@@ -231,6 +286,13 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
                      .build();
   }
 
+  /**
+   * creates an {@link EnterpriseUser} object from the database representation of a user if the enterprise user
+   * attributes are present within the database
+   * 
+   * @param userAttributes the database representation of the user
+   * @return the {@link EnterpriseUser} object if attributes of this object are present within the database
+   */
   private EnterpriseUser toScimEnterpriseUser(ScimUserAttributesEntity userAttributes)
   {
     Manager manager = Manager.builder()
@@ -258,6 +320,12 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
     return enterpriseUser;
   }
 
+  /**
+   * parses emails from the database representation into its SCIM representation
+   * 
+   * @param userAttributes the database representation of user that contains zero or more emails
+   * @return the SCIM representations of the email
+   */
   private List<Email> databaseEmailsToScimEmails(ScimUserAttributesEntity userAttributes)
   {
     return userAttributes.getEmails().stream().map(email -> {

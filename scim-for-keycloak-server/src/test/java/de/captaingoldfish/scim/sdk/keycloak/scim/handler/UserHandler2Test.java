@@ -15,7 +15,6 @@ import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.jpa.UserAdapter;
 
-import de.captaingoldfish.scim.sdk.common.constants.EndpointPaths;
 import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
 import de.captaingoldfish.scim.sdk.common.constants.enums.HttpMethod;
 import de.captaingoldfish.scim.sdk.common.resources.EnterpriseUser;
@@ -35,17 +34,21 @@ import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimConfigurationBridge;
+import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUser2Endpoint;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CountryUserExtension;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
+import de.captaingoldfish.scim.sdk.keycloak.setup.FileReferences;
 import de.captaingoldfish.scim.sdk.keycloak.setup.RequestBuilder;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceEndpoint;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
  * @author Pascal Knueppel
  * @since 10.12.2022
  */
-public class UserHandler2Test extends AbstractScimEndpointTest
+@Slf4j
+public class UserHandler2Test extends AbstractScimEndpointTest implements FileReferences
 {
 
   @Test
@@ -146,7 +149,7 @@ public class UserHandler2Test extends AbstractScimEndpointTest
 
     HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
                                                .method(HttpMethod.POST)
-                                               .endpoint(EndpointPaths.USERS + "2")
+                                               .endpoint(CustomUser2Endpoint.CUSTOM_USER_2_ENDPOINT)
                                                .requestBody(user.toString())
                                                .build();
     Response response = getScimEndpoint().handleScimRequest(request);

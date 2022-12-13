@@ -3,6 +3,7 @@ package de.captaingoldfish.scim.sdk.keycloak.scim.endpoints;
 import java.util.Arrays;
 
 import de.captaingoldfish.scim.sdk.common.constants.ClassPathReferences;
+import de.captaingoldfish.scim.sdk.common.constants.EndpointPaths;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
 import de.captaingoldfish.scim.sdk.server.endpoints.EndpointDefinition;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceHandler;
@@ -14,6 +15,8 @@ import de.captaingoldfish.scim.sdk.server.endpoints.ResourceHandler;
  */
 public class CustomUser2Endpoint extends EndpointDefinition
 {
+
+  public static final String CUSTOM_USER_2_ENDPOINT = EndpointPaths.USERS + "2";
 
   private static final String RESOURCE_TYPE_COUNTRY_USER_EXTENSION_LOCATION = "/resourcetypes/custom-user-2-resource"
                                                                               + "-type.json";

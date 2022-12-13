@@ -160,7 +160,7 @@ public abstract class KeycloakScimManagementTest
     // after creation the endpoint must create the service provider configuration
     Assertions.assertEquals(1, countEntriesInTable(ScimServiceProviderEntity.class));
     // the database entries for the resource types User and Group must be directly initialized
-    Assertions.assertEquals(3, countEntriesInTable(ScimResourceTypeEntity.class));
+    Assertions.assertEquals(4, countEntriesInTable(ScimResourceTypeEntity.class));
   }
 
   /**

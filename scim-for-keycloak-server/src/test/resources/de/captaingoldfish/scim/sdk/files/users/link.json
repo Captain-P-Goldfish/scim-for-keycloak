@@ -1,0 +1,116 @@
+{
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:User",
+    "urn:ietf:params:scim:schemas:extension:country:2.0:User",
+    "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User"
+  ],
+  "urn:ietf:params:scim:schemas:extension:country:2.0:User": {
+    "countries": [
+      "germany",
+      "japan",
+      "USA"
+    ],
+    "businessLine": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ]
+  },
+  "externalId": "70722f79-c189-4a0b-9bd0-5fdb3870481d",
+  "userName": "link",
+  "name": {
+    "formatted": "Link",
+    "givenName": "Link"
+  },
+  "displayName": "Link",
+  "nickName": "Link",
+  "profileUrl": "http://localhost/link",
+  "userType": "hero",
+  "preferredLanguage": "de",
+  "locale": "de-DE",
+  "timezone": "Europe/Berlin",
+  "active": true,
+  "password": "cf7e9c31-2638-4c19-8f70-901a3e16d031",
+  "emails": [
+    {
+      "type": "work",
+      "primary": true,
+      "value": "link@nintendo.de"
+    },
+    {
+      "type": "home",
+      "value": "link@hyrule.de"
+    }
+  ],
+  "phoneNumbers": [
+    {
+      "primary": true,
+      "value": "9999999999"
+    },
+    {
+      "value": "8888888888"
+    }
+  ],
+  "ims": [
+    {
+      "primary": true,
+      "value": "link@hyrule"
+    },
+    {
+      "value": "hyrule@link"
+    }
+  ],
+  "photos": [
+    {
+      "primary": true,
+      "value": "link-1"
+    },
+    {
+      "value": "link-2"
+    }
+  ],
+  "addresses": [
+    {
+      "primary": true,
+      "streetAddress": "kokiri forest 364",
+      "postalCode": "0000001",
+      "country": "hyrule"
+    },
+    {
+      "streetAddress": "hyrule castle 75",
+      "postalCode": "00000002",
+      "country": "hyrule"
+    }
+  ],
+  "entitlements": [
+    {
+      "primary": true,
+      "value": "link-ent-1"
+    },
+    {
+      "value": "link-ent-2"
+    }
+  ],
+  "x509Certificates": [
+    {
+      "primary": true,
+      "value": "MII...5"
+    },
+    {
+      "value": "MII...6"
+    }
+  ],
+  "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User": {
+    "employeeNumber": "d00b2edd-1d98-4e6b-a409-9ec5e9100d9d",
+    "costCenter": "z3",
+    "organization": "Nintendo Inc. 3",
+    "division": "games 3",
+    "department": "z7",
+    "manager": {
+      "value": "ed8047dd-50f9-4f00-bd91-2adf7dc79fdf",
+      "$ref": "https://nintendo.com/users/zelda"
+    }
+  }
+}

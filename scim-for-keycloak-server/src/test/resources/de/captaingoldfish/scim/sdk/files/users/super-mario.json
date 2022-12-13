@@ -1,0 +1,117 @@
+{
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:User",
+    "urn:ietf:params:scim:schemas:extension:country:2.0:User",
+    "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User"
+  ],
+  "urn:ietf:params:scim:schemas:extension:country:2.0:User": {
+    "countries": [
+      "germany",
+      "italy"
+    ],
+    "businessLine": [
+      "1",
+      "2"
+    ]
+  },
+  "externalId": "f65da15f-f31d-418b-a1e3-0149e7512fe2",
+  "userName": "super-mario",
+  "name": {
+    "formatted": "Super Mario",
+    "familyName": "super",
+    "givenName": "mario",
+    "middleName": "-",
+    "honorificPrefix": "Mr.",
+    "honorificSuffix": "Mushroom"
+  },
+  "displayName": "Mario",
+  "nickName": "Mario",
+  "profileUrl": "http://localhost/super-mario",
+  "title": "Dr.",
+  "userType": "plumber",
+  "preferredLanguage": "en",
+  "locale": "en-US",
+  "timezone": "America/New_York",
+  "active": true,
+  "password": "0c8fa326-4874-433a-82ef-56624c8be988",
+  "emails": [
+    {
+      "type": "work",
+      "primary": true,
+      "value": "super-mario@nintendo.com"
+    },
+    {
+      "type": "home",
+      "value": "mario@home.net"
+    }
+  ],
+  "phoneNumbers": [
+    {
+      "primary": true,
+      "value": "1234444555"
+    },
+    {
+      "value": "55533322241"
+    }
+  ],
+  "ims": [
+    {
+      "primary": true,
+      "value": "super@mario"
+    },
+    {
+      "value": "mario@super"
+    }
+  ],
+  "photos": [
+    {
+      "primary": true,
+      "value": "super-mario.png"
+    },
+    {
+      "value": "plumbers.png"
+    }
+  ],
+  "addresses": [
+    {
+      "primary": true,
+      "streetAddress": "Mushroom Road 364",
+      "postalCode": "546987",
+      "country": "USA"
+    },
+    {
+      "streetAddress": "Mushroom second street 75",
+      "postalCode": "1111111",
+      "country": "USA"
+    }
+  ],
+  "entitlements": [
+    {
+      "primary": true,
+      "value": "mario-ent-1"
+    },
+    {
+      "value": "super-ent-2"
+    }
+  ],
+  "x509Certificates": [
+    {
+      "primary": true,
+      "value": "MII...1"
+    },
+    {
+      "value": "MII...4"
+    }
+  ],
+  "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User": {
+    "employeeNumber": "d5a33914-f300-4b1f-abac-b017be01abc4",
+    "costCenter": "d5",
+    "organization": "Nintendo Inc.",
+    "division": "games",
+    "department": "h8",
+    "manager": {
+      "value": "a25f27d4-70b2-4c4b-8eef-34de4449bfb7",
+      "$ref": "https://nintendo.com/users/peach"
+    }
+  }
+}

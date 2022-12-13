@@ -3,18 +3,18 @@ package de.captaingoldfish.scim.sdk.keycloak.scim;
 import java.util.HashMap;
 import java.util.Map;
 
-import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUser2Endpoint;
-import de.captaingoldfish.scim.sdk.keycloak.scim.handler.UserHandler2;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 
 import de.captaingoldfish.scim.sdk.common.resources.ServiceProvider;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimResourceTypeEntity;
+import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUser2Endpoint;
 import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUserEndpoint;
 import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.RoleEndpointDefinition;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.GroupHandler;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.RealmRoleHandler;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.UserHandler;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.UserHandler2;
 import de.captaingoldfish.scim.sdk.keycloak.services.ScimResourceTypeService;
 import de.captaingoldfish.scim.sdk.keycloak.services.ScimServiceProviderService;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceEndpoint;
@@ -84,12 +84,9 @@ public final class ScimConfiguration
     ScimResourceTypeEntity userResourceTypeEntity = resourceTypeService.getOrCreateResourceTypeEntry(userResourceType);
     resourceTypeService.updateResourceType(userResourceType, userResourceTypeEntity);
 
-
     ResourceType user2ResourceType = resourceEndpoint.registerEndpoint(new CustomUser2Endpoint(new UserHandler2()));
-    user2ResourceType.setFeatures(ResourceTypeFeatures.builder().autoFiltering(true).autoSorting(true).build());
-    ScimResourceTypeEntity user2ResourceTypeEntity = resourceTypeService.getOrCreateResourceTypeEntry(userResourceType);
+    ScimResourceTypeEntity user2ResourceTypeEntity = resourceTypeService.getOrCreateResourceTypeEntry(user2ResourceType);
     resourceTypeService.updateResourceType(user2ResourceType, user2ResourceTypeEntity);
-
 
     ResourceType groupResourceType = resourceEndpoint.registerEndpoint(new GroupEndpointDefinition(new GroupHandler()));
     groupResourceType.setFeatures(ResourceTypeFeatures.builder().autoFiltering(true).autoSorting(true).build());

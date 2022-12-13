@@ -1,0 +1,115 @@
+{
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:User",
+    "urn:ietf:params:scim:schemas:extension:country:2.0:User",
+    "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User"
+  ],
+  "urn:ietf:params:scim:schemas:extension:country:2.0:User": {
+    "countries": [
+      "italy",
+      "japan"
+    ],
+    "businessLine": [
+      "2",
+      "3"
+    ]
+  },
+  "externalId": "3b6597e9-813c-43c6-a507-004eae4a80d2",
+  "userName": "donkey-kong",
+  "name": {
+    "formatted": "Donkey Kong",
+    "familyName": "Kong",
+    "givenName": "Donkey",
+    "middleName": "The Ape",
+    "honorificPrefix": "GG",
+    "honorificSuffix": "KK"
+  },
+  "displayName": "Kong",
+  "nickName": "DK",
+  "profileUrl": "http://localhost/donkey-kong",
+  "userType": "Ape",
+  "preferredLanguage": "de",
+  "locale": "de-DE",
+  "timezone": "Europe/Berlin",
+  "active": false,
+  "password": "626640f6-b4c7-4e37-a27e-c5b56e8d7e24",
+  "emails": [
+    {
+      "type": "work",
+      "primary": true,
+      "value": "donkey-kong@nintendo.de"
+    },
+    {
+      "type": "home",
+      "value": "donkey@kong.de"
+    }
+  ],
+  "phoneNumbers": [
+    {
+      "primary": true,
+      "value": "987789987789"
+    },
+    {
+      "value": "321123321123"
+    }
+  ],
+  "ims": [
+    {
+      "primary": true,
+      "value": "donkey@kong"
+    },
+    {
+      "value": "kong@donkey"
+    }
+  ],
+  "photos": [
+    {
+      "primary": true,
+      "value": "donkey-1"
+    },
+    {
+      "value": "kong-2"
+    }
+  ],
+  "addresses": [
+    {
+      "primary": true,
+      "streetAddress": "jungle highway 5",
+      "postalCode": "4444444",
+      "country": "germany"
+    },
+    {
+      "streetAddress": "tree house 75",
+      "postalCode": "1111111",
+      "country": "germany"
+    }
+  ],
+  "entitlements": [
+    {
+      "primary": true,
+      "value": "donkey-ent-1"
+    },
+    {
+      "value": "kong-ent-2"
+    }
+  ],
+  "x509Certificates": [
+    {
+      "value": "MII...2"
+    },
+    {
+      "value": "MII...3"
+    }
+  ],
+  "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User": {
+    "employeeNumber": "1ace709e-425f-464e-a5bc-057eff69e4c5",
+    "costCenter": "k6",
+    "organization": "Nintendo Inc. 2",
+    "division": "games 2",
+    "department": "k8",
+    "manager": {
+      "value": "3911b0b7-60f0-4e70-b781-e3b6b4885acf",
+      "$ref": "https://nintendo.com/users/cranky-kong"
+    }
+  }
+}

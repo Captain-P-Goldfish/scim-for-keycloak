@@ -1,0 +1,166 @@
+package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Response;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.params.provider.Arguments;
+
+import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
+import de.captaingoldfish.scim.sdk.common.constants.enums.HttpMethod;
+import de.captaingoldfish.scim.sdk.common.resources.User;
+import de.captaingoldfish.scim.sdk.common.response.ErrorResponse;
+import de.captaingoldfish.scim.sdk.common.response.ListResponse;
+import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
+import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
+import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUser2Endpoint;
+import de.captaingoldfish.scim.sdk.keycloak.setup.FileReferences;
+import de.captaingoldfish.scim.sdk.keycloak.setup.RequestBuilder;
+import lombok.extern.slf4j.Slf4j;
+
+
+/**
+ * @author Pascal Knueppel
+ * @since 12.12.2022
+ */
+@Slf4j
+public class UserFilteringTest extends AbstractScimEndpointTest implements FileReferences
+{
+
+  /**
+   * initialize test-class
+   */
+  @BeforeEach
+  public void initialize()
+  {
+    // remove the predefined user because we do not want it within these tests
+    getKeycloakSession().users().removeUser(getRealmModel(), getTestUser());
+  }
+
+  /**
+   * creates a user using the SCIM endpoint
+   */
+  private User createUser(User user)
+  {
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .method(HttpMethod.POST)
+                                               .endpoint(CustomUser2Endpoint.CUSTOM_USER_2_ENDPOINT)
+                                               .requestBody(user.toString())
+                                               .build();
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
+    return JsonHelper.readJsonDocument(response.readEntity(String.class), User.class);
+  }
+
+  /**
+   * this test makes sure that it is not possible to filter for user passwords
+   */
+  @Test
+  public void testFilterForPassword()
+  {
+    String encodedFilter = String.format("?filter=%s", encodeUrl("password eq \"123456\""));
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .method(HttpMethod.GET)
+                                               .endpoint(CustomUser2Endpoint.CUSTOM_USER_2_ENDPOINT + encodedFilter)
+                                               .build();
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatus());
+    ErrorResponse errorResponse = JsonHelper.readJsonDocument((String)response.getEntity(), ErrorResponse.class);
+    Assertions.assertEquals("Illegal filter-attribute found 'urn:ietf:params:scim:schemas:core:2.0:User:password'",
+                            errorResponse.getDetail().get());
+  }
+
+  /**
+   * make sure that various different filter expressions are successfully executed using three different users
+   */
+  @TestFactory
+  public List<DynamicTest> testUserFiltering()
+  {
+    User superMarioScim = JsonHelper.loadJsonDocument(USER_SUPER_MARIO, User.class);
+    User donkeyKongScim = JsonHelper.loadJsonDocument(USER_DONKEY_KONG, User.class);
+    User linkScim = JsonHelper.loadJsonDocument(USER_LINK, User.class);
+
+
+    superMarioScim = createUser(superMarioScim);
+    donkeyKongScim = createUser(donkeyKongScim);
+    linkScim = createUser(linkScim);
+
+    return Stream.of(Arguments.arguments(null, 3, new User[]{superMarioScim, donkeyKongScim, linkScim}),
+                     Arguments.arguments(String.format("username eq " + "\"%s\"", superMarioScim.getUserName().get()),
+                                         1,
+                                         new User[]{superMarioScim}),
+                     Arguments.arguments(String.format("username eq " + "\"%s\"", donkeyKongScim.getUserName().get()),
+                                         1,
+                                         new User[]{donkeyKongScim}),
+                     Arguments.arguments(String.format("username eq " + "\"%s\"", linkScim.getUserName().get()),
+                                         1,
+                                         new User[]{linkScim}),
+                     Arguments.arguments("externalid co " + "\"c\"", 2, new User[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("externalid ew " + "\"2\"", 2, new User[]{donkeyKongScim, superMarioScim}),
+                     Arguments.arguments("active eq true", 2, new User[]{superMarioScim, linkScim}),
+                     Arguments.arguments("active eq false", 1, new User[]{donkeyKongScim}),
+                     Arguments.arguments("name.formatted eq \"Donkey Kong\"", 1, new User[]{donkeyKongScim}),
+                     Arguments.arguments("name.givenname eq \"Link\"", 1, new User[]{linkScim}),
+                     Arguments.arguments("name.familyName eq \"super\"", 1, new User[]{superMarioScim}),
+                     Arguments.arguments("name.middleName eq \"-\"", 1, new User[]{superMarioScim}),
+                     Arguments.arguments("name.middleName pr", 2, new User[]{superMarioScim, donkeyKongScim}),
+                     Arguments.arguments("not (name.middleName pr)", 1, new User[]{linkScim}),
+                     Arguments.arguments("name.honorificPrefix eq \"GG\"", 1, new User[]{donkeyKongScim}),
+                     Arguments.arguments("name.honorificSuffix eq \"Mushroom\"", 1, new User[]{superMarioScim}),
+                     Arguments.arguments("displayName co \"k\"", 2, new User[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("nickname co \"k\"", 2, new User[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("profileurl ew \"Mario\"", 1, new User[]{superMarioScim}),
+                     Arguments.arguments("usertype eq \"plumber\"", 1, new User[]{superMarioScim}),
+                     Arguments.arguments("preferredLanguage ne \"de\"", 1, new User[]{superMarioScim}),
+                     Arguments.arguments("locale sw \"en\"", 1, new User[]{superMarioScim}),
+                     Arguments.arguments("timezone sw \"America\"", 1, new User[]{superMarioScim})
+    //
+    ).map(this::toFilterTest).collect(Collectors.toList());
+  }
+
+  /**
+   * creates a dynamic test that initiates a filter-list-request at the users scim endpoint
+   */
+  private DynamicTest toFilterTest(Arguments arguments)
+  {
+    Object[] argumentArray = arguments.get();
+    String filter = (String)argumentArray[0];
+    int expectedResults = (int)argumentArray[1];
+    User[] expectedUsers = (User[])(argumentArray.length == 3 ? argumentArray[2] : null);
+
+    Assertions.assertEquals(expectedResults, expectedUsers == null ? 0 : expectedUsers.length);
+
+    final String testName = String.format("filter: %s", filter);
+    return DynamicTest.dynamicTest(testName, () -> {
+      String encodedFilter = Optional.ofNullable(filter).map(f -> String.format("?filter=%s", encodeUrl(f))).orElse("");
+      HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                                 .method(HttpMethod.GET)
+                                                 .endpoint(CustomUser2Endpoint.CUSTOM_USER_2_ENDPOINT + encodedFilter)
+                                                 .build();
+      Response response = getScimEndpoint().handleScimRequest(request);
+      Assertions.assertEquals(HttpStatus.OK, response.getStatus());
+      ListResponse<User> listResponse = JsonHelper.readJsonDocument(response.readEntity(String.class),
+                                                                    ListResponse.class);
+      Assertions.assertEquals(1, listResponse.getStartIndex());
+      Assertions.assertEquals(expectedResults, listResponse.getTotalResults());
+      Assertions.assertEquals(expectedResults, listResponse.getItemsPerPage());
+      List<User> resources = listResponse.getListedResources();
+      Assertions.assertEquals(expectedResults, resources.size());
+
+      if (expectedResults != 0)
+      {
+        Assertions.assertTrue(Arrays.stream(expectedUsers).anyMatch(resources::contains));
+      }
+    });
+  }
+}
