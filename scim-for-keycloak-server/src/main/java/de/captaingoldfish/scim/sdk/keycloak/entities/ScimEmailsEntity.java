@@ -45,7 +45,7 @@ public class ScimEmailsEntity
    * reverse mapping for JPA
    */
   @ManyToOne
-  @JoinColumn(name = "SCIM_ATTRIBUTES_ID", insertable = false, updatable = false)
+  @JoinColumn(name = "SCIM_ATTRIBUTES_ID")
   private ScimUserAttributesEntity userAttributes;
 
   /**
@@ -74,12 +74,18 @@ public class ScimEmailsEntity
 
 
   @Builder
-  public ScimEmailsEntity(String id, String value, String display, String type, boolean primary)
+  public ScimEmailsEntity(String id,
+                          String value,
+                          String display,
+                          String type,
+                          boolean primary,
+                          ScimUserAttributesEntity userAttributes)
   {
     this.id = Optional.ofNullable(id).orElse(KeycloakModelUtils.generateId());
     this.value = value;
     this.display = display;
     this.type = type;
     this.primary = primary;
+    this.userAttributes = userAttributes;
   }
 }

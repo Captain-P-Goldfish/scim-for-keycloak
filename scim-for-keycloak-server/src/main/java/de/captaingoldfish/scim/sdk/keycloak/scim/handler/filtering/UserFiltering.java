@@ -72,12 +72,12 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
     String selectionString = countResources ? String.format("count(%s)", jpqlUserAttributes.getIdentifier())
       : String.format("%s, %s", jpqlUserAttributes.getIdentifier(), jpqlUserEntity.getIdentifier());
 
-    return String.format("select distinct %1$s from %2$s %3$s "
-                         + "right join %3$s.userEntity %4$s on %4$s.id = %3$s.userEntity.id",
+    return String.format("select distinct %1$s from %2$s %3$s " + "right join %3$s.%4$s %5$s on %5$s.id = %3$s.%4$s.id",
                          selectionString, // %1$s - either count expression or simple select expression
                          jpqlUserAttributes.getTableName(), // %2$s - ScimUserAttributesEntity
                          jpqlUserAttributes.getIdentifier(), // %3$s - ua
-                         jpqlUserEntity.getIdentifier()); // %3$s - ue
+                         jpqlUserAttributes.getParentReference(), // %4$s - userEntity
+                         jpqlUserEntity.getIdentifier()); // %5$s - ue
   }
 
   /**
@@ -101,8 +101,8 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
   }
 
   /**
-   * the where part that filters for current realm and users that are not of type service-account. This part of the
-   * where clause will look like this:
+   * the where part that filters for current realm and users that are not of type service-account. This part of
+   * the where clause will look like this:
    *
    * <pre>
    *       u.realmId = '58e42084-f249-4866-a3c3-b9b9535da5a3'

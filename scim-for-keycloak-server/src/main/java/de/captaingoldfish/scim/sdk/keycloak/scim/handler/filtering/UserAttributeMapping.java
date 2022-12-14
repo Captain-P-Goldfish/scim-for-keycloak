@@ -1,5 +1,6 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering;
 
+import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpqlTableShortcuts.SCIM_EMAILS;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpqlTableShortcuts.SCIM_USER_ATTRIBUTES;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpqlTableShortcuts.USER_ENTITY;
 
@@ -48,6 +49,12 @@ public class UserAttributeMapping extends AbstractAttributeMapping
     addAttribute(SchemaUris.USER_URI, null, RFC7643.LOCALE, SCIM_USER_ATTRIBUTES, "locale");
     addAttribute(SchemaUris.USER_URI, null, RFC7643.TIMEZONE, SCIM_USER_ATTRIBUTES, "timezone");
     addAttribute(SchemaUris.META, RFC7643.META, RFC7643.LAST_MODIFIED, SCIM_USER_ATTRIBUTES, "lastModified");
+
+    addAttribute(SchemaUris.USER_URI, RFC7643.EMAILS, RFC7643.VALUE, SCIM_USER_ATTRIBUTES, "value", SCIM_EMAILS);
+    addAttribute(SchemaUris.USER_URI, RFC7643.EMAILS, RFC7643.TYPE, SCIM_USER_ATTRIBUTES, "type", SCIM_EMAILS);
+    addAttribute(SchemaUris.USER_URI, RFC7643.EMAILS, RFC7643.DISPLAY, SCIM_USER_ATTRIBUTES, "display", SCIM_EMAILS);
+    addAttribute(SchemaUris.USER_URI, RFC7643.EMAILS, RFC7643.PRIMARY, SCIM_USER_ATTRIBUTES, "primary", SCIM_EMAILS);
+
     addAttribute(SchemaUris.ENTERPRISE_USER_URI, null, RFC7643.EMPLOYEE_NUMBER, SCIM_USER_ATTRIBUTES, "employeeNumber");
     addAttribute(SchemaUris.ENTERPRISE_USER_URI, null, RFC7643.DEPARTMENT, SCIM_USER_ATTRIBUTES, "department");
     addAttribute(SchemaUris.ENTERPRISE_USER_URI, null, RFC7643.COST_CENTER, SCIM_USER_ATTRIBUTES, "costCenter");

@@ -36,8 +36,7 @@
   "password": "0c8fa326-4874-433a-82ef-56624c8be988",
   "emails": [
     {
-      "type": "work",
-      "primary": true,
+      "type": "cabin",
       "value": "super-mario@nintendo.com"
     },
     {

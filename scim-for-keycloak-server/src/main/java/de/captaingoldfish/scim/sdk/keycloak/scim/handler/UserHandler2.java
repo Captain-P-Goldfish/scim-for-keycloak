@@ -168,7 +168,7 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
     userAttributes.setUserEntity(((UserAdapter)userModel).getEntity());
     addScimValuesToDatabaseModel(user, userAttributes);
 
-    List<ScimEmailsEntity> emails = scimEmailsToDatabaseEmails(user, userModel);
+    List<ScimEmailsEntity> emails = scimEmailsToDatabaseEmails(user, userModel, userAttributes);
     userAttributes.setEmails(emails);
 
     if (isChangePasswordSupported() && user.getPassword().isPresent())
@@ -184,12 +184,15 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
 
   /**
    * parses the SCIM representation of a user into its database email representations
-   * 
+   *
    * @param user the user that may have zero or more emails
    * @param userModel the userModel will receive the primary-email if one is present as base-email
+   * @param userAttributes the parent for the given emails
    * @return the list of database email representations from the SCIM user
    */
-  private List<ScimEmailsEntity> scimEmailsToDatabaseEmails(CustomUser user, UserModel userModel)
+  private List<ScimEmailsEntity> scimEmailsToDatabaseEmails(CustomUser user,
+                                                            UserModel userModel,
+                                                            ScimUserAttributesEntity userAttributes)
   {
     List<ScimEmailsEntity> emails = new ArrayList<>();
     user.getEmails().forEach(email -> {
@@ -198,6 +201,7 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
                                  .display(email.getDisplay().orElse(null))
                                  .type(email.getType().orElse(null))
                                  .primary(email.isPrimary())
+                                 .userAttributes(userAttributes)
                                  .build());
       if (email.isPrimary())
       {

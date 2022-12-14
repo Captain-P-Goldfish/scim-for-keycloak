@@ -4,7 +4,6 @@ import java.math.BigInteger;
 
 import javax.persistence.EntityManager;
 
-import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,8 +35,10 @@ import org.keycloak.services.resources.admin.AdminAuth;
 import org.mockito.Mockito;
 
 import de.captaingoldfish.scim.sdk.keycloak.auth.Authentication;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimResourceTypeEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimServiceProviderEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimConfigurationBridge;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimEndpoint;
 import lombok.Getter;
@@ -242,6 +243,7 @@ public abstract class KeycloakScimManagementTest
     deleteFromTable(GroupRoleMappingEntity.class);
     deleteFromTable(UserAttributeEntity.class);
     deleteFromTable(CredentialEntity.class);
+    deleteFromTable(ScimEmailsEntity.class);
     deleteFromTable(ScimUserAttributesEntity.class);
     deleteFromTable(UserEntity.class);
     deleteFromTable(GroupAttributeEntity.class);

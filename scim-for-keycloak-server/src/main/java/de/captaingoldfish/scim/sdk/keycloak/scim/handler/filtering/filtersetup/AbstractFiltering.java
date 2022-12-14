@@ -3,8 +3,10 @@ package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -39,6 +41,13 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 public abstract class AbstractFiltering<T>
 {
+
+  /**
+   * this set is used to add left-joins to the JPQL query if joins are necessary. An example would be
+   * filter-expression referencing the emails-table. In this case we need to add a left join on the
+   * emails-table.
+   */
+  protected final Set<TableJoin> joins = new HashSet<>();
 
   /**
    * scim attribute to start the entries to be retrieved at this index-1
@@ -192,14 +201,33 @@ public abstract class AbstractFiltering<T>
   @NotNull
   private String getJpqlQueryString(boolean countResources)
   {
-    String jpqlQuery = getBaseQuery(countResources);
+    StringBuilder jpqlQuery = new StringBuilder(getBaseQuery(countResources));
 
+    String whereClause = "";
     if (filterNode != null)
     {
-      jpqlQuery += getWhereClause();
+      whereClause = getWhereClause();
     }
-    jpqlQuery += getOrderBy();
-    return jpqlQuery;
+
+    // add additional joins if necessary. Creating the where clause analyzed the filterNode-tree and while doing
+    // this we are getting informed if additional joins to other tables are necessary. These joins will be added
+    // now.
+    {
+      for ( TableJoin join : joins )
+      {
+        // this may produce something like this:
+        // left join ScimEmailsEntity ue on ue.userAttributes.id = ua.id
+        jpqlQuery.append(String.format(" left join %1$s %2$s on %2$s.%3$s.id = %4$s.id ",
+                                       join.getJoinTable().getTableName(), // %1$s
+                                       join.getJoinTable().getIdentifier(), // %2$s
+                                       join.getJoinTable().getParentReference(), // %3$s
+                                       join.getBaseTable().getIdentifier()));// %4$s
+      }
+    }
+
+    jpqlQuery.append(whereClause);
+    jpqlQuery.append(getOrderBy());
+    return jpqlQuery.toString();
   }
 
   /**
@@ -260,9 +288,19 @@ public abstract class AbstractFiltering<T>
       AttributeExpressionLeaf attributeExpressionLeaf = (AttributeExpressionLeaf)filterNode;
       boolean isCaseExact = attributeExpressionLeaf.getSchemaAttribute().isCaseExact();
       final String fullResourceName = attributeExpressionLeaf.getSchemaAttribute().getFullResourceName();
+
+      FilterAttribute filterAttribute = attributeMapping.getAttribute(fullResourceName);
+      {
+        // basically informs the method {@link #getJpqlQueryString()} that an additional left-join is required
+        if (filterAttribute.getTableJoin() != null)
+        {
+          joins.add(filterAttribute.getTableJoin());
+        }
+      }
+
       final String jpqlAttribute = toCaseCheckedValue(attributeExpressionLeaf.getType(),
                                                       isCaseExact,
-                                                      attributeMapping.getAttribute(fullResourceName).getJpqlMapping());
+                                                      filterAttribute.getJpqlMapping());
       final String comparisonExpression = resolveComparator(attributeExpressionLeaf);
       return String.format("%s %s ", jpqlAttribute, comparisonExpression);
     }

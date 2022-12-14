@@ -197,7 +197,17 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
                      Arguments.arguments("meta.lastmodified le \""
                                          + donkeyKongScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
                                          2,
-                                         new User[]{superMarioScim, donkeyKongScim})
+                                         new User[]{superMarioScim, donkeyKongScim}),
+                     Arguments.arguments("emails.type eq \"work\"", 2, new User[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("emails.type eq \"home\"", 2, new User[]{donkeyKongScim, superMarioScim}),
+                     Arguments.arguments("emails.type eq \"castle\"", 1, new User[]{linkScim}),
+                     Arguments.arguments("emails.type eq \"cabin\" or emails.type eq \"castle\"",
+                                         2,
+                                         new User[]{superMarioScim, linkScim}),
+                     Arguments.arguments("emails.value eq \"donkey-kong@nintendo.de\"", 1, new User[]{donkeyKongScim}),
+                     Arguments.arguments("emails.value eq \"mario@home.net\"", 1, new User[]{superMarioScim}),
+                     Arguments.arguments("emails.value eq \"link@hyrule.de\"", 1, new User[]{linkScim}),
+                     Arguments.arguments("emails.primary eq true", 2, new User[]{linkScim, donkeyKongScim})
     //
     ).map(this::toFilterTest).collect(Collectors.toList());
   }

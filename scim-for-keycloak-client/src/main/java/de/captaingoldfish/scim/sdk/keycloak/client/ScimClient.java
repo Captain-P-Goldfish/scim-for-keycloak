@@ -82,9 +82,9 @@ public class ScimClient
                                                                  .sendRequest();
     ServiceProvider serviceProviderConfig = response.getResource();
 
-//     deleteAllUsers(scimRequestBuilder);
+    // deleteAllUsers(scimRequestBuilder);
     // deleteAllGroups(scimRequestBuilder);
-//    createUsers(scimRequestBuilder);
+    // createUsers(scimRequestBuilder);
     // createGroups(scimRequestBuilder);
     // updateGroups(scimRequestBuilder);
   }
@@ -127,7 +127,7 @@ public class ScimClient
     List<User> bulkList = getUserList();
     BulkBuilder bulkBuilder = scimRequestBuilder.bulk();
     bulkList.parallelStream().forEach(user -> {
-      bulkBuilder.bulkRequestOperation(EndpointPaths.USERS )
+      bulkBuilder.bulkRequestOperation(EndpointPaths.USERS)
                  .bulkId(UUID.randomUUID().toString())
                  .method(HttpMethod.POST)
                  .data(user)

@@ -17,9 +17,9 @@ import lombok.Getter;
 public enum JpqlTableShortcuts
 {
 
-  USER_ENTITY("u", UserEntity.class),
-  SCIM_USER_ATTRIBUTES("ua", ScimUserAttributesEntity.class),
-  SCIM_EMAILS("ue", ScimEmailsEntity.class);
+  USER_ENTITY("u", null, UserEntity.class),
+  SCIM_USER_ATTRIBUTES("ua", "userEntity", ScimUserAttributesEntity.class),
+  SCIM_EMAILS("ue", "userAttributes", ScimEmailsEntity.class);
 
   /**
    * the JPQL identifier that should identify a specific entity
@@ -28,13 +28,20 @@ public enum JpqlTableShortcuts
   private String identifier;
 
   /**
+   * the entity attribute-reference to this tables parent
+   */
+  @Getter
+  private String parentReference;
+
+  /**
    * the JPA entity class type
    */
   private Class entityType;
 
-  JpqlTableShortcuts(String identifier, Class entityType)
+  JpqlTableShortcuts(String identifier, String parentReference, Class entityType)
   {
     this.identifier = identifier;
+    this.parentReference = parentReference;
     this.entityType = entityType;
   }
 

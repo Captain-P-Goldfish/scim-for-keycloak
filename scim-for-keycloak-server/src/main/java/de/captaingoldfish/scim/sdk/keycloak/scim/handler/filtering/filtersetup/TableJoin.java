@@ -8,17 +8,12 @@ import lombok.RequiredArgsConstructor;
  * @author Pascal Knueppel
  * @since 14.12.2022
  */
+@Getter
 @RequiredArgsConstructor
-public class FilterAttribute
+public class TableJoin
 {
 
-  @Getter
-  private final String fullScimAttributeName;
+  private final JpqlTableShortcuts baseTable;
 
-  @Getter
-  private final String jpqlMapping;
-
-  @Getter
-  private final TableJoin tableJoin;
-
+  private final JpqlTableShortcuts joinTable;
 }
