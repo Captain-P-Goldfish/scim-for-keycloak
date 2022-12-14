@@ -195,7 +195,7 @@ public class ScimUserAttributesEntity
    * the moment the user was updated the last time
    */
   @Column(name = "LAST_MODIFIED")
-  private Instant lastModified;
+  private long lastModified;
 
   /**
    * list of scim emails
@@ -256,8 +256,18 @@ public class ScimUserAttributesEntity
     this.organization = organization;
     this.managerValue = managerValue;
     this.managerReference = managerReference;
-    this.lastModified = lastModified;
+    this.lastModified = lastModified.toEpochMilli();
     this.emails = emails;
     Optional.ofNullable(this.emails).ifPresent(mails -> mails.forEach(mail -> mail.setUserAttributes(this)));
+  }
+
+  public Instant getLastModified()
+  {
+    return Instant.ofEpochMilli(lastModified);
+  }
+
+  public void setLastModified(Instant lastModified)
+  {
+    this.lastModified = lastModified.toEpochMilli();
   }
 }

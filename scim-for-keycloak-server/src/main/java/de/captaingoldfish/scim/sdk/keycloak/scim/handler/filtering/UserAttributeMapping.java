@@ -1,10 +1,11 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering;
 
-import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.JpqlTableShortcuts.SCIM_USER_ATTRIBUTES;
-import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.JpqlTableShortcuts.USER_ENTITY;
+import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpqlTableShortcuts.SCIM_USER_ATTRIBUTES;
+import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpqlTableShortcuts.USER_ENTITY;
 
 import de.captaingoldfish.scim.sdk.common.constants.AttributeNames.RFC7643;
 import de.captaingoldfish.scim.sdk.common.constants.SchemaUris;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.AbstractAttributeMapping;
 
 
 /**
@@ -20,7 +21,7 @@ public class UserAttributeMapping extends AbstractAttributeMapping
     /* Attributes on UserEntity */
     addAttribute(SchemaUris.USER_URI, null, RFC7643.USER_NAME, USER_ENTITY, "username");
     addAttribute(SchemaUris.USER_URI, null, RFC7643.ACTIVE, USER_ENTITY, "enabled");
-    addAttribute(SchemaUris.USER_URI, null, RFC7643.CREATED, USER_ENTITY, "createdTimestamp");
+    addAttribute(SchemaUris.META, RFC7643.META, RFC7643.CREATED, USER_ENTITY, "createdTimestamp");
 
     /* Attributes on ScimUserAttributesEntity */
     addAttribute(SchemaUris.USER_URI, null, RFC7643.EXTERNAL_ID, SCIM_USER_ATTRIBUTES, "externalId");
@@ -46,7 +47,7 @@ public class UserAttributeMapping extends AbstractAttributeMapping
     addAttribute(SchemaUris.USER_URI, null, RFC7643.PREFERRED_LANGUAGE, SCIM_USER_ATTRIBUTES, "preferredLanguage");
     addAttribute(SchemaUris.USER_URI, null, RFC7643.LOCALE, SCIM_USER_ATTRIBUTES, "locale");
     addAttribute(SchemaUris.USER_URI, null, RFC7643.TIMEZONE, SCIM_USER_ATTRIBUTES, "timezone");
-    addAttribute(SchemaUris.USER_URI, null, RFC7643.LAST_MODIFIED, SCIM_USER_ATTRIBUTES, "lastModified");
+    addAttribute(SchemaUris.META, RFC7643.META, RFC7643.LAST_MODIFIED, SCIM_USER_ATTRIBUTES, "lastModified");
     addAttribute(SchemaUris.ENTERPRISE_USER_URI, null, RFC7643.EMPLOYEE_NUMBER, SCIM_USER_ATTRIBUTES, "employeeNumber");
     addAttribute(SchemaUris.ENTERPRISE_USER_URI, null, RFC7643.DEPARTMENT, SCIM_USER_ATTRIBUTES, "department");
     addAttribute(SchemaUris.ENTERPRISE_USER_URI, null, RFC7643.COST_CENTER, SCIM_USER_ATTRIBUTES, "costCenter");

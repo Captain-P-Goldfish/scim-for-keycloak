@@ -1,4 +1,4 @@
-package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering;
+package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +24,7 @@ public abstract class AbstractAttributeMapping
    * 
    * these attribute-mapping is used to build a JPQL query from the SCIM filter expression
    */
-  private final Map<String, String> attributeMapping = new HashMap<>();
+  private final Map<String, FilterAttribute> attributeMapping = new HashMap<>();
 
   /**
    * will add a SCIM attribute with its mapping to the JPA entity attribute
@@ -50,8 +50,9 @@ public abstract class AbstractAttributeMapping
     final String fullAttributeName = String.format("%s:%s", resourceUri, attributeName);
 
     final String jpqlFullPath = String.format("%s.%s", jpqlShortcut.getIdentifier(), jpqlReference);
-    attributeMapping.put(attributeName, jpqlFullPath);
-    attributeMapping.put(fullAttributeName, jpqlFullPath);
+
+    FilterAttribute filterAttribute = new FilterAttribute(fullAttributeName, jpqlFullPath);
+    attributeMapping.put(fullAttributeName, filterAttribute);
   }
 
   /**
@@ -62,9 +63,9 @@ public abstract class AbstractAttributeMapping
    * @return the JPQL attribute-reference. e.g. "ue.userName" if the select statement before was "select ue from
    *         UserEntity ue"
    */
-  protected String getAttribute(String attributeName)
+  protected FilterAttribute getAttribute(String attributeName)
   {
-    String attributeReference = attributeMapping.get(attributeName);
+    FilterAttribute attributeReference = attributeMapping.get(attributeName);
     if (attributeReference == null)
     {
       // will e.g. happen if someone tries to filter for passwords

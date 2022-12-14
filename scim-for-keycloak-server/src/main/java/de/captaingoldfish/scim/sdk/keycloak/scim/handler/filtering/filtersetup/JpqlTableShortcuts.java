@@ -1,4 +1,4 @@
-package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering;
+package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup;
 
 import org.keycloak.models.jpa.entities.UserEntity;
 

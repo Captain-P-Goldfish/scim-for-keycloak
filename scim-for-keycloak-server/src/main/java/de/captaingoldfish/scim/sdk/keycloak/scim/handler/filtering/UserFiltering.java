@@ -11,6 +11,8 @@ import org.keycloak.models.jpa.entities.UserEntity;
 import de.captaingoldfish.scim.sdk.common.constants.enums.SortOrder;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.AbstractFiltering;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpqlTableShortcuts;
 import de.captaingoldfish.scim.sdk.server.filter.FilterNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,7 +64,7 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
    * @return the basic query
    */
   @Override
-  public String getBaseQuery(boolean countResources)
+  protected String getBaseQuery(boolean countResources)
   {
     final JpqlTableShortcuts jpqlUserEntity = JpqlTableShortcuts.USER_ENTITY;
     final JpqlTableShortcuts jpqlUserAttributes = JpqlTableShortcuts.SCIM_USER_ATTRIBUTES;
@@ -85,7 +87,7 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
    * @return the list of read users
    */
   @Override
-  public List<ScimUserAttributesEntity> parseResultStream(Stream<Object[]> resultStream)
+  protected List<ScimUserAttributesEntity> parseResultStream(Stream<Object[]> resultStream)
   {
     return resultStream.map(objectArray -> {
       ScimUserAttributesEntity userAttributes = (ScimUserAttributesEntity)objectArray[0];
@@ -108,7 +110,7 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
    * </pre>
    */
   @Override
-  public String getRealmRestrictionClause()
+  protected String getRealmRestrictionClause()
   {
     final String tableShortcut = JpqlTableShortcuts.USER_ENTITY.getIdentifier();
     return String.format("%s.realmId = '%s' and %s.serviceAccountClientLink is null",

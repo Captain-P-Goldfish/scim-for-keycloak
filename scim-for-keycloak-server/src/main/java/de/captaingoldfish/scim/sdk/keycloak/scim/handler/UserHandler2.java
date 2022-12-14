@@ -242,6 +242,7 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
                                            .flatMap(EnterpriseUser::getManager)
                                            .flatMap(Manager::getRef)
                                            .orElse(null));
+    userAttributes.setLastModified(Instant.now());
   }
 
   /**

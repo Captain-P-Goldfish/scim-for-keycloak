@@ -1,7 +1,8 @@
-package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering;
+package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -10,7 +11,6 @@ import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import javax.persistence.TemporalType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +20,7 @@ import org.keycloak.models.RealmModel;
 
 import de.captaingoldfish.scim.sdk.common.constants.enums.Comparator;
 import de.captaingoldfish.scim.sdk.common.constants.enums.SortOrder;
+import de.captaingoldfish.scim.sdk.common.constants.enums.Type;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
 import de.captaingoldfish.scim.sdk.server.filter.AndExpressionNode;
 import de.captaingoldfish.scim.sdk.server.filter.AttributeExpressionLeaf;
@@ -119,13 +120,13 @@ public abstract class AbstractFiltering<T>
    * 
    * @param countResources if the base-count-query or the base-resource-query should be built
    */
-  public abstract String getBaseQuery(boolean countResources);
+  protected abstract String getBaseQuery(boolean countResources);
 
   /**
    * @return the basic restriction clause that makes sure that only the resources from the current realm are
    *         returned.
    */
-  public abstract String getRealmRestrictionClause();
+  protected abstract String getRealmRestrictionClause();
 
   /**
    * parses the results from the database into valid Entity representations
@@ -133,7 +134,7 @@ public abstract class AbstractFiltering<T>
    * @param resultStream the result from the database
    * @return the entities to return from the {@link #filterResources()} method
    */
-  public abstract List<T> parseResultStream(Stream<Object[]> resultStream);
+  protected abstract List<T> parseResultStream(Stream<Object[]> resultStream);
 
   /**
    * will count the number of resources within the database based on the current filter expression
@@ -259,7 +260,9 @@ public abstract class AbstractFiltering<T>
       AttributeExpressionLeaf attributeExpressionLeaf = (AttributeExpressionLeaf)filterNode;
       boolean isCaseExact = attributeExpressionLeaf.getSchemaAttribute().isCaseExact();
       final String fullResourceName = attributeExpressionLeaf.getSchemaAttribute().getFullResourceName();
-      final String jpqlAttribute = toCaseCheckedValue(isCaseExact, attributeMapping.getAttribute(fullResourceName));
+      final String jpqlAttribute = toCaseCheckedValue(attributeExpressionLeaf.getType(),
+                                                      isCaseExact,
+                                                      attributeMapping.getAttribute(fullResourceName).getJpqlMapping());
       final String comparisonExpression = resolveComparator(attributeExpressionLeaf);
       return String.format("%s %s ", jpqlAttribute, comparisonExpression);
     }
@@ -285,7 +288,9 @@ public abstract class AbstractFiltering<T>
     final String parameterName = "a" + UUID.randomUUID().toString().replaceAll("-", "");
 
     boolean isCaseExact = attributeExpressionLeaf.getSchemaAttribute().isCaseExact();
-    final String jpqlParameter = toCaseCheckedValue(isCaseExact, ":" + parameterName);
+    final String jpqlParameter = toCaseCheckedValue(attributeExpressionLeaf.getType(),
+                                                    isCaseExact,
+                                                    ":" + parameterName);
 
     switch (comparator)
     {
@@ -331,6 +336,7 @@ public abstract class AbstractFiltering<T>
    */
   private void setParameterValue(AttributeExpressionLeaf attributeExpressionLeaf, String parameterName)
   {
+
     switch (attributeExpressionLeaf.getType())
     {
       case BOOLEAN:
@@ -341,10 +347,17 @@ public abstract class AbstractFiltering<T>
         });
         break;
       case DATE_TIME:
-        Date date = attributeExpressionLeaf.getDateTime().map(Date::from).orElse(null);
+        Instant instant = attributeExpressionLeaf.getDateTime().orElse(null);
         parameterResolverList.add(query -> {
-          log.debug("sql param: '{}' with value: '{}'", parameterName, date);
-          query.setParameter(parameterName, date, TemporalType.TIME);
+          log.debug("sql param: '{}' with value: '{}'", parameterName, instant);
+          query.setParameter(parameterName, instant.toEpochMilli());
+        });
+        break;
+      case INTEGER:
+        final Long longValue = attributeExpressionLeaf.getNumberValue().map(BigDecimal::longValue).orElse(null);
+        parameterResolverList.add(query -> {
+          log.debug("sql param: '{}' with value: '{}'", parameterName, longValue);
+          query.setParameter(parameterName, longValue);
         });
         break;
       default:
@@ -360,15 +373,17 @@ public abstract class AbstractFiltering<T>
   /**
    * if a SCIM attribute is defined as not case exact the database attributes will be converted into lower case
    * to enable a case-insensitive search
-   * 
+   *
+   * @param type lower case makes only sense for string-type values
    * @param isCaseExact if the attribute should be compared case-insensitive or not
    * @param jpqlParameterName the name of the jpql-parameter e.g. "u.userName"
    * @return the unchanged parameter if a case-sensitive check is required and the parameter surrounded by
-   *         "lower(.. .)" if the check should be case-insensitive
+   *         "lower(...)" if the check should be case-insensitive
    */
-  private String toCaseCheckedValue(boolean isCaseExact, String jpqlParameterName)
+  private String toCaseCheckedValue(Type type, boolean isCaseExact, String jpqlParameterName)
   {
-    if (isCaseExact)
+    final boolean isNotStringType = !Type.STRING.equals(type) && !Type.REFERENCE.equals(type);
+    if (isCaseExact || isNotStringType)
     {
       return jpqlParameterName;
     }
@@ -387,7 +402,7 @@ public abstract class AbstractFiltering<T>
     {
       return "";
     }
-    final String sortByAttributeName = attributeMapping.getAttribute(sortBy.getName());
+    final String sortByAttributeName = attributeMapping.getAttribute(sortBy.getName()).getJpqlMapping();
     final SortOrder effectiveOrder = Optional.ofNullable(sortOrder).orElse(SortOrder.ASCENDING);
     final String sortOrderString = effectiveOrder == SortOrder.ASCENDING ? "asc" : "desc";
     return sortOrder == null ? "" : String.format("order by %s %s", sortByAttributeName, sortOrderString);

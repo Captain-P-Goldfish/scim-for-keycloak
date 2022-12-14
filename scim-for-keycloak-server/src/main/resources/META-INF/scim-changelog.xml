@@ -176,8 +176,7 @@
             <column name="EP_ORGANIZATION" type="VARCHAR(255)"/>
             <column name="EP_MANAGER_VALUE" type="VARCHAR(255)"/>
             <column name="EP_MANAGER_REFERENCE" type="VARCHAR(255)"/>
-
-            <column name="LAST_MODIFIED" type="${datetime}"/>
+            <column name="LAST_MODIFIED" type="BIGINT"/>
         </createTable>
 
         <createIndex tableName="USER_SCIM_ATTRIBUTES" indexName="USER_SCIM_ATTRIBUTES_IDX">

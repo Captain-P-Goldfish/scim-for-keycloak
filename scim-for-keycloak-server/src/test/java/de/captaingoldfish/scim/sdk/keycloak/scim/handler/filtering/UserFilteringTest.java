@@ -21,6 +21,7 @@ import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
 import de.captaingoldfish.scim.sdk.common.constants.enums.HttpMethod;
 import de.captaingoldfish.scim.sdk.common.resources.User;
 import de.captaingoldfish.scim.sdk.common.resources.base.ScimObjectNode;
+import de.captaingoldfish.scim.sdk.common.resources.complex.Meta;
 import de.captaingoldfish.scim.sdk.common.response.ErrorResponse;
 import de.captaingoldfish.scim.sdk.common.response.ListResponse;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
@@ -140,7 +141,63 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
                                          new User[]{donkeyKongScim, linkScim}),
                      Arguments.arguments("username co \"i\" and not (username co \"k\" or username co \"d\")",
                                          1,
-                                         new User[]{superMarioScim})
+                                         new User[]{superMarioScim}),
+                     Arguments.arguments("meta.created gt \"" + superMarioScim.getMeta().flatMap(Meta::getCreated).get()
+                                         + "\"",
+                                         2,
+                                         new User[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("meta.created le \"" + superMarioScim.getMeta().flatMap(Meta::getCreated).get()
+                                         + "\"",
+                                         1,
+                                         new User[]{superMarioScim}),
+                     Arguments.arguments("meta.created eq \"" + superMarioScim.getMeta().flatMap(Meta::getCreated).get()
+                                         + "\"",
+                                         1,
+                                         new User[]{superMarioScim}),
+                     Arguments.arguments("meta.created lt \"" + superMarioScim.getMeta().flatMap(Meta::getCreated).get()
+                                         + "\"",
+                                         0,
+                                         new User[]{}),
+                     Arguments.arguments("meta.created lt \"" + donkeyKongScim.getMeta().flatMap(Meta::getCreated).get()
+                                         + "\"",
+                                         1,
+                                         new User[]{superMarioScim}),
+                     Arguments.arguments("meta.created le \"" + donkeyKongScim.getMeta().flatMap(Meta::getCreated).get()
+                                         + "\"",
+                                         2,
+                                         new User[]{superMarioScim, donkeyKongScim}),
+                     Arguments.arguments("meta.created gt \"" + donkeyKongScim.getMeta().flatMap(Meta::getCreated).get()
+                                         + "\"",
+                                         1,
+                                         new User[]{linkScim}),
+                     Arguments.arguments("meta.created ge \"" + donkeyKongScim.getMeta().flatMap(Meta::getCreated).get()
+                                         + "\"",
+                                         2,
+                                         new User[]{linkScim, donkeyKongScim}),
+                     Arguments.arguments("meta.lastmodified eq \""
+                                         + linkScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
+                                         1,
+                                         new User[]{linkScim}),
+                     Arguments.arguments("meta.lastmodified lt \""
+                                         + linkScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
+                                         2,
+                                         new User[]{superMarioScim, donkeyKongScim}),
+                     Arguments.arguments("meta.lastmodified gt \""
+                                         + donkeyKongScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
+                                         1,
+                                         new User[]{linkScim}),
+                     Arguments.arguments("meta.lastmodified eq \""
+                                         + donkeyKongScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
+                                         1,
+                                         new User[]{donkeyKongScim}),
+                     Arguments.arguments("meta.lastmodified lt \""
+                                         + donkeyKongScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
+                                         1,
+                                         new User[]{superMarioScim}),
+                     Arguments.arguments("meta.lastmodified le \""
+                                         + donkeyKongScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
+                                         2,
+                                         new User[]{superMarioScim, donkeyKongScim})
     //
     ).map(this::toFilterTest).collect(Collectors.toList());
   }
