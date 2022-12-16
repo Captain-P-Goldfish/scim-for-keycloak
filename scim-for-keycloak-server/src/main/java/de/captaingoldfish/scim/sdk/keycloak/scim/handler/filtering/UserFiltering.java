@@ -12,7 +12,7 @@ import de.captaingoldfish.scim.sdk.common.constants.enums.SortOrder;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.AbstractFiltering;
-import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpqlTableShortcuts;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences;
 import de.captaingoldfish.scim.sdk.server.filter.FilterNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,39 +45,14 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
   }
 
   /**
-   * builds the base JPQL query to filter users within the database. This query will look like this: as count
-   * resource query:
+   * the jpa entity on which the select will be started. This entity might be joined with other entities.
    * 
-   * <pre>
-   *   select distinct count(u) from ScimUserAttributesEntity ua
-   *   right join ua.userEntity u on u.id = ua.userEntity.id
-   * </pre>
-   * 
-   * as resource query:
-   * 
-   * <pre>
-   *   select distinct ua, u from ScimUserAttributesEntity ua
-   *   right join ua.userEntity u on u.id = ua.userEntity.id
-   * </pre>
-   * 
-   * @param countResources if the query should be a count query or a resource query
-   * @return the basic query
+   * @return the basic jpa entity to start with to do some sql
    */
   @Override
-  protected String getBaseQuery(boolean countResources)
+  protected JpaEntityReferences getBaseEntity()
   {
-    final JpqlTableShortcuts jpqlUserEntity = JpqlTableShortcuts.USER_ENTITY;
-    final JpqlTableShortcuts jpqlUserAttributes = JpqlTableShortcuts.SCIM_USER_ATTRIBUTES;
-
-    String selectionString = countResources ? String.format("count(%s)", jpqlUserAttributes.getIdentifier())
-      : String.format("%s, %s", jpqlUserAttributes.getIdentifier(), jpqlUserEntity.getIdentifier());
-
-    return String.format("select distinct %1$s from %2$s %3$s " + "right join %3$s.%4$s %5$s on %5$s.id = %3$s.%4$s.id",
-                         selectionString, // %1$s - either count expression or simple select expression
-                         jpqlUserAttributes.getTableName(), // %2$s - ScimUserAttributesEntity
-                         jpqlUserAttributes.getIdentifier(), // %3$s - ua
-                         jpqlUserAttributes.getParentReference(), // %4$s - userEntity
-                         jpqlUserEntity.getIdentifier()); // %5$s - ue
+    return JpaEntityReferences.USER_ENTITY;
   }
 
   /**
@@ -90,13 +65,14 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
   protected List<ScimUserAttributesEntity> parseResultStream(Stream<Object[]> resultStream)
   {
     return resultStream.map(objectArray -> {
-      ScimUserAttributesEntity userAttributes = (ScimUserAttributesEntity)objectArray[0];
-      if (userAttributes != null)
+      UserEntity userEntity = (UserEntity)objectArray[0];
+      if (objectArray.length == 1)
       {
-        return userAttributes;
+        return ScimUserAttributesEntity.builder().userEntity(userEntity).build();
       }
-      UserEntity userEntity = (UserEntity)objectArray[1];
-      return ScimUserAttributesEntity.builder().userEntity(userEntity).build();
+      // since to the nature of the UserAttributesMapping we know that we get maximum 2 entities and exactly in this
+      // order
+      return (ScimUserAttributesEntity)objectArray[1];
     }).collect(Collectors.toList());
   }
 
@@ -112,7 +88,7 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
   @Override
   protected String getRealmRestrictionClause()
   {
-    final String tableShortcut = JpqlTableShortcuts.USER_ENTITY.getIdentifier();
+    final String tableShortcut = JpaEntityReferences.USER_ENTITY.getIdentifier();
     return String.format("%s.realmId = '%s' and %s.serviceAccountClientLink is null",
                          tableShortcut,
                          realmModel.getId(),

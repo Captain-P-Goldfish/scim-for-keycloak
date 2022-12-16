@@ -29,6 +29,7 @@ import de.captaingoldfish.scim.sdk.server.filter.AttributeExpressionLeaf;
 import de.captaingoldfish.scim.sdk.server.filter.FilterNode;
 import de.captaingoldfish.scim.sdk.server.filter.NotExpressionNode;
 import de.captaingoldfish.scim.sdk.server.filter.OrExpressionNode;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,7 +48,8 @@ public abstract class AbstractFiltering<T>
    * filter-expression referencing the emails-table. In this case we need to add a left join on the
    * emails-table.
    */
-  protected final Set<TableJoin> joins = new HashSet<>();
+  @Getter(AccessLevel.PROTECTED)
+  protected final Set<JpqlTableJoin> joins = new HashSet<>();
 
   /**
    * scim attribute to start the entries to be retrieved at this index-1
@@ -123,13 +125,9 @@ public abstract class AbstractFiltering<T>
   }
 
   /**
-   * needs to build the base query as count-query or as resource query. We need both because the endpoints may
-   * not return all found results but the information about all results must be returned in the
-   * "totalResults"-attribute
-   * 
-   * @param countResources if the base-count-query or the base-resource-query should be built
+   * gets the base entity on which the selection is started
    */
-  protected abstract String getBaseQuery(boolean countResources);
+  protected abstract JpaEntityReferences getBaseEntity();
 
   /**
    * @return the basic restriction clause that makes sure that only the resources from the current realm are
@@ -189,7 +187,16 @@ public abstract class AbstractFiltering<T>
 
     Stream<Object> results = query.getResultStream();
 
-    return parseResultStream(results.parallel().map(o -> (Object[])o));
+    return parseResultStream(results.parallel().map(o -> {
+      if (o.getClass().isArray())
+      {
+        return (Object[])o;
+      }
+      else
+      {
+        return new Object[]{o};
+      }
+    }));
   }
 
   /**
@@ -201,33 +208,90 @@ public abstract class AbstractFiltering<T>
   @NotNull
   private String getJpqlQueryString(boolean countResources)
   {
-    StringBuilder jpqlQuery = new StringBuilder(getBaseQuery(countResources));
-
+    // we will start with the where clause since by analyzing the filter expression we will discover which joins
+    // to other tables are necessary
     String whereClause = "";
     if (filterNode != null)
     {
       whereClause = getWhereClause();
     }
 
+    final JpaEntityReferences baseEntity = getBaseEntity();
+    final StringBuilder baseSelect = new StringBuilder();
+    // @formatter:off
+    baseSelect.append(countResources ? String.format("select count(%s)", baseEntity.getIdentifier())
+                                     : String.format("select %s", baseEntity.getIdentifier()));
+    // @formatter:on
+    final StringBuilder fromClause = new StringBuilder(String.format("from %s %s",
+                                                                     baseEntity.getTableName(),
+                                                                     baseEntity.getIdentifier()));
+
     // add additional joins if necessary. Creating the where clause analyzed the filterNode-tree and while doing
     // this we are getting informed if additional joins to other tables are necessary. These joins will be added
     // now.
+    final StringBuilder joinsString = new StringBuilder();
+    for ( JpqlTableJoin join : getSortedJoins() )
     {
-      for ( TableJoin join : joins )
+      if (!countResources && join.isJoinIntoSelection())
       {
-        // this may produce something like this:
-        // left join ScimEmailsEntity ue on ue.userAttributes.id = ua.id
-        jpqlQuery.append(String.format(" left join %1$s %2$s on %2$s.%3$s.id = %4$s.id ",
-                                       join.getJoinTable().getTableName(), // %1$s
-                                       join.getJoinTable().getIdentifier(), // %2$s
-                                       join.getJoinTable().getParentReference(), // %3$s
-                                       join.getBaseTable().getIdentifier()));// %4$s
+        baseSelect.append(", ").append(join.getJoinTable().getIdentifier());
       }
+      joinsString.append(" ").append(join.getJoinJpql());
     }
 
-    jpqlQuery.append(whereClause);
-    jpqlQuery.append(getOrderBy());
-    return jpqlQuery.toString();
+    return baseSelect + " " + fromClause + joinsString + whereClause + getOrderBy();
+  }
+
+  /**
+   * the filter-expression is constructed by the client, and therefore we do not know in which order the
+   * attributes in the filter expression are found and the necessary joins are identified. Therefore, we simply
+   * put the joins into a {@link HashSet} in order to make sure that each join is done once at most and not
+   * several times And this method will now bring the joins into an order so that the joins are parseable by
+   * hibernate since the order in the JPQL string is essential for parameter resolving.
+   * 
+   * @return the list of joins how they should appear within the JPQL query
+   */
+  protected List<JpqlTableJoin> getSortedJoins()
+  {
+    List<JpqlTableJoin> sortedJoins = new ArrayList<>();
+    for ( JpqlTableJoin join : joins )
+    {
+      if (sortedJoins.isEmpty())
+      {
+        sortedJoins.add(join);
+        continue;
+      }
+
+      // if the join is done on the base entity it can be put in first position. For all tables that are directly
+      // joined on the base-table an order is not required
+      if (getBaseEntity().equals(join.getBaseTable()))
+      {
+        sortedJoins.add(0, join);
+        continue;
+      }
+
+      // try to get the index of a join which join-table entry matches one within the sortedJoins. If we succeed in
+      // finding one we will place
+      boolean wasAdded = false;
+      for ( int i = 0 ; i < sortedJoins.size() ; i++ )
+      {
+        JpqlTableJoin jpqlTableJoin = sortedJoins.get(i);
+        // if the joins base-table matches a join already added within the sorted-joins list it must be added before
+        // it
+        if (join.getJoinTable().equals(jpqlTableJoin.getBaseTable()))
+        {
+          sortedJoins.add(i, join);
+          wasAdded = true;
+          break;
+        }
+      }
+
+      if (!wasAdded)
+      {
+        sortedJoins.add(join);
+      }
+    }
+    return sortedJoins;
   }
 
   /**
@@ -292,9 +356,14 @@ public abstract class AbstractFiltering<T>
       FilterAttribute filterAttribute = attributeMapping.getAttribute(fullResourceName);
       {
         // basically informs the method {@link #getJpqlQueryString()} that an additional left-join is required
-        if (filterAttribute.getTableJoin() != null)
+        for ( JpqlTableJoin join : filterAttribute.getJoins() )
         {
-          joins.add(filterAttribute.getTableJoin());
+          // only add the joins that are not the base-table itself. For users this would be the UserEntity-join.
+          // Since the UserEntity is already the base-table we do not need to do another join onto this table
+          if (join.getJoinTable() != null)
+          {
+            joins.add(join);
+          }
         }
       }
 

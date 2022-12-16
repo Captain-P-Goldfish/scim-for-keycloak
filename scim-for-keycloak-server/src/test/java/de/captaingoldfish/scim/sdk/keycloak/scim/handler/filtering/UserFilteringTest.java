@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
@@ -15,6 +16,8 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.params.provider.Arguments;
+import org.keycloak.models.GroupModel;
+import org.keycloak.models.UserModel;
 
 import de.captaingoldfish.scim.sdk.common.constants.AttributeNames;
 import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
@@ -83,6 +86,57 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
                             errorResponse.getDetail().get());
   }
 
+  @Test
+  public void test()
+  {
+    User superMarioScim = JsonHelper.loadJsonDocument(USER_SUPER_MARIO, User.class);
+    User donkeyKongScim = JsonHelper.loadJsonDocument(USER_DONKEY_KONG, User.class);
+    User linkScim = JsonHelper.loadJsonDocument(USER_LINK, User.class);
+
+    superMarioScim = createUser(superMarioScim);
+    donkeyKongScim = createUser(donkeyKongScim);
+    linkScim = createUser(linkScim);
+
+    GroupModel adminGroup = getKeycloakSession().groups().createGroup(getRealmModel(), "admin");
+    GroupModel userGroup = getKeycloakSession().groups().createGroup(getRealmModel(), "user");
+    GroupModel moderatorGroup = getKeycloakSession().groups().createGroup(getRealmModel(), "moderator");
+
+    // let users join groups
+    // link -> admin, user
+    // mario -> moderator, user
+    // donkey-kong -> user
+    {
+      UserModel marioModel = getKeycloakSession().users().getUserById(getRealmModel(), superMarioScim.getId().get());
+      UserModel donkeyKongModel = getKeycloakSession().users()
+                                                      .getUserById(getRealmModel(), donkeyKongScim.getId().get());
+      UserModel linkModel = getKeycloakSession().users().getUserById(getRealmModel(), linkScim.getId().get());
+
+      linkModel.joinGroup(adminGroup);
+
+      marioModel.joinGroup(moderatorGroup);
+
+      linkModel.joinGroup(userGroup);
+      marioModel.joinGroup(userGroup);
+      donkeyKongModel.joinGroup(userGroup);
+    }
+
+    // Query query = getEntityManager().createQuery("select u, ua, g from UserEntity u "
+    // + "left join ScimUserAttributesEntity ua on u.id = ua.userEntity.id "
+    // + "join UserGroupMembershipEntity um on u.id = um.user.id "
+    // + "join GroupEntity g on g.id = um.groupId "
+    // + "where u.username = 'link'");
+    Query query = getEntityManager().createQuery("select distinct ua, u from UserEntity u "
+                                                 + "     join ScimUserAttributesEntity ua on u.id = ua.userEntity.id "
+                                                 + "     join UserGroupMembershipEntity ugm on u.id = ugm.user.id "
+                                                 + "     join GroupEntity g on g.id = ugm.groupId "
+                                                 + "    where u.realmId = '" + getRealmModel().getId() + "' "
+                                                 + "      and u.serviceAccountClientLink is null ")
+                                    .setMaxResults(3);
+
+    List results = query.getResultList();
+    log.warn("...");
+  }
+
   /**
    * make sure that various different filter expressions are successfully executed using three different users
    */
@@ -93,10 +147,32 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
     User donkeyKongScim = JsonHelper.loadJsonDocument(USER_DONKEY_KONG, User.class);
     User linkScim = JsonHelper.loadJsonDocument(USER_LINK, User.class);
 
-
     superMarioScim = createUser(superMarioScim);
     donkeyKongScim = createUser(donkeyKongScim);
     linkScim = createUser(linkScim);
+
+    GroupModel adminGroup = getKeycloakSession().groups().createGroup(getRealmModel(), "admin");
+    GroupModel userGroup = getKeycloakSession().groups().createGroup(getRealmModel(), "user");
+    GroupModel moderatorGroup = getKeycloakSession().groups().createGroup(getRealmModel(), "moderator");
+
+    // let users join groups
+    // link -> admin, user
+    // mario -> moderator, user
+    // donkey-kong -> user
+    {
+      UserModel marioModel = getKeycloakSession().users().getUserById(getRealmModel(), superMarioScim.getId().get());
+      UserModel donkeyKongModel = getKeycloakSession().users()
+                                                      .getUserById(getRealmModel(), donkeyKongScim.getId().get());
+      UserModel linkModel = getKeycloakSession().users().getUserById(getRealmModel(), linkScim.getId().get());
+
+      linkModel.joinGroup(adminGroup);
+
+      marioModel.joinGroup(moderatorGroup);
+
+      linkModel.joinGroup(userGroup);
+      marioModel.joinGroup(userGroup);
+      donkeyKongModel.joinGroup(userGroup);
+    }
 
     return Stream.of(Arguments.arguments(null, 3, new User[]{superMarioScim, donkeyKongScim, linkScim}),
                      Arguments.arguments(String.format("username eq " + "\"%s\"", superMarioScim.getUserName().get()),
@@ -207,7 +283,12 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
                      Arguments.arguments("emails.value eq \"donkey-kong@nintendo.de\"", 1, new User[]{donkeyKongScim}),
                      Arguments.arguments("emails.value eq \"mario@home.net\"", 1, new User[]{superMarioScim}),
                      Arguments.arguments("emails.value eq \"link@hyrule.de\"", 1, new User[]{linkScim}),
-                     Arguments.arguments("emails.primary eq true", 2, new User[]{linkScim, donkeyKongScim})
+                     Arguments.arguments("emails.primary eq true", 2, new User[]{linkScim, donkeyKongScim}),
+                     Arguments.arguments("groups.value eq \"admin\"", 1, new User[]{linkScim}),
+                     Arguments.arguments("groups.value eq \"moderator\"", 1, new User[]{superMarioScim}),
+                     Arguments.arguments("groups.value eq \"user\"",
+                                         3,
+                                         new User[]{superMarioScim, donkeyKongScim, linkScim})
     //
     ).map(this::toFilterTest).collect(Collectors.toList());
   }
@@ -250,7 +331,18 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
 
       if (expectedResults != 0)
       {
-        Assertions.assertTrue(Arrays.stream(expectedUsers).anyMatch(resources::contains));
+        Assertions.assertTrue(Arrays.stream(expectedUsers)
+                                    .map(u -> u.getUserName().orElse(null))
+                                    .allMatch(username -> resources.stream().anyMatch(r -> {
+                                      return username.equals(r.get(AttributeNames.RFC7643.USER_NAME).textValue());
+                                    })),
+                              String.format("Could not find expected-users '%s' in result-list '%s'",
+                                            Arrays.stream(expectedUsers)
+                                                  .map(u -> u.getUserName().orElse(null))
+                                                  .collect(Collectors.toList()),
+                                            resources.stream()
+                                                     .map(u -> u.get(AttributeNames.RFC7643.USER_NAME).textValue())
+                                                     .collect(Collectors.toList())));
       }
     });
   }

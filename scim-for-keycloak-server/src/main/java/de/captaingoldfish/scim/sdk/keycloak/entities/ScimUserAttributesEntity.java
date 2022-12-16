@@ -1,6 +1,7 @@
 package de.captaingoldfish.scim.sdk.keycloak.entities;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -256,8 +257,10 @@ public class ScimUserAttributesEntity
     this.organization = organization;
     this.managerValue = managerValue;
     this.managerReference = managerReference;
-    this.lastModified = lastModified.toEpochMilli();
-    this.emails = emails;
+    this.lastModified = Optional.ofNullable(lastModified).map(Instant::toEpochMilli).orElseGet(() -> {
+      return Optional.ofNullable(userEntity).map(UserEntity::getCreatedTimestamp).orElse(0L);
+    });
+    this.emails = Optional.ofNullable(emails).orElseGet(Collections::emptyList);
     Optional.ofNullable(this.emails).ifPresent(mails -> mails.forEach(mail -> mail.setUserAttributes(this)));
   }
 

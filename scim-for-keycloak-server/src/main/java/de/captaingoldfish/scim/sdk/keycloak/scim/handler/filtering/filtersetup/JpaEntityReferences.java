@@ -1,6 +1,8 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup;
 
+import org.keycloak.models.jpa.entities.GroupEntity;
 import org.keycloak.models.jpa.entities.UserEntity;
+import org.keycloak.models.jpa.entities.UserGroupMembershipEntity;
 
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
@@ -14,12 +16,14 @@ import lombok.Getter;
  * @author Pascal Knueppel
  * @since 12.12.2022
  */
-public enum JpqlTableShortcuts
+public enum JpaEntityReferences
 {
 
-  USER_ENTITY("u", null, UserEntity.class),
-  SCIM_USER_ATTRIBUTES("ua", "userEntity", ScimUserAttributesEntity.class),
-  SCIM_EMAILS("ue", "userAttributes", ScimEmailsEntity.class);
+  USER_ENTITY("u", UserEntity.class),
+  SCIM_USER_ATTRIBUTES("ua", ScimUserAttributesEntity.class),
+  SCIM_EMAILS("ue", ScimEmailsEntity.class),
+  USER_GROUPS_MEMBERSHIP("ugm", UserGroupMembershipEntity.class),
+  GROUPS_ENTITY("g", GroupEntity.class);
 
   /**
    * the JPQL identifier that should identify a specific entity
@@ -28,20 +32,13 @@ public enum JpqlTableShortcuts
   private String identifier;
 
   /**
-   * the entity attribute-reference to this tables parent
-   */
-  @Getter
-  private String parentReference;
-
-  /**
    * the JPA entity class type
    */
   private Class entityType;
 
-  JpqlTableShortcuts(String identifier, String parentReference, Class entityType)
+  JpaEntityReferences(String identifier, Class entityType)
   {
     this.identifier = identifier;
-    this.parentReference = parentReference;
     this.entityType = entityType;
   }
 

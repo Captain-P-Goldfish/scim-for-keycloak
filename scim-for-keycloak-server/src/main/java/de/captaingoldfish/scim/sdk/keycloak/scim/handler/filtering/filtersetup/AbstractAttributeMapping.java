@@ -1,5 +1,6 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -33,50 +34,29 @@ public abstract class AbstractAttributeMapping
    * @param complexParentName optional param. If the parameter has a parent attribute this will be the parents
    *          name e .g. "email" or "name"
    * @param simpleAttributeName the child attributes name e.g. "value" or "givenName"
-   * @param jpqlShortcut the shortcut that will be used within JPQL queries to identify the entity to which the
-   *          attribute belongs
    * @param jpqlReference the attributes name within the jpa entity. This attribute must be a member of the
    *          reference within {@code jpqlShortcut}
+   * @param jpqlTableJoins The necessary joins in order for the attribute to be selectable within the resulting
+   *          JPQL query
    */
   protected void addAttribute(String resourceUri,
                               String complexParentName,
                               String simpleAttributeName,
-                              JpqlTableShortcuts jpqlShortcut,
-                              String jpqlReference)
-  {
-    addAttribute(resourceUri, complexParentName, simpleAttributeName, jpqlShortcut, jpqlReference, null);
-  }
-
-  /**
-   * will add a SCIM attribute with its mapping to the JPA entity attribute
-   * 
-   * @param resourceUri the resource uri of the SCIM attribute. This is the attributes full schema-uri
-   * @param complexParentName optional param. If the parameter has a parent attribute this will be the parents
-   *          name e .g. "email" or "name"
-   * @param simpleAttributeName the child attributes name e.g. "value" or "givenName"
-   * @param jpqlShortcut the shortcut that will be used within JPQL queries to identify the entity to which the
-   *          attribute belongs
-   * @param jpqlReference the attributes name within the jpa entity. This attribute must be a member of the
-   *          reference within {@code jpqlShortcut}
-   */
-  protected void addAttribute(String resourceUri,
-                              String complexParentName,
-                              String simpleAttributeName,
-                              JpqlTableShortcuts jpqlShortcut,
                               String jpqlReference,
-                              JpqlTableShortcuts joinTable)
+                              JpqlTableJoin... jpqlTableJoins)
   {
+    // e.g. "userName" or "name.givenName"
     final String attributeName = String.format("%s%s",
                                                Optional.ofNullable(complexParentName).map(s -> s + ".").orElse(""),
                                                simpleAttributeName);
+    // e.g.
+    // "urn:ietf:params:scim:schemas:core:2.0:User:userName"
+    // or
+    // "urn:ietf:params:scim:schemas:core:2.0:User:name.givenName"
     final String fullAttributeName = String.format("%s:%s", resourceUri, attributeName);
 
-    final boolean isJoinRequired = joinTable != null;
-    final String jpqlIdentifier = isJoinRequired ? joinTable.getIdentifier() : jpqlShortcut.getIdentifier();
-    final String jpqlFullPath = String.format("%s.%s", jpqlIdentifier, jpqlReference);
-
-    TableJoin tableJoin = isJoinRequired ? new TableJoin(jpqlShortcut, joinTable) : null;
-    FilterAttribute filterAttribute = new FilterAttribute(fullAttributeName, jpqlFullPath, tableJoin);
+    FilterAttribute filterAttribute = new FilterAttribute(fullAttributeName, jpqlReference,
+                                                          Arrays.asList(jpqlTableJoins));
     attributeMapping.put(fullAttributeName, filterAttribute);
   }
 
