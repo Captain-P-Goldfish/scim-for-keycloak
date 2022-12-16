@@ -55,12 +55,6 @@ public class ScimEmailsEntity
   private String value;
 
   /**
-   * the display value of the email
-   */
-  @Column(name = "EMAIL_DISPLAY")
-  private String display;
-
-  /**
    * the type of the email
    */
   @Column(name = "EMAIL_TYPE")
@@ -76,14 +70,12 @@ public class ScimEmailsEntity
   @Builder
   public ScimEmailsEntity(String id,
                           String value,
-                          String display,
                           String type,
                           boolean primary,
                           ScimUserAttributesEntity userAttributes)
   {
     this.id = Optional.ofNullable(id).orElse(KeycloakModelUtils.generateId());
     this.value = value;
-    this.display = display;
     this.type = type;
     this.primary = primary;
     this.userAttributes = userAttributes;

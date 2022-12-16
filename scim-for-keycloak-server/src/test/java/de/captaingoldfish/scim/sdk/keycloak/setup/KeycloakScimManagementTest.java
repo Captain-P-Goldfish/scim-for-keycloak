@@ -35,7 +35,13 @@ import org.keycloak.services.resources.admin.AdminAuth;
 import org.mockito.Mockito;
 
 import de.captaingoldfish.scim.sdk.keycloak.auth.Authentication;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimAddressEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEntitlementEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimImsEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhonesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhotosEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimResourceTypeEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimServiceProviderEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
@@ -244,6 +250,12 @@ public abstract class KeycloakScimManagementTest
     deleteFromTable(UserAttributeEntity.class);
     deleteFromTable(CredentialEntity.class);
     deleteFromTable(ScimEmailsEntity.class);
+    deleteFromTable(ScimAddressEntity.class);
+    deleteFromTable(ScimCertificatesEntity.class);
+    deleteFromTable(ScimEntitlementEntity.class);
+    deleteFromTable(ScimImsEntity.class);
+    deleteFromTable(ScimPhonesEntity.class);
+    deleteFromTable(ScimPhotosEntity.class);
     deleteFromTable(ScimUserAttributesEntity.class);
     deleteFromTable(UserEntity.class);
     deleteFromTable(GroupAttributeEntity.class);

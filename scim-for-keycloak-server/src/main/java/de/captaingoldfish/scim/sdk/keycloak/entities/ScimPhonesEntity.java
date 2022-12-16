@@ -51,7 +51,7 @@ public class ScimPhonesEntity
   /**
    * the value of the phone number
    */
-  @Column(name = "EMAIL_VALUE")
+  @Column(name = "PHONE_VALUE")
   private String value;
 
   /**

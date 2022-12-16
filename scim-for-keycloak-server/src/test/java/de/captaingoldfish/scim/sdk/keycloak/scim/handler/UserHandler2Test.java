@@ -30,14 +30,19 @@ import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PhoneNumber;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.ScimX509Certificate;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimAddressEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEntitlementEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimImsEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhonesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhotosEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimConfigurationBridge;
 import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUser2Endpoint;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CountryUserExtension;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
-import de.captaingoldfish.scim.sdk.keycloak.setup.FileReferences;
 import de.captaingoldfish.scim.sdk.keycloak.setup.RequestBuilder;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceEndpoint;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +53,7 @@ import lombok.extern.slf4j.Slf4j;
  * @since 10.12.2022
  */
 @Slf4j
-public class UserHandler2Test extends AbstractScimEndpointTest implements FileReferences
+public class UserHandler2Test extends AbstractScimEndpointTest
 {
 
   @Test
@@ -101,6 +106,8 @@ public class UserHandler2Test extends AbstractScimEndpointTest implements FileRe
                                 .phoneNumbers(Arrays.asList(PhoneNumber.builder()
                                                                        .value(String.valueOf(random.nextLong()
                                                                                              + Integer.MAX_VALUE))
+                                                                       .type("work")
+                                                                       .display("*******")
                                                                        .primary(true)
                                                                        .build(),
                                                             PhoneNumber.builder()
@@ -108,6 +115,7 @@ public class UserHandler2Test extends AbstractScimEndpointTest implements FileRe
                                                                                              + Integer.MAX_VALUE))
                                                                        .build()))
                                 .addresses(Arrays.asList(Address.builder()
+                                                                .formatted("Max Street 586")
                                                                 .streetAddress(name + " street " + random.nextInt(500))
                                                                 .country(random.nextBoolean() ? "germany"
                                                                   : "united states")
@@ -123,12 +131,25 @@ public class UserHandler2Test extends AbstractScimEndpointTest implements FileRe
                                                                 .postalCode(String.valueOf(random.nextLong()
                                                                                            + Integer.MAX_VALUE))
                                                                 .build()))
-                                .ims(Arrays.asList(Ims.builder().value("bla@bla").primary(true).build(),
+                                .ims(Arrays.asList(Ims.builder()
+                                                      .value("bla@bla")
+                                                      .display("blubb")
+                                                      .type("home")
+                                                      .primary(true)
+                                                      .build(),
                                                    Ims.builder().value("hepp@zep").build()))
                                 .photos(Arrays.asList(Photo.builder().value("photo-1").primary(true).build(),
-                                                      Photo.builder().value("photo-2").build()))
+                                                      Photo.builder()
+                                                           .value("photo-2")
+                                                           .display("useless")
+                                                           .type("work")
+                                                           .build()))
                                 .entitlements(Arrays.asList(Entitlement.builder().value("ent-1").primary(true).build(),
-                                                            Entitlement.builder().value("ent-2").build()))
+                                                            Entitlement.builder()
+                                                                       .value("ent-2")
+                                                                       .type("home")
+                                                                       .display("number-2")
+                                                                       .build()))
                                 .x509Certificates(Arrays.asList(ScimX509Certificate.builder()
                                                                                    .value("MII...1")
                                                                                    .primary(true)
@@ -165,6 +186,14 @@ public class UserHandler2Test extends AbstractScimEndpointTest implements FileRe
                                                                 .setParameter("userId", userId)
                                                                 .getSingleResult();
     Assertions.assertNotNull(userAttributes);
+    checkUserEquality(pw, user, createdUser, userAttributes);
+  }
+
+  private void checkUserEquality(String pw,
+                                 CustomUser user,
+                                 CustomUser createdUser,
+                                 ScimUserAttributesEntity userAttributes)
+  {
     Assertions.assertEquals(user.getUserName().get(), createdUser.getUserName().get());
     Assertions.assertEquals(user.getUserName().get(), userAttributes.getUserEntity().getUsername());
 
@@ -256,13 +285,52 @@ public class UserHandler2Test extends AbstractScimEndpointTest implements FileRe
     Assertions.assertEquals(user.getEnterpriseUser().get().getManager().get().getRef().get(),
                             userAttributes.getManagerReference());
 
+    checkAddresses(user.getAddresses(), userAttributes.getAddresses());
+    checkCertificates(user.getX509Certificates(), userAttributes.getCertificates());
     checkEmails(user.getEmails(), userAttributes.getEmails());
+    checkEntitlements(user.getEntitlements(), userAttributes.getEntitlements());
+    checkIms(user.getIms(), userAttributes.getInstantMessagingAddresses());
+    checkPhoneNumbers(user.getPhoneNumbers(), userAttributes.getPhoneNumbers());
+    checkPhotos(user.getPhotos(), userAttributes.getPhotos());
 
     UserCredentialManager credentialManager = getKeycloakSession().userCredentialManager();
     UserModel userModel = new UserAdapter(getKeycloakSession(), getRealmModel(), getEntityManager(),
                                           userAttributes.getUserEntity());
     UserCredentialModel userCredential = UserCredentialModel.password(pw);
     Assertions.assertTrue(credentialManager.isValid(getRealmModel(), userModel, userCredential));
+  }
+
+  private void checkAddresses(List<Address> expectedAddresses, List<ScimAddressEntity> actualAddresses)
+  {
+    Assertions.assertEquals(expectedAddresses.size(), actualAddresses.size());
+    for ( int i = 0 ; i < expectedAddresses.size() ; i++ )
+    {
+      Address expectedAddress = expectedAddresses.get(i);
+      ScimAddressEntity actualAddress = actualAddresses.get(i);
+      Assertions.assertEquals(expectedAddress.getFormatted().orElse(null), actualAddress.getFormatted());
+      Assertions.assertEquals(expectedAddress.getStreetAddress().orElse(null), actualAddress.getStreetAddress());
+      Assertions.assertEquals(expectedAddress.getLocality().orElse(null), actualAddress.getLocality());
+      Assertions.assertEquals(expectedAddress.getRegion().orElse(null), actualAddress.getRegion());
+      Assertions.assertEquals(expectedAddress.getPostalCode().orElse(null), actualAddress.getPostalCode());
+      Assertions.assertEquals(expectedAddress.getCountry().orElse(null), actualAddress.getCountry());
+      Assertions.assertEquals(expectedAddress.getType().orElse(null), actualAddress.getType());
+      Assertions.assertEquals(expectedAddress.isPrimary(), actualAddress.isPrimary());
+    }
+  }
+
+  private void checkCertificates(List<ScimX509Certificate> expectedCertificates,
+                                 List<ScimCertificatesEntity> actualCertificates)
+  {
+    Assertions.assertEquals(expectedCertificates.size(), actualCertificates.size());
+    for ( int i = 0 ; i < expectedCertificates.size() ; i++ )
+    {
+      ScimX509Certificate expectedCertificate = expectedCertificates.get(i);
+      ScimCertificatesEntity actualCertificate = actualCertificates.get(i);
+      Assertions.assertEquals(expectedCertificate.getValue().orElse(null), actualCertificate.getValue());
+      Assertions.assertEquals(expectedCertificate.getDisplay().orElse(null), actualCertificate.getDisplay());
+      Assertions.assertEquals(expectedCertificate.getType().orElse(null), actualCertificate.getType());
+      Assertions.assertEquals(expectedCertificate.isPrimary(), actualCertificate.isPrimary());
+    }
   }
 
   private void checkEmails(List<Email> expectedEmails, List<ScimEmailsEntity> actualEmails)
@@ -273,9 +341,64 @@ public class UserHandler2Test extends AbstractScimEndpointTest implements FileRe
       Email expectedEmail = expectedEmails.get(i);
       ScimEmailsEntity actualEmail = actualEmails.get(i);
       Assertions.assertEquals(expectedEmail.getValue().orElse(null), actualEmail.getValue());
-      Assertions.assertEquals(expectedEmail.getDisplay().orElse(null), actualEmail.getDisplay());
       Assertions.assertEquals(expectedEmail.getType().orElse(null), actualEmail.getType());
       Assertions.assertEquals(expectedEmail.isPrimary(), actualEmail.isPrimary());
+    }
+  }
+
+  private void checkEntitlements(List<Entitlement> expectedEntitlements, List<ScimEntitlementEntity> actualEntitlements)
+  {
+    Assertions.assertEquals(expectedEntitlements.size(), actualEntitlements.size());
+    for ( int i = 0 ; i < expectedEntitlements.size() ; i++ )
+    {
+      Entitlement expectedEntitlement = expectedEntitlements.get(i);
+      ScimEntitlementEntity actualEntitlement = actualEntitlements.get(i);
+      Assertions.assertEquals(expectedEntitlement.getValue().orElse(null), actualEntitlement.getValue());
+      Assertions.assertEquals(expectedEntitlement.getDisplay().orElse(null), actualEntitlement.getDisplay());
+      Assertions.assertEquals(expectedEntitlement.getType().orElse(null), actualEntitlement.getType());
+      Assertions.assertEquals(expectedEntitlement.isPrimary(), actualEntitlement.isPrimary());
+    }
+  }
+
+  private void checkIms(List<Ims> expectedImsList, List<ScimImsEntity> actualImsList)
+  {
+    Assertions.assertEquals(expectedImsList.size(), actualImsList.size());
+    for ( int i = 0 ; i < expectedImsList.size() ; i++ )
+    {
+      Ims expectedIms = expectedImsList.get(i);
+      ScimImsEntity actualIms = actualImsList.get(i);
+      Assertions.assertEquals(expectedIms.getValue().orElse(null), actualIms.getValue());
+      Assertions.assertEquals(expectedIms.getDisplay().orElse(null), actualIms.getDisplay());
+      Assertions.assertEquals(expectedIms.getType().orElse(null), actualIms.getType());
+      Assertions.assertEquals(expectedIms.isPrimary(), actualIms.isPrimary());
+    }
+  }
+
+  private void checkPhoneNumbers(List<PhoneNumber> expectedPhoneNumbers, List<ScimPhonesEntity> actualPhoneNumbers)
+  {
+    Assertions.assertEquals(expectedPhoneNumbers.size(), actualPhoneNumbers.size());
+    for ( int i = 0 ; i < expectedPhoneNumbers.size() ; i++ )
+    {
+      PhoneNumber expectedPhoneNumber = expectedPhoneNumbers.get(i);
+      ScimPhonesEntity actualPhoneNumber = actualPhoneNumbers.get(i);
+      Assertions.assertEquals(expectedPhoneNumber.getValue().orElse(null), actualPhoneNumber.getValue());
+      Assertions.assertEquals(expectedPhoneNumber.getDisplay().orElse(null), actualPhoneNumber.getDisplay());
+      Assertions.assertEquals(expectedPhoneNumber.getType().orElse(null), actualPhoneNumber.getType());
+      Assertions.assertEquals(expectedPhoneNumber.isPrimary(), actualPhoneNumber.isPrimary());
+    }
+  }
+
+  private void checkPhotos(List<Photo> expectedPhotos, List<ScimPhotosEntity> actualPhotos)
+  {
+    Assertions.assertEquals(expectedPhotos.size(), actualPhotos.size());
+    for ( int i = 0 ; i < expectedPhotos.size() ; i++ )
+    {
+      Photo expectedPhoto = expectedPhotos.get(i);
+      ScimPhotosEntity actualPhoto = actualPhotos.get(i);
+      Assertions.assertEquals(expectedPhoto.getValue().orElse(null), actualPhoto.getValue());
+      Assertions.assertEquals(expectedPhoto.getDisplay().orElse(null), actualPhoto.getDisplay());
+      Assertions.assertEquals(expectedPhoto.getType().orElse(null), actualPhoto.getType());
+      Assertions.assertEquals(expectedPhoto.isPrimary(), actualPhoto.isPrimary());
     }
   }
 }

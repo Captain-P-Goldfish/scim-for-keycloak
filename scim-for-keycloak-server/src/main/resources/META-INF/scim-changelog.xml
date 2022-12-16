@@ -193,7 +193,6 @@
                              referencedColumnNames="ID"/>
             </column>
             <column name="EMAIL_VALUE" type="VARCHAR(255)"/>
-            <column name="EMAIL_DISPLAY" type="VARCHAR(255)"/>
             <column name="EMAIL_TYPE" type="VARCHAR(255)"/>
             <column name="IS_PRIMARY" type="BOOLEAN"/>
         </createTable>
@@ -313,7 +312,7 @@
             <column name="POSTALCODE" type="VARCHAR(255)"/>
             <column name="COUNTRY" type="VARCHAR(255)"/>
             <column name="ADDRESS_TYPE" type="VARCHAR(255)"/>
-            <column name="PRIMARY" type="BOOLEAN"/>
+            <column name="IS_PRIMARY" type="BOOLEAN"/>
         </createTable>
 
         <createIndex tableName="SCIM_ADDRESSES" indexName="PK_SCIM_ADDRESSES_IDX">

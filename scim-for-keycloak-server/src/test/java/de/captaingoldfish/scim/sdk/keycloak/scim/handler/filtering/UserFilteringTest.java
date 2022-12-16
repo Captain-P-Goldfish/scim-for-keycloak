@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
@@ -54,21 +53,6 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
   }
 
   /**
-   * creates a user using the SCIM endpoint
-   */
-  private User createUser(User user)
-  {
-    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
-                                               .method(HttpMethod.POST)
-                                               .endpoint(CustomUser2Endpoint.CUSTOM_USER_2_ENDPOINT)
-                                               .requestBody(user.toString())
-                                               .build();
-    Response response = getScimEndpoint().handleScimRequest(request);
-    Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
-    return JsonHelper.readJsonDocument(response.readEntity(String.class), User.class);
-  }
-
-  /**
    * this test makes sure that it is not possible to filter for user passwords
    */
   @Test
@@ -84,57 +68,6 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
     ErrorResponse errorResponse = JsonHelper.readJsonDocument((String)response.getEntity(), ErrorResponse.class);
     Assertions.assertEquals("Illegal filter-attribute found 'urn:ietf:params:scim:schemas:core:2.0:User:password'",
                             errorResponse.getDetail().get());
-  }
-
-  @Test
-  public void test()
-  {
-    User superMarioScim = JsonHelper.loadJsonDocument(USER_SUPER_MARIO, User.class);
-    User donkeyKongScim = JsonHelper.loadJsonDocument(USER_DONKEY_KONG, User.class);
-    User linkScim = JsonHelper.loadJsonDocument(USER_LINK, User.class);
-
-    superMarioScim = createUser(superMarioScim);
-    donkeyKongScim = createUser(donkeyKongScim);
-    linkScim = createUser(linkScim);
-
-    GroupModel adminGroup = getKeycloakSession().groups().createGroup(getRealmModel(), "admin");
-    GroupModel userGroup = getKeycloakSession().groups().createGroup(getRealmModel(), "user");
-    GroupModel moderatorGroup = getKeycloakSession().groups().createGroup(getRealmModel(), "moderator");
-
-    // let users join groups
-    // link -> admin, user
-    // mario -> moderator, user
-    // donkey-kong -> user
-    {
-      UserModel marioModel = getKeycloakSession().users().getUserById(getRealmModel(), superMarioScim.getId().get());
-      UserModel donkeyKongModel = getKeycloakSession().users()
-                                                      .getUserById(getRealmModel(), donkeyKongScim.getId().get());
-      UserModel linkModel = getKeycloakSession().users().getUserById(getRealmModel(), linkScim.getId().get());
-
-      linkModel.joinGroup(adminGroup);
-
-      marioModel.joinGroup(moderatorGroup);
-
-      linkModel.joinGroup(userGroup);
-      marioModel.joinGroup(userGroup);
-      donkeyKongModel.joinGroup(userGroup);
-    }
-
-    // Query query = getEntityManager().createQuery("select u, ua, g from UserEntity u "
-    // + "left join ScimUserAttributesEntity ua on u.id = ua.userEntity.id "
-    // + "join UserGroupMembershipEntity um on u.id = um.user.id "
-    // + "join GroupEntity g on g.id = um.groupId "
-    // + "where u.username = 'link'");
-    Query query = getEntityManager().createQuery("select distinct ua, u from UserEntity u "
-                                                 + "     join ScimUserAttributesEntity ua on u.id = ua.userEntity.id "
-                                                 + "     join UserGroupMembershipEntity ugm on u.id = ugm.user.id "
-                                                 + "     join GroupEntity g on g.id = ugm.groupId "
-                                                 + "    where u.realmId = '" + getRealmModel().getId() + "' "
-                                                 + "      and u.serviceAccountClientLink is null ")
-                                    .setMaxResults(3);
-
-    List results = query.getResultList();
-    log.warn("...");
   }
 
   /**
