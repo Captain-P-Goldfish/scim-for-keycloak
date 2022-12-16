@@ -3,12 +3,18 @@ package de.captaingoldfish.scim.sdk.keycloak.provider;
 import java.util.Arrays;
 import java.util.List;
 
-import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
-import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
 import org.keycloak.connections.jpa.entityprovider.JpaEntityProvider;
 
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimAddressEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEntitlementEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimImsEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhonesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhotosEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimResourceTypeEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimServiceProviderEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -26,7 +32,15 @@ public class ScimJpaEntityProvider implements JpaEntityProvider
     return Arrays.asList(ScimServiceProviderEntity.class,
                          ScimResourceTypeEntity.class,
                          ScimUserAttributesEntity.class,
-                         ScimEmailsEntity.class);
+                         ScimAddressEntity.class,
+                         ScimEmailsEntity.class,
+                         ScimPhonesEntity.class,
+                         ScimImsEntity.class,
+                         ScimPhotosEntity.class,
+                         ScimEntitlementEntity.class,
+                         ScimCertificatesEntity.class
+
+    );
   }
 
   @Override

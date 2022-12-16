@@ -199,13 +199,48 @@ public class ScimUserAttributesEntity
   private long lastModified;
 
   /**
+   * list of scim addresses
+   */
+  @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<ScimAddressEntity> addresses;
+
+  /**
    * list of scim emails
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ScimEmailsEntity> emails;
 
-  @Builder
+  /**
+   * list of scim phone numbers
+   */
+  @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<ScimPhonesEntity> phoneNumbers;
 
+  /**
+   * list of scim instant messaging addresses (ims)
+   */
+  @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<ScimImsEntity> instantMessagingAddresses;
+
+  /**
+   * list of scim photos
+   */
+  @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<ScimPhotosEntity> photos;
+
+  /**
+   * list of scim entitlements
+   */
+  @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<ScimEntitlementEntity> entitlements;
+
+  /**
+   * list of scim certificates
+   */
+  @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<ScimCertificatesEntity> certificates;
+
+  @Builder
   public ScimUserAttributesEntity(String id,
                                   UserEntity userEntity,
                                   String externalId,

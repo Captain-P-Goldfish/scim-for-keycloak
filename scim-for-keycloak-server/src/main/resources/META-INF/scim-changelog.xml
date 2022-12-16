@@ -211,10 +211,10 @@
                              referencedTableName="USER_SCIM_ATTRIBUTES"
                              referencedColumnNames="ID"/>
             </column>
-            <column name="VALUE" type="VARCHAR(255)"/>
-            <column name="DISPLAY" type="VARCHAR(255)"/>
-            <column name="TYPE" type="VARCHAR(255)"/>
-            <column name="PRIMARY" type="BOOLEAN"/>
+            <column name="PHONE_VALUE" type="VARCHAR(255)"/>
+            <column name="PHONE_DISPLAY" type="VARCHAR(255)"/>
+            <column name="PHONE_TYPE" type="VARCHAR(255)"/>
+            <column name="IS_PRIMARY" type="BOOLEAN"/>
         </createTable>
 
         <createIndex tableName="SCIM_PHONENUMBERS" indexName="SCIM_PHONE_IDX">
@@ -230,10 +230,10 @@
                              referencedTableName="USER_SCIM_ATTRIBUTES"
                              referencedColumnNames="ID"/>
             </column>
-            <column name="VALUE" type="VARCHAR(255)"/>
-            <column name="DISPLAY" type="VARCHAR(255)"/>
-            <column name="TYPE" type="VARCHAR(255)"/>
-            <column name="PRIMARY" type="BOOLEAN"/>
+            <column name="IMS_VALUE" type="VARCHAR(255)"/>
+            <column name="IMS_DISPLAY" type="VARCHAR(255)"/>
+            <column name="IMS_TYPE" type="VARCHAR(255)"/>
+            <column name="IS_PRIMARY" type="BOOLEAN"/>
         </createTable>
 
         <createIndex tableName="SCIM_IMS" indexName="SCIM_IMS_IDX">
@@ -249,10 +249,10 @@
                              referencedTableName="USER_SCIM_ATTRIBUTES"
                              referencedColumnNames="ID"/>
             </column>
-            <column name="VALUE" type="VARCHAR(255)"/>
-            <column name="DISPLAY" type="VARCHAR(255)"/>
-            <column name="TYPE" type="VARCHAR(255)"/>
-            <column name="PRIMARY" type="BOOLEAN"/>
+            <column name="PHOTOS_VALUE" type="VARCHAR(255)"/>
+            <column name="PHOTOS_DISPLAY" type="VARCHAR(255)"/>
+            <column name="PHOTOS_TYPE" type="VARCHAR(255)"/>
+            <column name="IS_PRIMARY" type="BOOLEAN"/>
         </createTable>
 
         <createIndex tableName="SCIM_PHOTOS" indexName="PK_SCIM_PHOTOS_IDX">
@@ -268,10 +268,10 @@
                              referencedTableName="USER_SCIM_ATTRIBUTES"
                              referencedColumnNames="ID"/>
             </column>
-            <column name="VALUE" type="VARCHAR(255)"/>
-            <column name="DISPLAY" type="VARCHAR(255)"/>
-            <column name="TYPE" type="VARCHAR(255)"/>
-            <column name="PRIMARY" type="BOOLEAN"/>
+            <column name="ENTITLEMENT_VALUE" type="VARCHAR(255)"/>
+            <column name="ENTITLEMENT_DISPLAY" type="VARCHAR(255)"/>
+            <column name="ENTITLEMENT_TYPE" type="VARCHAR(255)"/>
+            <column name="IS_PRIMARY" type="BOOLEAN"/>
         </createTable>
 
         <createIndex tableName="SCIM_ENTITLEMENTS" indexName="PK_SCIM_ENTITLEMENTS_IDX">
@@ -287,10 +287,10 @@
                              referencedTableName="USER_SCIM_ATTRIBUTES"
                              referencedColumnNames="ID"/>
             </column>
-            <column name="VALUE" type="${clob_type}"/>
-            <column name="DISPLAY" type="VARCHAR(255)"/>
-            <column name="TYPE" type="VARCHAR(255)"/>
-            <column name="PRIMARY" type="BOOLEAN"/>
+            <column name="CERTIFICATE_VALUE" type="${clob_type}"/>
+            <column name="CERTIFICATE_DISPLAY" type="VARCHAR(255)"/>
+            <column name="CERTIFICATE_TYPE" type="VARCHAR(255)"/>
+            <column name="IS_PRIMARY" type="BOOLEAN"/>
         </createTable>
 
         <createIndex tableName="SCIM_CERTIFICATES" indexName="PK_SCIM_CERTIFICATE_IDX">
@@ -312,7 +312,7 @@
             <column name="REGION" type="VARCHAR(255)"/>
             <column name="POSTALCODE" type="VARCHAR(255)"/>
             <column name="COUNTRY" type="VARCHAR(255)"/>
-            <column name="TYPE" type="VARCHAR(255)"/>
+            <column name="ADDRESS_TYPE" type="VARCHAR(255)"/>
             <column name="PRIMARY" type="BOOLEAN"/>
         </createTable>
 
