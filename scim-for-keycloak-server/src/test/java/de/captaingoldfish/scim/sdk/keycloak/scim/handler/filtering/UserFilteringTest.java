@@ -19,6 +19,7 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.UserModel;
 
 import de.captaingoldfish.scim.sdk.common.constants.AttributeNames;
+import de.captaingoldfish.scim.sdk.common.constants.EndpointPaths;
 import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
 import de.captaingoldfish.scim.sdk.common.constants.enums.HttpMethod;
 import de.captaingoldfish.scim.sdk.common.resources.User;
@@ -28,7 +29,6 @@ import de.captaingoldfish.scim.sdk.common.response.ErrorResponse;
 import de.captaingoldfish.scim.sdk.common.response.ListResponse;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
 import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
-import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUser2Endpoint;
 import de.captaingoldfish.scim.sdk.keycloak.setup.FileReferences;
 import de.captaingoldfish.scim.sdk.keycloak.setup.RequestBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -61,7 +61,7 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
     String encodedFilter = String.format("?filter=%s", encodeUrl("password eq \"123456\""));
     HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
                                                .method(HttpMethod.GET)
-                                               .endpoint(CustomUser2Endpoint.CUSTOM_USER_2_ENDPOINT + encodedFilter)
+                                               .endpoint(EndpointPaths.USERS + encodedFilter)
                                                .build();
     Response response = getScimEndpoint().handleScimRequest(request);
     Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatus());
@@ -259,7 +259,7 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
       String encodedFilter = Optional.ofNullable(filter).map(f -> String.format("?filter=%s", encodeUrl(f))).orElse("");
       HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
                                                  .method(HttpMethod.GET)
-                                                 .endpoint(CustomUser2Endpoint.CUSTOM_USER_2_ENDPOINT + encodedFilter)
+                                                 .endpoint(EndpointPaths.USERS + encodedFilter)
                                                  .build();
       Response response = getScimEndpoint().handleScimRequest(request);
       Assertions.assertEquals(HttpStatus.OK, response.getStatus());

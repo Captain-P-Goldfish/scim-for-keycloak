@@ -8,13 +8,13 @@ import org.keycloak.models.RealmModel;
 
 import de.captaingoldfish.scim.sdk.common.resources.ServiceProvider;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimResourceTypeEntity;
-import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUser2Endpoint;
 import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUserEndpoint;
+import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUserLegacyEndpoint;
 import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.RoleEndpointDefinition;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.GroupHandler;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.RealmRoleHandler;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.UserHandler;
-import de.captaingoldfish.scim.sdk.keycloak.scim.handler.UserHandler2;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.UserLegacyHandler;
 import de.captaingoldfish.scim.sdk.keycloak.services.ScimResourceTypeService;
 import de.captaingoldfish.scim.sdk.keycloak.services.ScimServiceProviderService;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceEndpoint;
@@ -79,14 +79,14 @@ public final class ScimConfiguration
 
     ScimResourceTypeService resourceTypeService = new ScimResourceTypeService(keycloakSession);
 
-    ResourceType userResourceType = resourceEndpoint.registerEndpoint(new CustomUserEndpoint(new UserHandler()));
-    userResourceType.setFeatures(ResourceTypeFeatures.builder().autoFiltering(true).autoSorting(true).build());
-    ScimResourceTypeEntity userResourceTypeEntity = resourceTypeService.getOrCreateResourceTypeEntry(userResourceType);
-    resourceTypeService.updateResourceType(userResourceType, userResourceTypeEntity);
+    ResourceType userLegacyResourceType = resourceEndpoint.registerEndpoint(new CustomUserLegacyEndpoint(new UserLegacyHandler()));
+    userLegacyResourceType.setFeatures(ResourceTypeFeatures.builder().autoFiltering(true).autoSorting(true).build());
+    ScimResourceTypeEntity userResourceTypeEntity = resourceTypeService.getOrCreateResourceTypeEntry(userLegacyResourceType);
+    resourceTypeService.updateResourceType(userLegacyResourceType, userResourceTypeEntity);
 
-    ResourceType user2ResourceType = resourceEndpoint.registerEndpoint(new CustomUser2Endpoint(new UserHandler2()));
-    ScimResourceTypeEntity user2ResourceTypeEntity = resourceTypeService.getOrCreateResourceTypeEntry(user2ResourceType);
-    resourceTypeService.updateResourceType(user2ResourceType, user2ResourceTypeEntity);
+    ResourceType userResourceType = resourceEndpoint.registerEndpoint(new CustomUserEndpoint(new UserHandler()));
+    ScimResourceTypeEntity user2ResourceTypeEntity = resourceTypeService.getOrCreateResourceTypeEntry(userResourceType);
+    resourceTypeService.updateResourceType(userResourceType, user2ResourceTypeEntity);
 
     ResourceType groupResourceType = resourceEndpoint.registerEndpoint(new GroupEndpointDefinition(new GroupHandler()));
     groupResourceType.setFeatures(ResourceTypeFeatures.builder().autoFiltering(true).autoSorting(true).build());

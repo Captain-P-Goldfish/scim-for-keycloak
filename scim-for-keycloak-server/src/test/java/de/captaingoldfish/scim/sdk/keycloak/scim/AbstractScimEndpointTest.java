@@ -8,13 +8,13 @@ import org.junit.jupiter.api.BeforeEach;
 
 import com.fasterxml.jackson.databind.node.BooleanNode;
 
+import de.captaingoldfish.scim.sdk.common.constants.EndpointPaths;
 import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
 import de.captaingoldfish.scim.sdk.common.constants.enums.HttpMethod;
 import de.captaingoldfish.scim.sdk.common.resources.ServiceProvider;
 import de.captaingoldfish.scim.sdk.common.resources.User;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
 import de.captaingoldfish.scim.sdk.keycloak.scim.administration.ServiceProviderResource;
-import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUser2Endpoint;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
 import de.captaingoldfish.scim.sdk.keycloak.setup.FileReferences;
 import de.captaingoldfish.scim.sdk.keycloak.setup.KeycloakScimManagementTest;
@@ -47,7 +47,7 @@ public class AbstractScimEndpointTest extends KeycloakScimManagementTest impleme
   {
     HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
                                                .method(HttpMethod.POST)
-                                               .endpoint(CustomUser2Endpoint.CUSTOM_USER_2_ENDPOINT)
+                                               .endpoint(EndpointPaths.USERS)
                                                .requestBody(user.toString())
                                                .build();
     Response response = getScimEndpoint().handleScimRequest(request);
@@ -62,7 +62,7 @@ public class AbstractScimEndpointTest extends KeycloakScimManagementTest impleme
   {
     HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
                                                .method(HttpMethod.PUT)
-                                               .endpoint(CustomUser2Endpoint.CUSTOM_USER_2_ENDPOINT + "/" + id)
+                                               .endpoint(EndpointPaths.USERS + "/" + id)
                                                .requestBody(user.toString())
                                                .build();
     Response response = getScimEndpoint().handleScimRequest(request);
@@ -78,7 +78,7 @@ public class AbstractScimEndpointTest extends KeycloakScimManagementTest impleme
     HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
                                                .method(HttpMethod.DELETE)
                                                .endpoint(String.format("%s/%s",
-                                                                       CustomUser2Endpoint.CUSTOM_USER_2_ENDPOINT,
+                                                                       EndpointPaths.USERS,
                                                                        user.getId().get()))
                                                .build();
     Response response = getScimEndpoint().handleScimRequest(request);

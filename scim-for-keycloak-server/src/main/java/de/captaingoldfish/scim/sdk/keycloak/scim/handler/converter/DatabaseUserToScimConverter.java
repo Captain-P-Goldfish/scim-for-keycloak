@@ -50,20 +50,15 @@ public final class DatabaseUserToScimConverter
     List<PhoneNumber> phoneNumbers = databasePhoneNumbersToScim(userAttributes);
     List<Photo> photos = databasePhotosToScim(userAttributes);
 
+    Name name = databaseNameToScimName(userAttributes);
+
     EnterpriseUser enterpriseUser = toScimEnterpriseUser(userAttributes);
     return CustomUser.builder()
                      .id(userEntity.getId())
                      .externalId(userAttributes.getExternalId())
                      .userName(userEntity.getUsername())
                      .active(userEntity.isEnabled())
-                     .name(Name.builder()
-                               .formatted(userAttributes.getNameFormatted())
-                               .givenName(userAttributes.getGivenName())
-                               .middlename(userAttributes.getMiddleName())
-                               .familyName(userAttributes.getFamilyName())
-                               .honorificPrefix(userAttributes.getNameHonorificPrefix())
-                               .honorificSuffix(userAttributes.getNameHonorificSuffix())
-                               .build())
+                     .name(name)
                      .displayName(userAttributes.getDisplayName())
                      .nickName(userAttributes.getNickName())
                      .profileUrl(userAttributes.getProfileUrl())
@@ -86,6 +81,27 @@ public final class DatabaseUserToScimConverter
                                .resourceType(ResourceTypeNames.USER)
                                .build())
                      .build();
+  }
+
+  /**
+   * returns the name-attributes or null if the name does not have any attributes
+   */
+  private static Name databaseNameToScimName(ScimUserAttributesEntity userAttributes)
+  {
+    Name name = Name.builder()
+                    .formatted(userAttributes.getNameFormatted())
+                    .givenName(userAttributes.getGivenName())
+                    .middlename(userAttributes.getMiddleName())
+                    .familyName(userAttributes.getFamilyName())
+                    .honorificPrefix(userAttributes.getNameHonorificPrefix())
+                    .honorificSuffix(userAttributes.getNameHonorificSuffix())
+                    .build();
+
+    if (name.isEmpty())
+    {
+      return null;
+    }
+    return name;
   }
 
   /**

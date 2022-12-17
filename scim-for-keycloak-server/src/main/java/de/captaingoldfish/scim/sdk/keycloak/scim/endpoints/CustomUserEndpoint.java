@@ -15,8 +15,8 @@ import de.captaingoldfish.scim.sdk.server.endpoints.ResourceHandler;
 public class CustomUserEndpoint extends EndpointDefinition
 {
 
-  private static final String RESOURCE_TYPE_COUNTRY_USER_EXTENSION_LOCATION = "/resourcetypes/custom-user-resource"
-                                                                              + "-type.json";
+  private static final String RESOURCE_TYPE_COUNTRY_USER_EXTENSION_LOCATION = "/resourcetypes/"
+                                                                              + "custom-user-resource-type.json";
 
   private static final String COUNTRY_USER_SCHEMA_EXTENSION_LOCATION = "/schemas/country-user-extension.json";
 

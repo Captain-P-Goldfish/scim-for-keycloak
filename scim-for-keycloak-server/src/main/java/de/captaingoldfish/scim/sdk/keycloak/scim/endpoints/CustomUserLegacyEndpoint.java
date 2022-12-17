@@ -13,17 +13,17 @@ import de.captaingoldfish.scim.sdk.server.endpoints.ResourceHandler;
  * @author Pascal Knueppel
  * @since 16.10.2021
  */
-public class CustomUser2Endpoint extends EndpointDefinition
+public class CustomUserLegacyEndpoint extends EndpointDefinition
 {
 
-  public static final String CUSTOM_USER_2_ENDPOINT = EndpointPaths.USERS + "2";
+  public static final String USER_LEGACY_PATH = EndpointPaths.USERS + "Legacy";
 
-  private static final String RESOURCE_TYPE_COUNTRY_USER_EXTENSION_LOCATION = "/resourcetypes/custom-user-2-resource"
-                                                                              + "-type.json";
+  private static final String RESOURCE_TYPE_COUNTRY_USER_EXTENSION_LOCATION = "/resourcetypes/"
+                                                                              + "custom-user-legacy-resource-type.json";
 
   private static final String COUNTRY_USER_SCHEMA_EXTENSION_LOCATION = "/schemas/country-user-extension.json";
 
-  public CustomUser2Endpoint(ResourceHandler resourceHandler)
+  public CustomUserLegacyEndpoint(ResourceHandler resourceHandler)
   {
     super(JsonHelper.loadJsonDocument(RESOURCE_TYPE_COUNTRY_USER_EXTENSION_LOCATION),
           JsonHelper.loadJsonDocument(ClassPathReferences.USER_SCHEMA_JSON),

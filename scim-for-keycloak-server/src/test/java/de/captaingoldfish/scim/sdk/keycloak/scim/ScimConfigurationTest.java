@@ -45,10 +45,10 @@ public class ScimConfigurationTest extends KeycloakScimManagementTest
   public void testInitialResourceTypeConfigurations()
   {
     ResourceType userResourceType = resourceEndpoint.getResourceTypeByName(ResourceTypeNames.USER).get();
-    verifyInitialResourceTypeSetup(userResourceType);
+    verifyInitialResourceTypeSetup(userResourceType, false, false);
     verifyInitialResourceTypeDatabaseSetup(userResourceType);
     ResourceType groupResourceType = resourceEndpoint.getResourceTypeByName(ResourceTypeNames.GROUPS).get();
-    verifyInitialResourceTypeSetup(groupResourceType);
+    verifyInitialResourceTypeSetup(groupResourceType, true, true);
     verifyInitialResourceTypeDatabaseSetup(groupResourceType);
   }
 
@@ -80,13 +80,15 @@ public class ScimConfigurationTest extends KeycloakScimManagementTest
   /**
    * checks that the configuration of the given resource type conforms to the default configuration
    */
-  private void verifyInitialResourceTypeSetup(ResourceType resourceType)
+  private void verifyInitialResourceTypeSetup(ResourceType resourceType,
+                                              boolean autoFilteringEnabled,
+                                              boolean autoSortingEnabled)
   {
     Assertions.assertFalse(resourceType.isDisabled());
 
     ResourceTypeFeatures features = resourceType.getFeatures();
-    Assertions.assertTrue(features.isAutoFiltering());
-    Assertions.assertTrue(features.isAutoSorting());
+    Assertions.assertEquals(autoFilteringEnabled, features.isAutoFiltering());
+    Assertions.assertEquals(autoSortingEnabled, features.isAutoSorting());
     Assertions.assertFalse(features.isSingletonEndpoint());
     Assertions.assertFalse(features.getETagFeature().isEnabled());
 

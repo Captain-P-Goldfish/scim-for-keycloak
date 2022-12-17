@@ -248,7 +248,7 @@ public class ScimServiceProviderService extends AbstractService
     });
 
     {
-      // now adding custom attributes not that are not defined by SCIM but are used within the web-admin console
+      // now adding custom attributes that are not defined by SCIM but are used within the web-admin console
       serviceProvider.set("enabled", BooleanNode.valueOf(entity.isEnabled()));
 
       ArrayNode arrayNode = new ArrayNode(JsonNodeFactory.instance);

@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -414,10 +416,13 @@ public class GroupHandlerTest extends AbstractScimEndpointTest
     Assertions.assertEquals(5, adminEventList.size());
     // check for created admin event that the group was created
     {
-      AdminEvent adminEvent = adminEventList.get(0);
+      AdminEvent adminEvent = adminEventList.stream()
+                                            .filter(event -> event.getResourceType().equals(ResourceType.GROUP))
+                                            .findAny()
+                                            .get();
       Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
       Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
-      Assertions.assertEquals("groups/" + createdGroup.getId().get(), adminEvent.getResourcePath());
+      MatcherAssert.assertThat(adminEvent.getResourcePath(), Matchers.endsWith("groups/" + createdGroup.getId().get()));
       Assertions.assertEquals(OperationType.CREATE, adminEvent.getOperationType());
       Assertions.assertEquals(ResourceType.GROUP, adminEvent.getResourceType());
       // equalize the two objects by modifying the meta-attribute. The meta-attribute is not identical because the
@@ -613,10 +618,13 @@ public class GroupHandlerTest extends AbstractScimEndpointTest
     Assertions.assertEquals(3, adminEventList.size());
     // check for created admin event that the group was created
     {
-      AdminEvent adminEvent = adminEventList.get(0);
+      AdminEvent adminEvent = adminEventList.stream()
+                                            .filter(event -> event.getOperationType().equals(OperationType.UPDATE))
+                                            .findAny()
+                                            .get();
       Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
       Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
-      Assertions.assertEquals("groups/" + updatedGroup.getId().get(), adminEvent.getResourcePath());
+      MatcherAssert.assertThat(adminEvent.getResourcePath(), Matchers.endsWith("groups/" + updatedGroup.getId().get()));
       Assertions.assertEquals(OperationType.UPDATE, adminEvent.getOperationType());
       Assertions.assertEquals(ResourceType.GROUP, adminEvent.getResourceType());
       // equalize the two objects by modifying the meta-attribute. The meta-attribute is not identical because the

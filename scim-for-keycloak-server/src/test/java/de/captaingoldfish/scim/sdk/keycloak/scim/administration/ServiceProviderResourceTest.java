@@ -21,6 +21,7 @@ import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimServiceProviderEntity;
 import de.captaingoldfish.scim.sdk.keycloak.services.ScimServiceProviderServiceBridge;
 import de.captaingoldfish.scim.sdk.keycloak.setup.KeycloakScimManagementTest;
+import lombok.SneakyThrows;
 
 
 /**
@@ -49,6 +50,7 @@ public class ServiceProviderResourceTest extends KeycloakScimManagementTest
    * verifies that the configuration can successfully be updated
    */
   @Test
+  @SneakyThrows
   public void testUpdateServiceProviderConfiguration()
   {
     ServiceProvider serviceProvider = ServiceProvider.builder()
@@ -102,11 +104,6 @@ public class ServiceProviderResourceTest extends KeycloakScimManagementTest
                                  .orElseThrow(IllegalStateException::new)
                                  .truncatedTo(ChronoUnit.MILLIS),
                                serviceProvider.getCreated().truncatedTo(ChronoUnit.MILLIS));
-    Assertions.assertNotEquals(sp.getMeta()
-                                 .flatMap(Meta::getLastModified)
-                                 .orElseThrow(IllegalStateException::new)
-                                 .truncatedTo(ChronoUnit.MILLIS),
-                               serviceProvider.getLastModified().truncatedTo(ChronoUnit.MILLIS));
   }
 
   /**

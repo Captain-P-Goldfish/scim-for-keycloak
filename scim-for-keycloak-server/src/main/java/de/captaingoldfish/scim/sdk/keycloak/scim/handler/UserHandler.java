@@ -1,15 +1,14 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim.handler;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import javax.persistence.EntityManager;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.keycloak.connections.jpa.JpaConnectionProvider;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
 import org.keycloak.models.KeycloakSession;
@@ -18,53 +17,46 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserCredentialManager;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
+import org.keycloak.models.jpa.UserAdapter;
 
-import de.captaingoldfish.scim.sdk.common.constants.AttributeNames;
 import de.captaingoldfish.scim.sdk.common.constants.enums.SortOrder;
 import de.captaingoldfish.scim.sdk.common.exceptions.BadRequestException;
 import de.captaingoldfish.scim.sdk.common.exceptions.ConflictException;
 import de.captaingoldfish.scim.sdk.common.exceptions.ResourceNotFoundException;
-import de.captaingoldfish.scim.sdk.common.resources.EnterpriseUser;
-import de.captaingoldfish.scim.sdk.common.resources.complex.Manager;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Meta;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Name;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Address;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Email;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Entitlement;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.GroupNode;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Ims;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.MultiComplexNode;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PersonRole;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PhoneNumber;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
-import de.captaingoldfish.scim.sdk.common.resources.multicomplex.ScimX509Certificate;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
-import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
 import de.captaingoldfish.scim.sdk.keycloak.audit.ScimAdminEventBuilder;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.provider.ScimJpaUserProvider;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimKeycloakContext;
-import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CountryUserExtension;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.converter.DatabaseUserToScimConverter;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.converter.ScimUserToDatabaseConverter;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.UserFiltering;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
 import de.captaingoldfish.scim.sdk.server.endpoints.Context;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceHandler;
-import de.captaingoldfish.scim.sdk.server.endpoints.validation.RequestValidator;
 import de.captaingoldfish.scim.sdk.server.filter.FilterNode;
 import de.captaingoldfish.scim.sdk.server.response.PartialListResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 
 /**
- * author Pascal Knueppel <br>
- * created at: 04.02.2020 <br>
- * <br>
+ * @author Pascal Knueppel
+ * @since 10.12.2022
  */
+@RequiredArgsConstructor
 @Slf4j
 public class UserHandler extends ResourceHandler<CustomUser>
 {
 
-  public static final String PRIMARY_SUFFIX = "_primary";
-
   /**
-   * {@inheritDoc}
+   * create a new user
+   * 
+   * @param user the resource to store
+   * @param context the current request context that holds additional useful information. This object is never
+   *          null
    */
   @Override
   public CustomUser createResource(CustomUser user, Context context)
@@ -76,12 +68,8 @@ public class UserHandler extends ResourceHandler<CustomUser>
       throw new ConflictException("the username '" + username + "' is already taken");
     }
     UserModel userModel = keycloakSession.users().addUser(keycloakSession.getContext().getRealm(), username);
-    userModel = userToModel(user, userModel);
-    if (isChangePasswordSupported() && user.getPassword().isPresent())
-    {
-      setPassword(keycloakSession, user.getPassword().get(), userModel);
-    }
-    CustomUser newUser = modelToUser(userModel);
+    ScimUserAttributesEntity scimUserAttributes = persistUserInDatabase(user, userModel, keycloakSession);
+    CustomUser newUser = DatabaseUserToScimConverter.databaseUserModelToScimModel(scimUserAttributes);
     {
       ScimAdminEventBuilder adminEventAuditer = ((ScimKeycloakContext)context).getAdminEventAuditer();
       adminEventAuditer.createEvent(OperationType.CREATE,
@@ -89,12 +77,22 @@ public class UserHandler extends ResourceHandler<CustomUser>
                                     String.format("users/%s", userModel.getId()),
                                     newUser);
     }
-    log.debug("Created user with username: {}", userModel.getUsername());
+    log.info("SCIM endpoint created user with username: {}", userModel.getUsername());
     return newUser;
   }
 
   /**
-   * {@inheritDoc}
+   * ges a single user from the database
+   * 
+   * @param id the id of the resource to return
+   * @param attributes the attributes that should be returned to the client. If the client sends this parameter
+   *          the evaluation of these parameters might help to improve database performance by omitting
+   *          unnecessary table joins
+   * @param excludedAttributes the attributes that should NOT be returned to the client. If the client send this
+   *          parameter the evaluation of these parameters might help to improve database performance by
+   *          omitting unnecessary table joins
+   * @param context the current request context that holds additional useful information. This object is never
+   *          null
    */
   @Override
   public CustomUser getResource(String id,
@@ -103,16 +101,32 @@ public class UserHandler extends ResourceHandler<CustomUser>
                                 Context context)
   {
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
-    UserModel userModel = keycloakSession.users().getUserById(keycloakSession.getContext().getRealm(), id);
-    if (userModel == null)
+    ScimUserAttributesEntity userAttributes = ScimJpaUserProvider.findUserById(keycloakSession, id);
+    if (userAttributes == null)
     {
-      return null; // causes a resource not found exception you may also throw it manually
+      return null;
     }
-    return modelToUser(userModel);
+    return DatabaseUserToScimConverter.databaseUserModelToScimModel(userAttributes);
   }
 
   /**
-   * {@inheritDoc}
+   * filter resources on database
+   * 
+   * @param startIndex the start index that has a minimum value of 1. So the given startIndex here will never be
+   *          lower than 1
+   * @param count the number of entries that should be returned to the client. The minimum value of this value
+   *          is 0.
+   * @param filter the parsed filter expression if the client has given a filter
+   * @param sortBy the attribute value that should be used for sorting
+   * @param sortOrder the sort order
+   * @param attributes the attributes that should be returned to the client. If the client sends this parameter
+   *          the evaluation of these parameters might help to improve database performance by omitting
+   *          unnecessary table joins
+   * @param excludedAttributes the attributes that should NOT be returned to the client. If the client send this
+   *          parameter the evaluation of these parameters might help to improve database performance by
+   *          omitting unnecessary table joins
+   * @param context the current request context that holds additional useful information. This object is never
+   *          null
    */
   @Override
   public PartialListResponse<CustomUser> listResources(long startIndex,
@@ -125,58 +139,53 @@ public class UserHandler extends ResourceHandler<CustomUser>
                                                        Context context)
   {
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
-    // TODO in order to filter on database level the feature "autoFiltering" must be disabled and the JPA criteria
-    // api should be used
-    RealmModel realmModel = keycloakSession.getContext().getRealm();
-    Stream<UserModel> userModels = keycloakSession.users().getUsersStream(realmModel);
-    log.info("Parsing database users to SCIM representation: {}", Instant.now());
-    List<CustomUser> userList = userModels.parallel().map(this::modelToUser).collect(Collectors.toList());
-    return PartialListResponse.<CustomUser> builder().totalResults(userList.size()).resources(userList).build();
+    UserFiltering userFiltering = new UserFiltering(keycloakSession, startIndex, count, filter, sortBy, sortOrder);
+    long totalResults = userFiltering.countResources();
+    List<ScimUserAttributesEntity> userAttributesList = userFiltering.filterResources();
+    List<CustomUser> customUsers = userAttributesList.parallelStream()
+                                                     .map(DatabaseUserToScimConverter::databaseUserModelToScimModel)
+                                                     .collect(Collectors.toList());
+    return PartialListResponse.<CustomUser> builder().totalResults(totalResults).resources(customUsers).build();
   }
 
   /**
-   * {@inheritDoc}
+   * updates an existing user within the database
+   * 
+   * @param userToUpdate the resource that should override an existing one
+   * @param context the current request context that holds additional useful information. This object is never
+   *          null
    */
   @Override
   public CustomUser updateResource(CustomUser userToUpdate, Context context)
   {
-    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
-    UserModel userModel = keycloakSession.users()
-                                         .getUserById(keycloakSession.getContext().getRealm(),
-                                                      userToUpdate.getId().get());
-    if (userModel == null)
+    final String id = userToUpdate.getId().orElseThrow(() -> new BadRequestException("Will never happen"));
+    ScimKeycloakContext scimKeycloakContext = (ScimKeycloakContext)context;
+    KeycloakSession keycloakSession = scimKeycloakContext.getKeycloakSession();
+    ScimUserAttributesEntity userAttributes = ScimJpaUserProvider.findUserById(keycloakSession, id);
+    if (userAttributes == null)
     {
-      return null; // causes a resource not found exception you may also throw it manually
+      throw new ResourceNotFoundException(String.format("User with id '%s' does not exist", id));
     }
-    if (isChangePasswordSupported() && userToUpdate.getPassword().isPresent())
-    {
-      setPassword(keycloakSession, userToUpdate.getPassword().get(), userModel);
-    }
-    userModel = userToModel(userToUpdate, userModel);
-    userModel.setSingleAttribute(AttributeNames.RFC7643.LAST_MODIFIED, String.valueOf(Instant.now().toEpochMilli()));
-    CustomUser user = modelToUser(userModel);
-    {
-      ScimAdminEventBuilder adminEventAuditer = ((ScimKeycloakContext)context).getAdminEventAuditer();
-      adminEventAuditer.createEvent(OperationType.UPDATE,
-                                    ResourceType.USER,
-                                    String.format("users/%s", userModel.getId()),
-                                    user);
-    }
-    log.debug("Updated user with username: {}", userModel.getUsername());
-    return user;
+    userAttributes = updateUserInDatabase(userToUpdate, userAttributes, keycloakSession);
+    return DatabaseUserToScimConverter.databaseUserModelToScimModel(userAttributes);
   }
 
   /**
-   * {@inheritDoc}
+   * deletes a user from the database
+   * 
+   * @param id the id of the resource to delete
+   * @param context the current request context that holds additional useful information. This object is never
+   *          null
    */
   @Override
   public void deleteResource(String id, Context context)
   {
-    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
+    ScimKeycloakContext scimKeycloakContext = (ScimKeycloakContext)context;
+    KeycloakSession keycloakSession = scimKeycloakContext.getKeycloakSession();
     UserModel userModel = keycloakSession.users().getUserById(keycloakSession.getContext().getRealm(), id);
     if (userModel == null)
     {
-      throw new ResourceNotFoundException("resource with id '" + id + "' does not exist");
+      throw new ResourceNotFoundException(String.format("User with id '%s' does not exist", id));
     }
     keycloakSession.users().removeUser(keycloakSession.getContext().getRealm(), userModel);
     {
@@ -187,9 +196,97 @@ public class UserHandler extends ResourceHandler<CustomUser>
                                     CustomUser.builder()
                                               .id(userModel.getId())
                                               .userName(userModel.getUsername())
+                                              .meta(Meta.builder()
+                                                        .created(Instant.ofEpochMilli(userModel.getCreatedTimestamp()))
+                                                        .lastModified(Instant.now())
+                                                        .build())
                                               .build());
     }
-    log.debug("Deleted user with username: {}", userModel.getUsername());
+    log.info("SCIM endpoint deleted user with username: {}", userModel.getUsername());
+  }
+
+  /* ******************************************************************************************************** */
+
+  /**
+   * saves the SCIM representation of a user into the database
+   * 
+   * @param user the SCIM representation of a user
+   * @param userModel the keycloak representation of a user
+   * @param keycloakSession the current keycloak request context
+   * @return the saved database representation of the given SCIM user
+   */
+  private ScimUserAttributesEntity persistUserInDatabase(CustomUser user,
+                                                         UserModel userModel,
+                                                         KeycloakSession keycloakSession)
+  {
+    final String givenName = user.getName().flatMap(Name::getGivenName).orElse(null);
+    final String familyName = user.getName().flatMap(Name::getFamilyName).orElse(null);
+    final boolean userActive = user.isActive().orElse(false);
+    userModel.setFirstName(givenName);
+    userModel.setLastName(familyName);
+    userModel.setEnabled(userActive);
+
+    ScimUserAttributesEntity userAttributes = new ScimUserAttributesEntity();
+    // order is important. The addScimValuestoDatabaseModel method relies on the userEntity being added afterwards
+    return setUserValuesAndSave(user, userAttributes, keycloakSession, userModel);
+  }
+
+
+  /**
+   * updates the SCIM representation of a user within the database
+   * 
+   * @param user the SCIM representation of a user
+   * @param userAttributes the representation of an already existing user within the database
+   * @param keycloakSession the current keycloak request context
+   * @return the saved database representation of the given SCIM user
+   */
+  private ScimUserAttributesEntity updateUserInDatabase(CustomUser user,
+                                                        ScimUserAttributesEntity userAttributes,
+                                                        KeycloakSession keycloakSession)
+  {
+    final String userName = user.getUserName().orElse(userAttributes.getUserEntity().getUsername());
+    final String givenName = user.getName().flatMap(Name::getGivenName).orElse(null);
+    final String familyName = user.getName().flatMap(Name::getFamilyName).orElse(null);
+    final boolean userActive = user.isActive().orElse(false);
+    userAttributes.getUserEntity().setUsername(userName);
+    userAttributes.getUserEntity().setFirstName(givenName);
+    userAttributes.getUserEntity().setLastName(familyName);
+    userAttributes.getUserEntity().setEnabled(userActive);
+
+    UserModel userModel = new UserAdapter(keycloakSession, keycloakSession.getContext().getRealm(),
+                                          keycloakSession.getProvider(JpaConnectionProvider.class).getEntityManager(),
+                                          userAttributes.getUserEntity());
+    return setUserValuesAndSave(user, userAttributes, keycloakSession, userModel);
+  }
+
+  /**
+   * adds the values from the scim representation into the database representation and saves the object
+   * 
+   * @param user the scim user representation
+   * @param userAttributes the database user representation
+   * @param keycloakSession the current request context
+   * @param userModel the keycloak usermodel
+   */
+  @NotNull
+  private ScimUserAttributesEntity setUserValuesAndSave(CustomUser user,
+                                                        ScimUserAttributesEntity userAttributes,
+                                                        KeycloakSession keycloakSession,
+                                                        UserModel userModel)
+  {
+    // order is important. The addScimValuestoDatabaseModel method relies on the userEntity being added afterwards
+    ScimUserToDatabaseConverter.addScimValuesToDatabaseModel(user, userModel, userAttributes);
+    userAttributes.setUserEntity(((UserAdapter)userModel).getEntity());
+
+    if (isChangePasswordSupported() && user.getPassword().isPresent())
+    {
+      setPassword(keycloakSession, user.getPassword().get(), userModel);
+    }
+
+    EntityManager entityManager = keycloakSession.getProvider(JpaConnectionProvider.class).getEntityManager();
+    log.debug("Persisting user");
+    entityManager.persist(userAttributes);
+    entityManager.flush();
+    return userAttributes;
   }
 
   /**
@@ -217,259 +314,5 @@ public class UserHandler extends ResourceHandler<CustomUser>
       log.debug(ex.getMessage(), ex);
       throw new BadRequestException("password policy not matched");
     }
-  }
-
-  /**
-   * writes the values of the scim user instance into the keycloak user instance
-   *
-   * @param user the scim user instance
-   * @param userModel the keycloak user instance
-   * @return the updated keycloak user instance
-   */
-  private UserModel userToModel(CustomUser user, UserModel userModel)
-  {
-    user.getExternalId()
-        .ifPresent(externalId -> userModel.setSingleAttribute(AttributeNames.RFC7643.EXTERNAL_ID, externalId));
-    user.isActive().ifPresent(userModel::setEnabled);
-    user.getName().ifPresent(name -> {
-      name.getGivenName().ifPresent(userModel::setFirstName);
-      name.getFamilyName().ifPresent(userModel::setLastName);
-      name.getMiddleName()
-          .ifPresent(middleName -> userModel.setSingleAttribute(AttributeNames.RFC7643.MIDDLE_NAME, middleName));
-      name.getHonorificPrefix()
-          .ifPresent(prefix -> userModel.setSingleAttribute(AttributeNames.RFC7643.HONORIFIC_PREFIX, prefix));
-      name.getHonorificSuffix()
-          .ifPresent(suffix -> userModel.setSingleAttribute(AttributeNames.RFC7643.HONORIFIC_SUFFIX, suffix));
-      name.getFormatted()
-          .ifPresent(formatted -> userModel.setSingleAttribute(AttributeNames.RFC7643.FORMATTED, formatted));
-    });
-    userModel.setSingleAttribute(AttributeNames.RFC7643.NICK_NAME, user.getNickName().orElse(null));
-    userModel.setSingleAttribute(AttributeNames.RFC7643.TITLE, user.getTitle().orElse(null));
-    userModel.setSingleAttribute(AttributeNames.RFC7643.DISPLAY_NAME, user.getDisplayName().orElse(null));
-    userModel.setSingleAttribute(AttributeNames.RFC7643.USER_TYPE, user.getUserType().orElse(null));
-    userModel.setSingleAttribute(AttributeNames.RFC7643.LOCALE, user.getLocale().orElse(null));
-    userModel.setSingleAttribute(AttributeNames.RFC7643.PREFERRED_LANGUAGE, user.getPreferredLanguage().orElse(null));
-    userModel.setSingleAttribute(AttributeNames.RFC7643.TIMEZONE, user.getTimezone().orElse(null));
-    userModel.setSingleAttribute(AttributeNames.RFC7643.PROFILE_URL, user.getProfileUrl().orElse(null));
-
-    user.getEmails()
-        .stream()
-        .filter(MultiComplexNode::isPrimary)
-        .findAny()
-        .flatMap(MultiComplexNode::getValue)
-        .ifPresent(userModel::setEmail);
-
-    setMultiAttribute(user::getEmails, AttributeNames.RFC7643.EMAILS, userModel);
-    setMultiAttribute(user::getPhoneNumbers, AttributeNames.RFC7643.PHONE_NUMBERS, userModel);
-    setMultiAttribute(user::getAddresses, AttributeNames.RFC7643.ADDRESSES, userModel);
-    setMultiAttribute(user::getIms, AttributeNames.RFC7643.IMS, userModel);
-    setMultiAttribute(user::getEntitlements, AttributeNames.RFC7643.ENTITLEMENTS, userModel);
-    setMultiAttribute(user::getPhotos, AttributeNames.RFC7643.PHOTOS, userModel);
-    setMultiAttribute(user::getRoles, AttributeNames.RFC7643.ROLES, userModel);
-    setMultiAttribute(user::getX509Certificates, AttributeNames.RFC7643.X509_CERTIFICATES, userModel);
-
-    userModel.setSingleAttribute(AttributeNames.RFC7643.COST_CENTER,
-                                 user.getEnterpriseUser().flatMap(EnterpriseUser::getCostCenter).orElse(null));
-    userModel.setSingleAttribute(AttributeNames.RFC7643.DEPARTMENT,
-                                 user.getEnterpriseUser().flatMap(EnterpriseUser::getDepartment).orElse(null));
-    userModel.setSingleAttribute(AttributeNames.RFC7643.DIVISION,
-                                 user.getEnterpriseUser().flatMap(EnterpriseUser::getDivision).orElse(null));
-    userModel.setSingleAttribute(AttributeNames.RFC7643.EMPLOYEE_NUMBER,
-                                 user.getEnterpriseUser().flatMap(EnterpriseUser::getEmployeeNumber).orElse(null));
-    userModel.setSingleAttribute(AttributeNames.RFC7643.ORGANIZATION,
-                                 user.getEnterpriseUser().flatMap(EnterpriseUser::getOrganization).orElse(null));
-    userModel.setSingleAttribute(AttributeNames.RFC7643.MANAGER,
-                                 user.getEnterpriseUser()
-                                     .flatMap(EnterpriseUser::getManager)
-                                     .flatMap(Manager::getValue)
-                                     .orElse(null));
-
-    userModel.setAttribute(String.format("%s:%s",
-                                         CustomUser.FieldNames.COUNTRY_USER_EXTENSION_URI,
-                                         CountryUserExtension.FieldNames.COUNTRIES),
-                           Optional.ofNullable(user.getCountryUserExtension())
-                                   .map(CountryUserExtension::getCountries)
-                                   .orElse(Collections.emptyList()));
-    userModel.setAttribute(String.format("%s:%s",
-                                         CustomUser.FieldNames.COUNTRY_USER_EXTENSION_URI,
-                                         CountryUserExtension.FieldNames.BUSINESS_LINE),
-                           Optional.ofNullable(user.getCountryUserExtension())
-                                   .map(CountryUserExtension::getBusinessLine)
-                                   .orElse(Collections.emptyList()));
-
-    return userModel;
-  }
-
-  private void setMultiAttribute(Supplier<List<? extends MultiComplexNode>> getList,
-                                 String attributeName,
-                                 UserModel keycloakUser)
-  {
-    keycloakUser.setAttribute(attributeName,
-                              getList.get()
-                                     .stream()
-                                     .filter(multiComplex -> !multiComplex.isPrimary())
-                                     .map(MultiComplexNode::toPrettyString)
-                                     .collect(Collectors.toList()));
-
-    getList.get()
-           .stream()
-           .filter(MultiComplexNode::isPrimary)
-           .findAny()
-           .map(MultiComplexNode::toPrettyString)
-           .ifPresent(multiNode -> keycloakUser.setSingleAttribute(attributeName + PRIMARY_SUFFIX, multiNode));
-  }
-
-  /**
-   * converts a keycloak {@link UserModel} into a SCIM representation of {@link CustomUser}
-   *
-   * @param userModel the keycloak user representation
-   * @return the SCIM user representation
-   */
-  private CustomUser modelToUser(UserModel userModel)
-  {
-    log.info("Parsing user '{}' to SCIM representation: {}", userModel.getUsername(), Instant.now());
-    List<Email> emails = getAttributeList(Email.class, AttributeNames.RFC7643.EMAILS, userModel);
-
-    Optional.ofNullable(userModel.getEmail()).ifPresent(email -> {
-      // remove emails that are marked as primary in favor of the email property attribute of the user
-      emails.removeIf(MultiComplexNode::isPrimary);
-      emails.add(Email.builder().primary(true).value(email).build());
-    });
-    Name name = Name.builder()
-                    .givenName(userModel.getFirstName())
-                    .familyName(userModel.getLastName())
-                    .middlename(userModel.getFirstAttribute(AttributeNames.RFC7643.MIDDLE_NAME))
-                    .honorificPrefix(userModel.getFirstAttribute(AttributeNames.RFC7643.HONORIFIC_PREFIX))
-                    .honorificSuffix(userModel.getFirstAttribute(AttributeNames.RFC7643.HONORIFIC_SUFFIX))
-                    .formatted(userModel.getFirstAttribute(AttributeNames.RFC7643.FORMATTED))
-                    .build();
-    if (name.isEmpty())
-    {
-      name = null;
-    }
-    List<GroupNode> groups = userModel.getGroupsStream().map(groupModel -> {
-      return GroupNode.builder().display(groupModel.getName()).value(groupModel.getId()).type("direct").build();
-    }).collect(Collectors.toList());
-
-    CountryUserExtension countryUserExtension = getCountryUserExtension(userModel);
-    CustomUser user = CustomUser.builder()
-                                .countryUserExtension(countryUserExtension)
-                                .id(userModel.getId())
-                                .externalId(userModel.getFirstAttribute(AttributeNames.RFC7643.EXTERNAL_ID))
-                                .userName(userModel.getUsername())
-                                .name(name)
-                                .groups(groups)
-                                .active(userModel.isEnabled())
-                                .nickName(userModel.getFirstAttribute(AttributeNames.RFC7643.NICK_NAME))
-                                .title(userModel.getFirstAttribute(AttributeNames.RFC7643.TITLE))
-                                .displayName(userModel.getFirstAttribute(AttributeNames.RFC7643.DISPLAY_NAME))
-                                .userType(userModel.getFirstAttribute(AttributeNames.RFC7643.USER_TYPE))
-                                .locale(userModel.getFirstAttribute(AttributeNames.RFC7643.LOCALE))
-                                .preferredLanguage(userModel.getFirstAttribute(AttributeNames.RFC7643.PREFERRED_LANGUAGE))
-                                .timeZone(userModel.getFirstAttribute(AttributeNames.RFC7643.TIMEZONE))
-                                .profileUrl(userModel.getFirstAttribute(AttributeNames.RFC7643.PROFILE_URL))
-                                .emails(emails)
-                                .phoneNumbers(getAttributeList(PhoneNumber.class,
-                                                               AttributeNames.RFC7643.PHONE_NUMBERS,
-                                                               userModel))
-                                .addresses(getAttributeList(Address.class, AttributeNames.RFC7643.ADDRESSES, userModel))
-                                .ims(getAttributeList(Ims.class, AttributeNames.RFC7643.IMS, userModel))
-                                .entitlements(getAttributeList(Entitlement.class,
-                                                               AttributeNames.RFC7643.ENTITLEMENTS,
-                                                               userModel))
-                                .photos(getAttributeList(Photo.class, AttributeNames.RFC7643.PHOTOS, userModel))
-                                .roles(getAttributeList(PersonRole.class, AttributeNames.RFC7643.ROLES, userModel))
-                                .x509Certificates(getAttributeList(ScimX509Certificate.class,
-                                                                   AttributeNames.RFC7643.X509_CERTIFICATES,
-                                                                   userModel))
-                                .meta(Meta.builder()
-                                          .created(Optional.ofNullable(userModel.getCreatedTimestamp())
-                                                           .map(Instant::ofEpochMilli)
-                                                           .orElseGet(() -> {
-                                                             log.warn("CustomUser with ID '{}' has no created timestamp",
-                                                                      userModel.getId());
-                                                             return Instant.now();
-                                                           }))
-                                          .lastModified(getLastModified(userModel))
-                                          .build())
-                                .build();
-
-    Manager manager = Manager.builder().value(userModel.getFirstAttribute(AttributeNames.RFC7643.MANAGER)).build();
-    EnterpriseUser enterpriseUser = EnterpriseUser.builder()
-                                                  .costCenter(userModel.getFirstAttribute(AttributeNames.RFC7643.COST_CENTER))
-                                                  .department(userModel.getFirstAttribute(AttributeNames.RFC7643.DEPARTMENT))
-                                                  .division(userModel.getFirstAttribute(AttributeNames.RFC7643.DIVISION))
-                                                  .employeeNumber(userModel.getFirstAttribute(AttributeNames.RFC7643.EMPLOYEE_NUMBER))
-                                                  .organization(userModel.getFirstAttribute(AttributeNames.RFC7643.ORGANIZATION))
-                                                  .build();
-    if (!manager.isEmpty())
-    {
-      enterpriseUser.setManager(manager);
-    }
-    if (!enterpriseUser.isEmpty())
-    {
-      user.setEnterpriseUser(enterpriseUser);
-    }
-    return user;
-  }
-
-  private CountryUserExtension getCountryUserExtension(UserModel userModel)
-  {
-    List<String> countries = userModel.getAttributeStream(String.format("%s:%s",
-                                                                        CustomUser.FieldNames.COUNTRY_USER_EXTENSION_URI,
-                                                                        CountryUserExtension.FieldNames.COUNTRIES))
-                                      .collect(Collectors.toList());
-    List<String> businessLines = userModel.getAttributeStream(String.format("%s:%s",
-                                                                            CustomUser.FieldNames.COUNTRY_USER_EXTENSION_URI,
-                                                                            CountryUserExtension.FieldNames.BUSINESS_LINE))
-                                          .collect(Collectors.toList());
-    CountryUserExtension countryUserExtension = CountryUserExtension.builder()
-                                                                    .countries(countries)
-                                                                    .businessLine(businessLines)
-                                                                    .build();
-    if (countryUserExtension.isEmpty())
-    {
-      countryUserExtension = null;
-    }
-    return countryUserExtension;
-  }
-
-  private <T extends MultiComplexNode> List<T> getAttributeList(Class<T> type,
-                                                                String attributeName,
-                                                                UserModel keycloakUser)
-  {
-    List<T> attributeList = new ArrayList<>();
-    keycloakUser.getAttributeStream(attributeName).forEach(attribute -> {
-      attributeList.add(JsonHelper.readJsonDocument(attribute, type));
-    });
-    keycloakUser.getAttributeStream(attributeName + PRIMARY_SUFFIX).forEach(attribute -> {
-      attributeList.add(JsonHelper.readJsonDocument(attribute, type));
-    });
-    return attributeList;
-  }
-
-  /**
-   * gets the lastModified value of the user
-   *
-   * @param userModel the user model from which the last modified value should be extracted
-   * @return the last modified value of the given user
-   */
-  private Instant getLastModified(UserModel userModel)
-  {
-    String lastModifiedString = userModel.getFirstAttribute(AttributeNames.RFC7643.LAST_MODIFIED);
-    if (StringUtils.isNotBlank(lastModifiedString))
-    {
-      return Instant.ofEpochMilli(Long.parseLong(lastModifiedString));
-    }
-    else
-    {
-      return Optional.ofNullable(userModel.getCreatedTimestamp()).map(Instant::ofEpochMilli).orElse(Instant.now());
-    }
-  }
-
-  @Override
-  public RequestValidator<CustomUser> getRequestValidator()
-  {
-    return super.getRequestValidator();
   }
 }

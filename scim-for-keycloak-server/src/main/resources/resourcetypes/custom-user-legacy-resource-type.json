@@ -2,11 +2,11 @@
   "schemas": [
     "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
   ],
-  "id": "User-2",
-  "name": "User-2",
+  "id": "UserLegacy",
+  "name": "UserLegacy",
   "description": "User Account",
   "schema": "urn:ietf:params:scim:schemas:core:2.0:User",
-  "endpoint": "/Users2",
+  "endpoint": "/UsersLegacy",
   "schemaExtensions": [
     {
       "schema": "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User",
@@ -21,6 +21,6 @@
     "resourceType": "ResourceType",
     "created": "2019-10-18T14:51:11+02:00",
     "lastModified": "2019-10-18T14:51:11+02:00",
-    "location": "/ResourceTypes/User2"
+    "location": "/ResourceTypes/UserLegacy"
   }
 }

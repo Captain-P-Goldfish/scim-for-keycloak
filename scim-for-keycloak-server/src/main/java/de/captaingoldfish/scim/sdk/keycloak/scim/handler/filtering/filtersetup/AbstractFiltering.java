@@ -210,11 +210,7 @@ public abstract class AbstractFiltering<T>
   {
     // we will start with the where clause since by analyzing the filter expression we will discover which joins
     // to other tables are necessary
-    String whereClause = "";
-    if (filterNode != null)
-    {
-      whereClause = getWhereClause();
-    }
+    String whereClause = getWhereClause();
 
     final JpaEntityReferences baseEntity = getBaseEntity();
     final StringBuilder baseSelect = new StringBuilder();
@@ -300,7 +296,16 @@ public abstract class AbstractFiltering<T>
    */
   protected String getWhereClause()
   {
-    final String filterExpression = StringUtils.stripToEmpty(getFilterExpression(filterNode));
+    final String filterExpression;
+    if (filterNode == null)
+    {
+      filterExpression = "";
+    }
+    else
+    {
+      filterExpression = StringUtils.stripToEmpty(getFilterExpression(filterNode));
+    }
+
     String effectiveFilterExpression = "";
     if (StringUtils.isNotBlank(filterExpression))
     {
