@@ -14,11 +14,13 @@ import org.keycloak.models.UserCredentialManager;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.jpa.UserAdapter;
+import org.keycloak.models.jpa.entities.UserEntity;
 
 import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
 import de.captaingoldfish.scim.sdk.common.constants.enums.HttpMethod;
 import de.captaingoldfish.scim.sdk.common.resources.EnterpriseUser;
 import de.captaingoldfish.scim.sdk.common.resources.ServiceProvider;
+import de.captaingoldfish.scim.sdk.common.resources.User;
 import de.captaingoldfish.scim.sdk.common.resources.complex.ChangePasswordConfig;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Manager;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Name;
@@ -188,6 +190,37 @@ public class UserHandler2Test extends AbstractScimEndpointTest
     Assertions.assertNotNull(userAttributes);
     checkUserEquality(pw, user, createdUser, userAttributes);
   }
+
+  /**
+   * verifies that created users can also be deleted again
+   */
+  @Test
+  public void testDeleteUser()
+  {
+    User superMarioScim = JsonHelper.loadJsonDocument(USER_SUPER_MARIO, User.class);
+    User donkeyKongScim = JsonHelper.loadJsonDocument(USER_DONKEY_KONG, User.class);
+    User linkScim = JsonHelper.loadJsonDocument(USER_LINK, User.class);
+
+    superMarioScim = createUser(superMarioScim);
+    donkeyKongScim = createUser(donkeyKongScim);
+    linkScim = createUser(linkScim);
+
+    deleteUser(superMarioScim);
+    deleteUser(donkeyKongScim);
+    deleteUser(linkScim);
+
+    Assertions.assertEquals(0, countEntriesInTable(ScimAddressEntity.class));
+    Assertions.assertEquals(0, countEntriesInTable(ScimCertificatesEntity.class));
+    Assertions.assertEquals(0, countEntriesInTable(ScimEmailsEntity.class));
+    Assertions.assertEquals(0, countEntriesInTable(ScimEntitlementEntity.class));
+    Assertions.assertEquals(0, countEntriesInTable(ScimImsEntity.class));
+    Assertions.assertEquals(0, countEntriesInTable(ScimPhonesEntity.class));
+    Assertions.assertEquals(0, countEntriesInTable(ScimPhotosEntity.class));
+    Assertions.assertEquals(0, countEntriesInTable(ScimUserAttributesEntity.class));
+    // the admin user still remains within the database
+    Assertions.assertEquals(1, countEntriesInTable(UserEntity.class));
+  }
+
 
   private void checkUserEquality(String pw,
                                  CustomUser user,

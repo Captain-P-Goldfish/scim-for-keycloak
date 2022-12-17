@@ -37,7 +37,12 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "USER_SCIM_ATTRIBUTES")
-@NamedQueries({@NamedQuery(name = ScimUserAttributesEntity.GET_SCIM_USER_ATTRIBUTES_QUERY_NAME, query = "SELECT ua FROM ScimUserAttributesEntity ua WHERE ua.userEntity.id = :userId")})
+@NamedQueries({@NamedQuery(name = ScimUserAttributesEntity.GET_SCIM_USER_ATTRIBUTES_QUERY_NAME,
+// @formatter:off
+                           query = "SELECT ua FROM UserEntity u "
+                                   + "left join ScimUserAttributesEntity ua on ua.userEntity.id = u.id "
+                                   + "WHERE u.id = :userId")})
+// @formatter:on
 public class ScimUserAttributesEntity
 {
 

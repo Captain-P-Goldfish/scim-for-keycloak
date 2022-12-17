@@ -53,4 +53,19 @@ public class AbstractScimEndpointTest extends KeycloakScimManagementTest impleme
     Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
     return JsonHelper.readJsonDocument(response.readEntity(String.class), User.class);
   }
+
+  /**
+   * deletes a user using the SCIM endpoint
+   */
+  public void deleteUser(User user)
+  {
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .method(HttpMethod.DELETE)
+                                               .endpoint(String.format("%s/%s",
+                                                                       CustomUser2Endpoint.CUSTOM_USER_2_ENDPOINT,
+                                                                       user.getId().get()))
+                                               .build();
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatus());
+  }
 }
