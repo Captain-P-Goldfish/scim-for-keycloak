@@ -24,6 +24,7 @@ import org.mockito.Mockito;
 
 import de.captaingoldfish.scim.sdk.keycloak.provider.ScimEndpointProviderFactory;
 import de.captaingoldfish.scim.sdk.keycloak.provider.ScimJpaEntityProvider;
+import de.captaingoldfish.scim.sdk.keycloak.provider.ScimJpaUserProvider;
 import liquibase.Contexts;
 import liquibase.LabelExpression;
 import liquibase.Liquibase;
@@ -123,7 +124,7 @@ class DatabaseSetup
   private EntityManager buildEntityManager()
   {
     EntityManager newEntityManager = ENTITY_MANAGER_FACTORY.createEntityManager();
-    JpaUserProvider jpaUserProvider = new JpaUserProvider(keycloakSession, newEntityManager);
+    JpaUserProvider jpaUserProvider = new ScimJpaUserProvider(keycloakSession, newEntityManager);
     JpaRealmProvider jpaRealmProvider = new JpaRealmProvider(keycloakSession, newEntityManager, Collections.emptySet());
     Mockito.doReturn(new UserStorageManager(keycloakSession)).when(keycloakSession).users();
     Mockito.doReturn(jpaUserProvider).when(keycloakSession).userLocalStorage();

@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.TypedQuery;
 
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.connections.jpa.JpaConnectionProvider;
@@ -27,6 +25,7 @@ import de.captaingoldfish.scim.sdk.common.resources.complex.Name;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
 import de.captaingoldfish.scim.sdk.keycloak.audit.ScimAdminEventBuilder;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.provider.ScimJpaUserProvider;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimKeycloakContext;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.converter.DatabaseUserToScimConverter;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.converter.ScimUserToDatabaseConverter;
@@ -85,9 +84,12 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
                                 List<SchemaAttribute> excludedAttributes,
                                 Context context)
   {
-    ScimUserAttributesEntity userAttributes = findUserById(id, (ScimKeycloakContext)context);
+    KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
+    ScimUserAttributesEntity userAttributes = ScimJpaUserProvider.findUserById(keycloakSession, id);
     if (userAttributes == null)
+    {
       return null;
+    }
     return DatabaseUserToScimConverter.databaseUserModelToScimModel(userAttributes);
   }
 
@@ -141,16 +143,12 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
   public void deleteResource(String id, Context context)
   {
     ScimKeycloakContext scimKeycloakContext = (ScimKeycloakContext)context;
-    ScimUserAttributesEntity userAttributes = findUserById(id, scimKeycloakContext);
-    if (userAttributes == null)
+    KeycloakSession keycloakSession = scimKeycloakContext.getKeycloakSession();
+    UserModel userModel = keycloakSession.users().getUserById(keycloakSession.getContext().getRealm(), id);
+    if (userModel == null)
     {
       throw new ResourceNotFoundException(String.format("User with id '%s' does not exist", id));
     }
-    KeycloakSession keycloakSession = scimKeycloakContext.getKeycloakSession();
-    EntityManager entityManager = keycloakSession.getProvider(JpaConnectionProvider.class).getEntityManager();
-    entityManager.remove(userAttributes);
-    UserModel userModel = new UserAdapter(keycloakSession, keycloakSession.getContext().getRealm(), entityManager,
-                                          userAttributes.getUserEntity());
     keycloakSession.users().removeUser(keycloakSession.getContext().getRealm(), userModel);
   }
 
@@ -217,27 +215,5 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
       log.debug(ex.getMessage(), ex);
       throw new BadRequestException("password policy not matched");
     }
-  }
-
-  private ScimUserAttributesEntity findUserById(String id, ScimKeycloakContext context)
-  {
-    KeycloakSession keycloakSession = context.getKeycloakSession();
-    EntityManager entityManager = keycloakSession.getProvider(JpaConnectionProvider.class).getEntityManager();
-    final String queryName = ScimUserAttributesEntity.GET_SCIM_USER_ATTRIBUTES_QUERY_NAME;
-    TypedQuery<ScimUserAttributesEntity> query = entityManager.createNamedQuery(queryName,
-                                                                                ScimUserAttributesEntity.class);
-    query.setParameter("userId", id);
-    ScimUserAttributesEntity userAttributes;
-    try
-    {
-      userAttributes = query.getSingleResult();
-    }
-    catch (NoResultException ex)
-    {
-      log.debug(ex.getMessage());
-      // causes a 404 not found exception
-      return null;
-    }
-    return userAttributes;
   }
 }

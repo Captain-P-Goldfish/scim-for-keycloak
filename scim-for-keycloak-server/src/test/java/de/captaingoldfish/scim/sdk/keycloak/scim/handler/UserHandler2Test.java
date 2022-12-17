@@ -40,6 +40,7 @@ import de.captaingoldfish.scim.sdk.keycloak.entities.ScimImsEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhonesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhotosEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.provider.ScimJpaUserProvider;
 import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimConfigurationBridge;
 import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUser2Endpoint;
@@ -182,11 +183,7 @@ public class UserHandler2Test extends AbstractScimEndpointTest
     CustomUser createdUser = JsonHelper.readJsonDocument((String)response.getEntity(), CustomUser.class);
     final String userId = createdUser.getId().get();
 
-    final String queryName = ScimUserAttributesEntity.GET_SCIM_USER_ATTRIBUTES_QUERY_NAME;
-    ScimUserAttributesEntity userAttributes = getEntityManager().createNamedQuery(queryName,
-                                                                                  ScimUserAttributesEntity.class)
-                                                                .setParameter("userId", userId)
-                                                                .getSingleResult();
+    ScimUserAttributesEntity userAttributes = ScimJpaUserProvider.findUserById(getKeycloakSession(), userId);
     Assertions.assertNotNull(userAttributes);
     checkUserEquality(pw, user, createdUser, userAttributes);
   }

@@ -1,6 +1,7 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim.handler.converter;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -123,6 +124,10 @@ public final class DatabaseUserToScimConverter
 
   private static List<Address> databaseAddressesToScim(ScimUserAttributesEntity userAttributes)
   {
+    if (userAttributes.getAddresses() == null)
+    {
+      return Collections.emptyList();
+    }
     return userAttributes.getAddresses().stream().map(address -> {
       return Address.builder()
                     .formatted(address.getFormatted())
@@ -138,6 +143,10 @@ public final class DatabaseUserToScimConverter
 
   private static List<ScimX509Certificate> databaseCertificatesToScim(ScimUserAttributesEntity userAttributes)
   {
+    if (userAttributes.getCertificates() == null)
+    {
+      return Collections.emptyList();
+    }
     return userAttributes.getCertificates().stream().map(email -> {
       return ScimX509Certificate.builder()
                                 .value(email.getValue())
@@ -156,6 +165,10 @@ public final class DatabaseUserToScimConverter
    */
   private static List<Email> databaseEmailsToScim(ScimUserAttributesEntity userAttributes)
   {
+    if (userAttributes.getEmails() == null)
+    {
+      return Collections.emptyList();
+    }
     return userAttributes.getEmails().stream().map(email -> {
       return Email.builder().value(email.getValue()).type(email.getType()).primary(email.isPrimary()).build();
     }).collect(Collectors.toList());
@@ -163,6 +176,10 @@ public final class DatabaseUserToScimConverter
 
   private static List<Entitlement> databaseEntitlementsToScim(ScimUserAttributesEntity userAttributes)
   {
+    if (userAttributes.getEntitlements() == null)
+    {
+      return Collections.emptyList();
+    }
     return userAttributes.getEntitlements().stream().map(entitlement -> {
       return Entitlement.builder()
                         .value(entitlement.getValue())
@@ -175,6 +192,10 @@ public final class DatabaseUserToScimConverter
 
   private static List<Ims> databaseImsToScim(ScimUserAttributesEntity userAttributes)
   {
+    if (userAttributes.getInstantMessagingAddresses() == null)
+    {
+      return Collections.emptyList();
+    }
     return userAttributes.getInstantMessagingAddresses().stream().map(ims -> {
       return Ims.builder()
                 .value(ims.getValue())
@@ -187,6 +208,10 @@ public final class DatabaseUserToScimConverter
 
   private static List<PhoneNumber> databasePhoneNumbersToScim(ScimUserAttributesEntity userAttributes)
   {
+    if (userAttributes.getPhoneNumbers() == null)
+    {
+      return Collections.emptyList();
+    }
     return userAttributes.getPhoneNumbers().stream().map(phoneNumber -> {
       return PhoneNumber.builder()
                         .value(phoneNumber.getValue())
@@ -199,6 +224,10 @@ public final class DatabaseUserToScimConverter
 
   private static List<Photo> databasePhotosToScim(ScimUserAttributesEntity userAttributes)
   {
+    if (userAttributes.getPhotos() == null)
+    {
+      return Collections.emptyList();
+    }
     return userAttributes.getPhotos().stream().map(photo -> {
       return Photo.builder()
                   .value(photo.getValue())
