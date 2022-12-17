@@ -219,8 +219,8 @@ public abstract class AbstractFiltering<T>
     final JpaEntityReferences baseEntity = getBaseEntity();
     final StringBuilder baseSelect = new StringBuilder();
     // @formatter:off
-    baseSelect.append(countResources ? String.format("select count(%s)", baseEntity.getIdentifier())
-                                     : String.format("select %s", baseEntity.getIdentifier()));
+    baseSelect.append(countResources ? String.format("select count(distinct %s)", baseEntity.getIdentifier())
+                                     : String.format("select distinct %s", baseEntity.getIdentifier()));
     // @formatter:on
     final StringBuilder fromClause = new StringBuilder(String.format("from %s %s",
                                                                      baseEntity.getTableName(),

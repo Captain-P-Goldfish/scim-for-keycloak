@@ -64,7 +64,6 @@
   ],
   "photos": [
     {
-      "primary": true,
       "value": "donkey-1"
     },
     {
@@ -73,20 +72,21 @@
   ],
   "addresses": [
     {
-      "primary": true,
       "streetAddress": "jungle highway 5",
       "postalCode": "4444444",
       "country": "germany"
     },
     {
       "streetAddress": "tree house 75",
+      "locality": "Worpswede",
+      "region": "Bremen",
       "postalCode": "1111111",
-      "country": "germany"
+      "country": "germany",
+      "type": "home"
     }
   ],
   "entitlements": [
     {
-      "primary": true,
       "value": "donkey-ent-1"
     },
     {
@@ -95,7 +95,8 @@
   ],
   "x509Certificates": [
     {
-      "value": "MII...2"
+      "value": "MII...2",
+      "type": "elster"
     },
     {
       "value": "MII...3"

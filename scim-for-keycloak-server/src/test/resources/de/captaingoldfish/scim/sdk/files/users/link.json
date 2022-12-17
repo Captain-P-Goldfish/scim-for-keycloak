@@ -47,7 +47,8 @@
   "phoneNumbers": [
     {
       "primary": true,
-      "value": "9999999999"
+      "value": "9999999999",
+      "type": "work"
     },
     {
       "value": "8888888888"
@@ -55,16 +56,15 @@
   ],
   "ims": [
     {
-      "primary": true,
       "value": "link@hyrule"
     },
     {
-      "value": "hyrule@link"
+      "value": "hyrule@link",
+      "type": "work"
     }
   ],
   "photos": [
     {
-      "primary": true,
       "value": "link-1"
     },
     {
@@ -90,7 +90,8 @@
       "value": "link-ent-1"
     },
     {
-      "value": "link-ent-2"
+      "value": "link-ent-2",
+      "type": "home"
     }
   ],
   "x509Certificates": [

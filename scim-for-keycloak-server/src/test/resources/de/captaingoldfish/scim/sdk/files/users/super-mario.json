@@ -46,26 +46,28 @@
   ],
   "phoneNumbers": [
     {
-      "primary": true,
       "value": "1234444555"
     },
     {
-      "value": "55533322241"
+      "value": "55533322241",
+      "display": "*"
     }
   ],
   "ims": [
     {
-      "primary": true,
       "value": "super@mario"
     },
     {
-      "value": "mario@super"
+      "value": "mario@super",
+      "display": "hello"
     }
   ],
   "photos": [
     {
       "primary": true,
-      "value": "super-mario.png"
+      "value": "super-mario.png",
+      "type": "home",
+      "display": "hello world"
     },
     {
       "value": "plumbers.png"
@@ -86,7 +88,7 @@
   ],
   "entitlements": [
     {
-      "primary": true,
+      "display": "---",
       "value": "mario-ent-1"
     },
     {
@@ -96,6 +98,7 @@
   "x509Certificates": [
     {
       "primary": true,
+      "display": "****",
       "value": "MII...1"
     },
     {

@@ -1,7 +1,13 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering;
 
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.GROUPS_ENTITY;
+import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_ADDRESSES;
+import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_CERTIFICATES;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_EMAILS;
+import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_ENTITLEMENTS;
+import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_IMS;
+import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_PHONE_NUMBERS;
+import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_PHOTOS;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_USER_ATTRIBUTES;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.USER_ENTITY;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.USER_GROUPS_MEMBERSHIP;
@@ -37,7 +43,17 @@ public class UserAttributeMapping extends AbstractAttributeMapping
     JpqlTableJoin baseJpqlTableJoin = new JpqlTableJoin(USER_ENTITY);
     JpqlTableJoin userAttributesJoin = new JpqlTableJoin(USER_ENTITY, SCIM_USER_ATTRIBUTES, "id", "userEntity.id",
                                                          true);
+    JpqlTableJoin addressesJoin = new JpqlTableJoin(SCIM_USER_ATTRIBUTES, SCIM_ADDRESSES, "id", "userAttributes.id",
+                                                    false);
+    JpqlTableJoin certificatesJoin = new JpqlTableJoin(SCIM_USER_ATTRIBUTES, SCIM_CERTIFICATES, "id",
+                                                       "userAttributes.id", false);
     JpqlTableJoin emailsJoin = new JpqlTableJoin(SCIM_USER_ATTRIBUTES, SCIM_EMAILS, "id", "userAttributes.id", false);
+    JpqlTableJoin entitlementJoin = new JpqlTableJoin(SCIM_USER_ATTRIBUTES, SCIM_ENTITLEMENTS, "id",
+                                                      "userAttributes.id", false);
+    JpqlTableJoin imsJoin = new JpqlTableJoin(SCIM_USER_ATTRIBUTES, SCIM_IMS, "id", "userAttributes.id", false);
+    JpqlTableJoin phonesJoin = new JpqlTableJoin(SCIM_USER_ATTRIBUTES, SCIM_PHONE_NUMBERS, "id", "userAttributes.id",
+                                                 false);
+    JpqlTableJoin photosJoin = new JpqlTableJoin(SCIM_USER_ATTRIBUTES, SCIM_PHOTOS, "id", "userAttributes.id", false);
     JpqlTableJoin groupMembershipJoin = new JpqlTableJoin(USER_ENTITY, USER_GROUPS_MEMBERSHIP, "id", "user.id", false);
     JpqlTableJoin groupsJoin = new JpqlTableJoin(USER_GROUPS_MEMBERSHIP, GROUPS_ENTITY, "groupId", "id", false);
 
@@ -72,12 +88,48 @@ public class UserAttributeMapping extends AbstractAttributeMapping
     addAttribute(SchemaUris.USER_URI, null, RFC7643.TIMEZONE, "timezone", userAttributesJoin);
     addAttribute(SchemaUris.META, RFC7643.META, RFC7643.LAST_MODIFIED, "lastModified", userAttributesJoin);
 
+    // @formatter:off
+    addAttribute(SchemaUris.USER_URI, RFC7643.ADDRESSES, RFC7643.FORMATTED, "formatted", userAttributesJoin, addressesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.ADDRESSES, RFC7643.STREET_ADDRESS, "streetAddress", userAttributesJoin, addressesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.ADDRESSES, RFC7643.LOCALITY, "locality", userAttributesJoin, addressesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.ADDRESSES, RFC7643.REGION, "region", userAttributesJoin, addressesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.ADDRESSES, RFC7643.POSTAL_CODE, "postalCode", userAttributesJoin, addressesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.ADDRESSES, RFC7643.COUNTRY, "country", userAttributesJoin, addressesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.ADDRESSES, RFC7643.TYPE, "type", userAttributesJoin, addressesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.ADDRESSES, RFC7643.PRIMARY, "primary", userAttributesJoin, addressesJoin);
+
+    addAttribute(SchemaUris.USER_URI, RFC7643.X509_CERTIFICATES, RFC7643.VALUE, "value", userAttributesJoin, certificatesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.X509_CERTIFICATES, RFC7643.TYPE, "type", userAttributesJoin, certificatesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.X509_CERTIFICATES, RFC7643.DISPLAY, "display", userAttributesJoin, certificatesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.X509_CERTIFICATES, RFC7643.PRIMARY, "primary", userAttributesJoin, certificatesJoin);
+
     addAttribute(SchemaUris.USER_URI, RFC7643.EMAILS, RFC7643.VALUE, "value", userAttributesJoin, emailsJoin);
     addAttribute(SchemaUris.USER_URI, RFC7643.EMAILS, RFC7643.TYPE, "type", userAttributesJoin, emailsJoin);
     addAttribute(SchemaUris.USER_URI, RFC7643.EMAILS, RFC7643.DISPLAY, "display", userAttributesJoin, emailsJoin);
     addAttribute(SchemaUris.USER_URI, RFC7643.EMAILS, RFC7643.PRIMARY, "primary", userAttributesJoin, emailsJoin);
 
+    addAttribute(SchemaUris.USER_URI, RFC7643.ENTITLEMENTS, RFC7643.VALUE, "value", userAttributesJoin, entitlementJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.ENTITLEMENTS, RFC7643.TYPE, "type", userAttributesJoin, entitlementJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.ENTITLEMENTS, RFC7643.DISPLAY, "display", userAttributesJoin, entitlementJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.ENTITLEMENTS, RFC7643.PRIMARY, "primary", userAttributesJoin, entitlementJoin);
+
+    addAttribute(SchemaUris.USER_URI, RFC7643.IMS, RFC7643.VALUE, "value", userAttributesJoin, imsJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.IMS, RFC7643.TYPE, "type", userAttributesJoin, imsJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.IMS, RFC7643.DISPLAY, "display", userAttributesJoin, imsJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.IMS, RFC7643.PRIMARY, "primary", userAttributesJoin, imsJoin);
+
+    addAttribute(SchemaUris.USER_URI, RFC7643.PHONE_NUMBERS, RFC7643.VALUE, "value", userAttributesJoin, phonesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.PHONE_NUMBERS, RFC7643.TYPE, "type", userAttributesJoin, phonesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.PHONE_NUMBERS, RFC7643.DISPLAY, "display", userAttributesJoin, phonesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.PHONE_NUMBERS, RFC7643.PRIMARY, "primary", userAttributesJoin, phonesJoin);
+
+    addAttribute(SchemaUris.USER_URI, RFC7643.PHOTOS, RFC7643.VALUE, "value", userAttributesJoin, photosJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.PHOTOS, RFC7643.TYPE, "type", userAttributesJoin, photosJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.PHOTOS, RFC7643.DISPLAY, "display", userAttributesJoin, photosJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.PHOTOS, RFC7643.PRIMARY, "primary", userAttributesJoin, photosJoin);
+
     addAttribute(SchemaUris.USER_URI, RFC7643.GROUPS, RFC7643.VALUE, "name", groupMembershipJoin, groupsJoin);
+    // @formatter:on
 
     addAttribute(SchemaUris.ENTERPRISE_USER_URI, null, RFC7643.EMPLOYEE_NUMBER, "employeeNumber", userAttributesJoin);
     addAttribute(SchemaUris.ENTERPRISE_USER_URI, null, RFC7643.DEPARTMENT, "department", userAttributesJoin);
