@@ -4,6 +4,8 @@ import org.keycloak.models.jpa.entities.GroupEntity;
 import org.keycloak.models.jpa.entities.UserEntity;
 import org.keycloak.models.jpa.entities.UserGroupMembershipEntity;
 
+import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertBusinessLineEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertCountriesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimAddressEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
@@ -35,7 +37,9 @@ public enum JpaEntityReferences
   SCIM_PHONE_NUMBERS("uphone", ScimPhonesEntity.class),
   SCIM_PHOTOS("uphoto", ScimPhotosEntity.class),
   USER_GROUPS_MEMBERSHIP("ugm", UserGroupMembershipEntity.class),
-  GROUPS_ENTITY("g", GroupEntity.class);
+  GROUPS_ENTITY("g", GroupEntity.class),
+  COUNTRIES("ic", InfoCertCountriesEntity.class),
+  BUSINESS_LINE("ib", InfoCertBusinessLineEntity.class);
 
   /**
    * the JPQL identifier that should identify a specific entity

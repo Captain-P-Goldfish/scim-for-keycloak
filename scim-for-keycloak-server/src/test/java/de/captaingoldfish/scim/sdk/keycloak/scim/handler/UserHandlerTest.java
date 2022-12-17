@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.keycloak.events.admin.AdminEvent;
@@ -38,6 +40,8 @@ import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PhoneNumber;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.ScimX509Certificate;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
+import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertBusinessLineEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertCountriesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimAddressEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
@@ -421,6 +425,21 @@ public class UserHandlerTest extends AbstractScimEndpointTest
     checkIms(user.getIms(), userAttributes.getInstantMessagingAddresses());
     checkPhoneNumbers(user.getPhoneNumbers(), userAttributes.getPhoneNumbers());
     checkPhotos(user.getPhotos(), userAttributes.getPhotos());
+
+    Assertions.assertNotEquals(0, user.getCountryUserExtension().getBusinessLine().size());
+    MatcherAssert.assertThat(user.getCountryUserExtension().getBusinessLine(),
+                             Matchers.containsInAnyOrder(userAttributes.getInfoCertBusinessLine()
+                                                                       .stream()
+                                                                       .map(InfoCertBusinessLineEntity::getBusinessLine)
+                                                                       .map(Matchers::equalTo)
+                                                                       .collect(Collectors.toList())));
+    Assertions.assertNotEquals(0, user.getCountryUserExtension().getCountries().size());
+    MatcherAssert.assertThat(user.getCountryUserExtension().getCountries(),
+                             Matchers.containsInAnyOrder(userAttributes.getInfoCertCountries()
+                                                                       .stream()
+                                                                       .map(InfoCertCountriesEntity::getCountry)
+                                                                       .map(Matchers::equalTo)
+                                                                       .collect(Collectors.toList())));
 
     UserCredentialManager credentialManager = getKeycloakSession().userCredentialManager();
     UserModel userModel = new UserAdapter(getKeycloakSession(), getRealmModel(), getEntityManager(),

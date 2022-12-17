@@ -1,5 +1,7 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering;
 
+import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.BUSINESS_LINE;
+import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.COUNTRIES;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.GROUPS_ENTITY;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_ADDRESSES;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_CERTIFICATES;
@@ -16,6 +18,8 @@ import de.captaingoldfish.scim.sdk.common.constants.AttributeNames.RFC7643;
 import de.captaingoldfish.scim.sdk.common.constants.SchemaUris;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.AbstractAttributeMapping;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpqlTableJoin;
+import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CountryUserExtension;
+import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
 
 
 /**
@@ -56,6 +60,10 @@ public class UserAttributeMapping extends AbstractAttributeMapping
     JpqlTableJoin photosJoin = new JpqlTableJoin(SCIM_USER_ATTRIBUTES, SCIM_PHOTOS, "id", "userAttributes.id", false);
     JpqlTableJoin groupMembershipJoin = new JpqlTableJoin(USER_ENTITY, USER_GROUPS_MEMBERSHIP, "id", "user.id", false);
     JpqlTableJoin groupsJoin = new JpqlTableJoin(USER_GROUPS_MEMBERSHIP, GROUPS_ENTITY, "groupId", "id", false);
+
+    JpqlTableJoin businessLineJoin = new JpqlTableJoin(SCIM_USER_ATTRIBUTES, BUSINESS_LINE, "id", "userAttributes.id",
+                                                       false);
+    JpqlTableJoin countriesJoin = new JpqlTableJoin(SCIM_USER_ATTRIBUTES, COUNTRIES, "id", "userAttributes.id", false);
 
     /* Attributes on UserEntity */
     addAttribute(SchemaUris.USER_URI, null, RFC7643.USER_NAME, "username", baseJpqlTableJoin);
@@ -138,6 +146,19 @@ public class UserAttributeMapping extends AbstractAttributeMapping
     addAttribute(SchemaUris.ENTERPRISE_USER_URI, null, RFC7643.ORGANIZATION, "organization", userAttributesJoin);
     addAttribute(SchemaUris.ENTERPRISE_USER_URI, RFC7643.MANAGER, RFC7643.VALUE, "managerValue", userAttributesJoin);
     addAttribute(SchemaUris.ENTERPRISE_USER_URI, RFC7643.MANAGER, RFC7643.REF, "managerReference", userAttributesJoin);
+
+    addAttribute(CustomUser.FieldNames.COUNTRY_USER_EXTENSION_URI,
+                 null,
+                 CountryUserExtension.FieldNames.BUSINESS_LINE,
+                 "businessLine",
+                 userAttributesJoin,
+                 businessLineJoin);
+    addAttribute(CustomUser.FieldNames.COUNTRY_USER_EXTENSION_URI,
+                 null,
+                 CountryUserExtension.FieldNames.COUNTRIES,
+                 "country",
+                 userAttributesJoin,
+                 countriesJoin);
   }
 
 }

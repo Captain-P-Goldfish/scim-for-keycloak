@@ -237,7 +237,14 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
                      Arguments.arguments("groups.value eq \"admin\"", new User[]{linkScim}),
                      Arguments.arguments("groups.value eq \"moderator\"", new User[]{superMarioScim}),
                      Arguments.arguments("groups.value eq \"user\"",
-                                         new User[]{superMarioScim, donkeyKongScim, linkScim})
+                                         new User[]{superMarioScim, donkeyKongScim, linkScim}),
+
+                     Arguments.arguments("countries eq \"USA\"", new User[]{linkScim}),
+                     Arguments.arguments("countries eq \"italy\"", new User[]{donkeyKongScim, superMarioScim}),
+                     Arguments.arguments("countries eq \"japan\"", new User[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("businessLine eq \"3\"", new User[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("businessLine eq \"2\"", new User[]{donkeyKongScim, superMarioScim, linkScim}),
+                     Arguments.arguments("businessLine eq \"5\"", new User[]{linkScim})
     //
     ).map(this::toFilterTest).collect(Collectors.toList());
   }

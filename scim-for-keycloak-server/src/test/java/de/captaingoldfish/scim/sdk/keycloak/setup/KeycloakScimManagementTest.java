@@ -241,6 +241,8 @@ public abstract class KeycloakScimManagementTest
     deleteFromMappingTable("REDIRECT_URIS");
     deleteFromMappingTable("SCOPE_MAPPING");
     deleteFromMappingTable("PROTOCOL_MAPPER_CONFIG");
+    deleteFromMappingTable("USER_SCIM_COUNTRIES_EXT");
+    deleteFromMappingTable("USER_SCIM_BUSINESS_LINE_EXT");
 
     deleteFromTable(ScimServiceProviderEntity.class);
     deleteFromTable(ScimResourceTypeEntity.class);

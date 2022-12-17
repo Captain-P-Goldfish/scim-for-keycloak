@@ -3,12 +3,16 @@ package de.captaingoldfish.scim.sdk.keycloak.scim.handler.converter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.keycloak.models.UserModel;
 
 import de.captaingoldfish.scim.sdk.common.resources.EnterpriseUser;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Manager;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Name;
+import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertBusinessLineEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertCountriesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimAddressEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
@@ -91,6 +95,12 @@ public final class ScimUserToDatabaseConverter
 
     List<ScimPhotosEntity> photos = scimPhotosToDatabasePhotos(user, userAttributes);
     userAttributes.setPhotos(photos);
+
+    List<InfoCertBusinessLineEntity> businessLines = scimBusinessLinesToDatabaseBusinessLines(user, userAttributes);
+    userAttributes.setInfoCertBusinessLine(businessLines);
+
+    List<InfoCertCountriesEntity> countries = scimCountriesToDatabaseCountries(user, userAttributes);
+    userAttributes.setInfoCertCountries(countries);
   }
 
   private static List<ScimAddressEntity> scimAddressToDatabaseAddress(CustomUser user,
@@ -220,4 +230,31 @@ public final class ScimUserToDatabaseConverter
     return photos;
   }
 
+  private static List<InfoCertCountriesEntity> scimCountriesToDatabaseCountries(CustomUser user,
+                                                                                ScimUserAttributesEntity userAttributes)
+  {
+    return Optional.ofNullable(user.getCountryUserExtension()).map(extension -> {
+      return extension.getCountries()
+                      .stream()
+                      .map(country -> InfoCertCountriesEntity.builder()
+                                                             .country(country)
+                                                             .userAttributes(userAttributes)
+                                                             .build())
+                      .collect(Collectors.toList());
+    }).orElseGet(ArrayList::new);
+  }
+
+  private static List<InfoCertBusinessLineEntity> scimBusinessLinesToDatabaseBusinessLines(CustomUser user,
+                                                                                           ScimUserAttributesEntity userAttributes)
+  {
+    return Optional.ofNullable(user.getCountryUserExtension()).map(extension -> {
+      return extension.getBusinessLine()
+                      .stream()
+                      .map(businessLine -> InfoCertBusinessLineEntity.builder()
+                                                                     .businessLine(businessLine)
+                                                                     .userAttributes(userAttributes)
+                                                                     .build())
+                      .collect(Collectors.toList());
+    }).orElseGet(ArrayList::new);
+  }
 }

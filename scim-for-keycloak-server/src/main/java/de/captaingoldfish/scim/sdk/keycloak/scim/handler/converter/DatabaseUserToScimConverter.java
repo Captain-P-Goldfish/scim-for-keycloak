@@ -3,6 +3,7 @@ package de.captaingoldfish.scim.sdk.keycloak.scim.handler.converter;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.keycloak.models.jpa.entities.UserEntity;
@@ -19,7 +20,10 @@ import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Ims;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PhoneNumber;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.ScimX509Certificate;
+import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertBusinessLineEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertCountriesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CountryUserExtension;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -53,6 +57,7 @@ public final class DatabaseUserToScimConverter
     Name name = databaseNameToScimName(userAttributes);
 
     EnterpriseUser enterpriseUser = toScimEnterpriseUser(userAttributes);
+    CountryUserExtension countryUserExtension = toCountryUserExtension(userAttributes);
     return CustomUser.builder()
                      .id(userEntity.getId())
                      .externalId(userAttributes.getExternalId())
@@ -75,12 +80,38 @@ public final class DatabaseUserToScimConverter
                      .phoneNumbers(phoneNumbers)
                      .photos(photos)
                      .enterpriseUser(enterpriseUser)
+                     .countryUserExtension(countryUserExtension)
                      .meta(Meta.builder()
                                .created(Instant.ofEpochMilli(userEntity.getCreatedTimestamp()))
                                .lastModified(userAttributes.getLastModified())
                                .resourceType(ResourceTypeNames.USER)
                                .build())
                      .build();
+  }
+
+  /**
+   * creates a country user extension from the user-attributes and returns null if no data was found
+   */
+  private static CountryUserExtension toCountryUserExtension(ScimUserAttributesEntity userAttributes)
+  {
+    CountryUserExtension countryExtension = CountryUserExtension.builder().build();
+
+    Optional.ofNullable(userAttributes.getInfoCertBusinessLine()).filter(list -> !list.isEmpty()).ifPresent(list -> {
+      countryExtension.setBusinessLine(list.stream()
+                                           .map(InfoCertBusinessLineEntity::getBusinessLine)
+                                           .collect(Collectors.toList()));
+    });
+    Optional.ofNullable(userAttributes.getInfoCertCountries()).filter(list -> !list.isEmpty()).ifPresent(list -> {
+      countryExtension.setBusinessLine(list.stream()
+                                           .map(InfoCertCountriesEntity::getCountry)
+                                           .collect(Collectors.toList()));
+    });
+
+    if (countryExtension.isEmpty())
+    {
+      return null;
+    }
+    return countryExtension;
   }
 
   /**

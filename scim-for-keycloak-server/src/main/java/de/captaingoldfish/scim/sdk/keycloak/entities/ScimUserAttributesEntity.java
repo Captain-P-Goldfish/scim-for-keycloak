@@ -245,6 +245,18 @@ public class ScimUserAttributesEntity
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ScimCertificatesEntity> certificates;
 
+  /**
+   * list of business line elements
+   */
+  @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<InfoCertBusinessLineEntity> infoCertBusinessLine;
+
+  /**
+   * list of country elements
+   */
+  @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<InfoCertCountriesEntity> infoCertCountries;
+
   @Builder
   public ScimUserAttributesEntity(String id,
                                   UserEntity userEntity,
@@ -399,6 +411,32 @@ public class ScimUserAttributesEntity
     else
     {
       this.certificates = Optional.ofNullable(certificates).orElseGet(ArrayList::new);
+    }
+  }
+
+  public void setInfoCertBusinessLine(List<InfoCertBusinessLineEntity> infoCertBusinessLine)
+  {
+    if (this.infoCertBusinessLine != null)
+    {
+      this.infoCertBusinessLine.clear();
+      this.infoCertBusinessLine.addAll(Optional.ofNullable(infoCertBusinessLine).orElseGet(ArrayList::new));
+    }
+    else
+    {
+      this.infoCertBusinessLine = Optional.ofNullable(infoCertBusinessLine).orElseGet(ArrayList::new);
+    }
+  }
+
+  public void setInfoCertCountries(List<InfoCertCountriesEntity> infoCertCountries)
+  {
+    if (this.infoCertCountries != null)
+    {
+      this.infoCertCountries.clear();
+      this.infoCertCountries.addAll(Optional.ofNullable(infoCertCountries).orElseGet(ArrayList::new));
+    }
+    else
+    {
+      this.infoCertCountries = Optional.ofNullable(infoCertCountries).orElseGet(ArrayList::new);
     }
   }
 }

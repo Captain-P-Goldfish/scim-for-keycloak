@@ -113,7 +113,7 @@ public class ScimAddressEntity
                            boolean primary,
                            ScimUserAttributesEntity userAttributes)
   {
-    Optional.ofNullable(id).orElse(KeycloakModelUtils.generateId());
+    this.id = Optional.ofNullable(id).orElse(KeycloakModelUtils.generateId());
     this.userAttributes = userAttributes;
     this.formatted = formatted;
     this.streetAddress = streetAddress;
