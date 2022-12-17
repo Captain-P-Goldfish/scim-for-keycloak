@@ -15,6 +15,7 @@ import de.captaingoldfish.scim.sdk.common.resources.User;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
 import de.captaingoldfish.scim.sdk.keycloak.scim.administration.ServiceProviderResource;
 import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUser2Endpoint;
+import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
 import de.captaingoldfish.scim.sdk.keycloak.setup.FileReferences;
 import de.captaingoldfish.scim.sdk.keycloak.setup.KeycloakScimManagementTest;
 import de.captaingoldfish.scim.sdk.keycloak.setup.RequestBuilder;
@@ -42,7 +43,7 @@ public class AbstractScimEndpointTest extends KeycloakScimManagementTest impleme
   /**
    * creates a user using the SCIM endpoint
    */
-  public User createUser(User user)
+  public CustomUser createUser(User user)
   {
     HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
                                                .method(HttpMethod.POST)
@@ -51,7 +52,22 @@ public class AbstractScimEndpointTest extends KeycloakScimManagementTest impleme
                                                .build();
     Response response = getScimEndpoint().handleScimRequest(request);
     Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
-    return JsonHelper.readJsonDocument(response.readEntity(String.class), User.class);
+    return JsonHelper.readJsonDocument(response.readEntity(String.class), CustomUser.class);
+  }
+
+  /**
+   * updates an existing user using the SCIM endpoint
+   */
+  public CustomUser updateUser(String id, User user)
+  {
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .method(HttpMethod.PUT)
+                                               .endpoint(CustomUser2Endpoint.CUSTOM_USER_2_ENDPOINT + "/" + id)
+                                               .requestBody(user.toString())
+                                               .build();
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.OK, response.getStatus());
+    return JsonHelper.readJsonDocument(response.readEntity(String.class), CustomUser.class);
   }
 
   /**

@@ -6,6 +6,7 @@ import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -16,6 +17,7 @@ import org.keycloak.models.utils.KeycloakModelUtils;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
@@ -44,7 +46,8 @@ public class ScimCertificatesEntity
   /**
    * reverse mapping for JPA
    */
-  @ManyToOne
+  @EqualsAndHashCode.Exclude
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "SCIM_ATTRIBUTES_ID")
   private ScimUserAttributesEntity userAttributes;
 

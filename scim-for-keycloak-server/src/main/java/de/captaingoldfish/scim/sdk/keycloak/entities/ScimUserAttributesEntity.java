@@ -1,7 +1,7 @@
 package de.captaingoldfish.scim.sdk.keycloak.entities;
 
 import java.time.Instant;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -270,8 +270,7 @@ public class ScimUserAttributesEntity
                                   String organization,
                                   String managerValue,
                                   String managerReference,
-                                  Instant lastModified,
-                                  List<ScimEmailsEntity> emails)
+                                  Instant lastModified)
   {
     this.id = Optional.ofNullable(id).orElse(KeycloakModelUtils.generateId());
     this.userEntity = userEntity;
@@ -300,8 +299,6 @@ public class ScimUserAttributesEntity
     this.lastModified = Optional.ofNullable(lastModified).map(Instant::toEpochMilli).orElseGet(() -> {
       return Optional.ofNullable(userEntity).map(UserEntity::getCreatedTimestamp).orElse(0L);
     });
-    this.emails = Optional.ofNullable(emails).orElseGet(Collections::emptyList);
-    Optional.ofNullable(this.emails).ifPresent(mails -> mails.forEach(mail -> mail.setUserAttributes(this)));
   }
 
   public Instant getLastModified()
@@ -312,5 +309,96 @@ public class ScimUserAttributesEntity
   public void setLastModified(Instant lastModified)
   {
     this.lastModified = lastModified.toEpochMilli();
+  }
+
+  public void setAddresses(List<ScimAddressEntity> addresses)
+  {
+    if (this.addresses != null)
+    {
+      this.addresses.clear();
+      this.addresses.addAll(Optional.ofNullable(addresses).orElseGet(ArrayList::new));
+    }
+    else
+    {
+      this.addresses = Optional.ofNullable(addresses).orElseGet(ArrayList::new);
+    }
+  }
+
+  public void setEmails(List<ScimEmailsEntity> emails)
+  {
+    if (this.emails != null)
+    {
+      this.emails.clear();
+      this.emails.addAll(Optional.ofNullable(emails).orElseGet(ArrayList::new));
+    }
+    else
+    {
+      this.emails = Optional.ofNullable(emails).orElseGet(ArrayList::new);
+    }
+  }
+
+  public void setPhoneNumbers(List<ScimPhonesEntity> phoneNumbers)
+  {
+    if (this.phoneNumbers != null)
+    {
+      this.phoneNumbers.clear();
+      this.phoneNumbers.addAll(Optional.ofNullable(phoneNumbers).orElseGet(ArrayList::new));
+    }
+    else
+    {
+      this.phoneNumbers = Optional.ofNullable(phoneNumbers).orElseGet(ArrayList::new);
+    }
+  }
+
+  public void setInstantMessagingAddresses(List<ScimImsEntity> instantMessagingAddresses)
+  {
+    if (this.instantMessagingAddresses != null)
+    {
+      this.instantMessagingAddresses.clear();
+      this.instantMessagingAddresses.addAll(Optional.ofNullable(instantMessagingAddresses).orElseGet(ArrayList::new));
+    }
+    else
+    {
+      this.instantMessagingAddresses = Optional.ofNullable(instantMessagingAddresses).orElseGet(ArrayList::new);
+    }
+  }
+
+  public void setPhotos(List<ScimPhotosEntity> photos)
+  {
+    if (this.photos != null)
+    {
+      this.photos.clear();
+      this.photos.addAll(Optional.ofNullable(photos).orElseGet(ArrayList::new));
+    }
+    else
+    {
+      this.photos = Optional.ofNullable(photos).orElseGet(ArrayList::new);
+    }
+  }
+
+  public void setEntitlements(List<ScimEntitlementEntity> entitlements)
+  {
+    if (this.entitlements != null)
+    {
+      this.entitlements.clear();
+      this.entitlements.addAll(Optional.ofNullable(entitlements).orElseGet(ArrayList::new));
+    }
+    else
+    {
+      this.entitlements = Optional.ofNullable(entitlements).orElseGet(ArrayList::new);
+    }
+  }
+
+  public void setCertificates(List<ScimCertificatesEntity> certificates)
+  {
+    if (this.certificates != null)
+    {
+      this.certificates.clear();
+      this.certificates.addAll(Optional.ofNullable(certificates).orElseGet(ArrayList::new));
+    }
+    else
+    {
+      this.certificates = Optional.ofNullable(certificates).orElseGet(ArrayList::new);
+    }
   }
 }

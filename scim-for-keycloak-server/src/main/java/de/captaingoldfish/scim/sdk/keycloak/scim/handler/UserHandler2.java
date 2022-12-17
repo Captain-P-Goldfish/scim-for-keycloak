@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.keycloak.connections.jpa.JpaConnectionProvider;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
@@ -80,6 +81,19 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
     return newUser;
   }
 
+  /**
+   * ges a single user from the database
+   * 
+   * @param id the id of the resource to return
+   * @param attributes the attributes that should be returned to the client. If the client sends this parameter
+   *          the evaluation of these parameters might help to improve database performance by omitting
+   *          unnecessary table joins
+   * @param excludedAttributes the attributes that should NOT be returned to the client. If the client send this
+   *          parameter the evaluation of these parameters might help to improve database performance by
+   *          omitting unnecessary table joins
+   * @param context the current request context that holds additional useful information. This object is never
+   *          null
+   */
   @Override
   public CustomUser getResource(String id,
                                 List<SchemaAttribute> attributes,
@@ -113,7 +127,6 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
    *          omitting unnecessary table joins
    * @param context the current request context that holds additional useful information. This object is never
    *          null
-   * @return
    */
   @Override
   public PartialListResponse<CustomUser> listResources(long startIndex,
@@ -135,14 +148,35 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
     return PartialListResponse.<CustomUser> builder().totalResults(totalResults).resources(customUsers).build();
   }
 
+  /**
+   * updates an existing user within the database
+   * 
+   * @param userToUpdate the resource that should override an existing one
+   * @param context the current request context that holds additional useful information. This object is never
+   *          null
+   */
   @Override
-  public CustomUser updateResource(CustomUser resourceToUpdate, Context context)
+  public CustomUser updateResource(CustomUser userToUpdate, Context context)
   {
-
-
-    return null;
+    final String id = userToUpdate.getId().orElseThrow(() -> new BadRequestException("Will never happen"));
+    ScimKeycloakContext scimKeycloakContext = (ScimKeycloakContext)context;
+    KeycloakSession keycloakSession = scimKeycloakContext.getKeycloakSession();
+    ScimUserAttributesEntity userAttributes = ScimJpaUserProvider.findUserById(keycloakSession, id);
+    if (userAttributes == null)
+    {
+      throw new ResourceNotFoundException(String.format("User with id '%s' does not exist", id));
+    }
+    userAttributes = updateUserInDatabase(userToUpdate, userAttributes, keycloakSession);
+    return DatabaseUserToScimConverter.databaseUserModelToScimModel(userAttributes);
   }
 
+  /**
+   * deletes a user from the database
+   * 
+   * @param id the id of the resource to delete
+   * @param context the current request context that holds additional useful information. This object is never
+   *          null
+   */
   @Override
   public void deleteResource(String id, Context context)
   {
@@ -194,6 +228,52 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
 
     ScimUserAttributesEntity userAttributes = new ScimUserAttributesEntity();
     // order is important. The addScimValuestoDatabaseModel method relies on the userEntity being added afterwards
+    return setUserValuesAndSave(user, userAttributes, keycloakSession, userModel);
+  }
+
+
+  /**
+   * updates the SCIM representation of a user within the database
+   * 
+   * @param user the SCIM representation of a user
+   * @param userAttributes the representation of an already existing user within the database
+   * @param keycloakSession the current keycloak request context
+   * @return the saved database representation of the given SCIM user
+   */
+  private ScimUserAttributesEntity updateUserInDatabase(CustomUser user,
+                                                        ScimUserAttributesEntity userAttributes,
+                                                        KeycloakSession keycloakSession)
+  {
+    final String userName = user.getUserName().orElse(userAttributes.getUserEntity().getUsername());
+    final String givenName = user.getName().flatMap(Name::getGivenName).orElse(null);
+    final String familyName = user.getName().flatMap(Name::getFamilyName).orElse(null);
+    final boolean userActive = user.isActive().orElse(false);
+    userAttributes.getUserEntity().setUsername(userName);
+    userAttributes.getUserEntity().setFirstName(givenName);
+    userAttributes.getUserEntity().setLastName(familyName);
+    userAttributes.getUserEntity().setEnabled(userActive);
+
+    UserModel userModel = new UserAdapter(keycloakSession, keycloakSession.getContext().getRealm(),
+                                          keycloakSession.getProvider(JpaConnectionProvider.class).getEntityManager(),
+                                          userAttributes.getUserEntity());
+    return setUserValuesAndSave(user, userAttributes, keycloakSession, userModel);
+  }
+
+  /**
+   * adds the values from the scim representation into the database representation and saves the object
+   * 
+   * @param user the scim user representation
+   * @param userAttributes the database user representation
+   * @param keycloakSession the current request context
+   * @param userModel the keycloak usermodel
+   */
+  @NotNull
+  private ScimUserAttributesEntity setUserValuesAndSave(CustomUser user,
+                                                        ScimUserAttributesEntity userAttributes,
+                                                        KeycloakSession keycloakSession,
+                                                        UserModel userModel)
+  {
+    // order is important. The addScimValuestoDatabaseModel method relies on the userEntity being added afterwards
     ScimUserToDatabaseConverter.addScimValuesToDatabaseModel(user, userModel, userAttributes);
     userAttributes.setUserEntity(((UserAdapter)userModel).getEntity());
 
@@ -203,6 +283,7 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
     }
 
     EntityManager entityManager = keycloakSession.getProvider(JpaConnectionProvider.class).getEntityManager();
+    log.debug("Persisting user");
     entityManager.persist(userAttributes);
     entityManager.flush();
     return userAttributes;

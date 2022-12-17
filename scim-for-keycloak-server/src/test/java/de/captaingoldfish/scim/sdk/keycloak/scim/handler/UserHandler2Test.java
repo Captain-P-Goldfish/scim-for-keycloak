@@ -46,6 +46,7 @@ import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhotosEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.provider.ScimJpaUserProvider;
 import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
+import de.captaingoldfish.scim.sdk.keycloak.scim.ScimConfiguration;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimConfigurationBridge;
 import de.captaingoldfish.scim.sdk.keycloak.scim.endpoints.CustomUser2Endpoint;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CountryUserExtension;
@@ -227,101 +228,142 @@ public class UserHandler2Test extends AbstractScimEndpointTest
     checkForAdminEvent(linkScim, OperationType.DELETE);
   }
 
+  @Test
+  public void testUpdateUser()
+  {
+    ServiceProvider serviceProvider = ScimConfiguration.getScimEndpoint(getKeycloakSession(), false)
+                                                       .getServiceProvider();
+    serviceProvider.setChangePasswordConfig(ChangePasswordConfig.builder().supported(true).build());
+
+    CustomUser superMarioScim = JsonHelper.loadJsonDocument(USER_SUPER_MARIO, CustomUser.class);
+    CustomUser linkScim = JsonHelper.loadJsonDocument(USER_LINK, CustomUser.class);
+
+    superMarioScim = createUser(superMarioScim);
+    final String userId = superMarioScim.getId().get();
+
+    // now update the data of mario with links data
+    CustomUser updatedUser = updateUser(userId, linkScim);
+
+    ScimUserAttributesEntity userAttributes = ScimJpaUserProvider.findUserById(getKeycloakSession(), userId);
+    String password = linkScim.getPassword().get();
+    checkUserEquality(password, linkScim, updatedUser, userAttributes);
+  }
 
   private void checkUserEquality(String pw,
                                  CustomUser user,
                                  CustomUser createdUser,
                                  ScimUserAttributesEntity userAttributes)
   {
-    Assertions.assertEquals(user.getUserName().get(), createdUser.getUserName().get());
-    Assertions.assertEquals(user.getUserName().get(), userAttributes.getUserEntity().getUsername());
+    Assertions.assertEquals(user.getUserName().orElse(null), createdUser.getUserName().orElse(null));
+    Assertions.assertEquals(user.getUserName().orElse(null), userAttributes.getUserEntity().getUsername());
 
-    Assertions.assertEquals(user.getExternalId().get(), createdUser.getExternalId().get());
-    Assertions.assertEquals(user.getExternalId().get(), userAttributes.getExternalId());
+    Assertions.assertEquals(user.getExternalId().orElse(null), createdUser.getExternalId().orElse(null));
+    Assertions.assertEquals(user.getExternalId().orElse(null), userAttributes.getExternalId());
 
-    Assertions.assertEquals(user.getName().get().getFormatted().get(),
-                            createdUser.getName().get().getFormatted().get());
-    Assertions.assertEquals(user.getName().get().getFormatted().get(), userAttributes.getNameFormatted());
+    Assertions.assertEquals(user.getName().orElse(null).getFormatted().orElse(null),
+                            createdUser.getName().orElse(null).getFormatted().orElse(null));
+    Assertions.assertEquals(user.getName().orElse(null).getFormatted().orElse(null), userAttributes.getNameFormatted());
 
-    Assertions.assertEquals(user.getName().get().getGivenName().get(),
-                            createdUser.getName().get().getGivenName().get());
-    Assertions.assertEquals(user.getName().get().getGivenName().get(), userAttributes.getGivenName());
+    Assertions.assertEquals(user.getName().orElse(null).getGivenName().orElse(null),
+                            createdUser.getName().orElse(null).getGivenName().orElse(null));
+    Assertions.assertEquals(user.getName().orElse(null).getGivenName().orElse(null), userAttributes.getGivenName());
 
-    Assertions.assertEquals(user.getName().get().getFamilyName().get(),
-                            createdUser.getName().get().getFamilyName().get());
-    Assertions.assertEquals(user.getName().get().getFamilyName().get(), userAttributes.getFamilyName());
+    Assertions.assertEquals(user.getName().orElse(null).getFamilyName().orElse(null),
+                            createdUser.getName().orElse(null).getFamilyName().orElse(null));
+    Assertions.assertEquals(user.getName().orElse(null).getFamilyName().orElse(null), userAttributes.getFamilyName());
 
-    Assertions.assertEquals(user.getName().get().getMiddleName().get(),
-                            createdUser.getName().get().getMiddleName().get());
-    Assertions.assertEquals(user.getName().get().getMiddleName().get(), userAttributes.getMiddleName());
+    Assertions.assertEquals(user.getName().orElse(null).getMiddleName().orElse(null),
+                            createdUser.getName().orElse(null).getMiddleName().orElse(null));
+    Assertions.assertEquals(user.getName().orElse(null).getMiddleName().orElse(null), userAttributes.getMiddleName());
 
-    Assertions.assertEquals(user.getName().get().getHonorificPrefix().get(),
-                            createdUser.getName().get().getHonorificPrefix().get());
-    Assertions.assertEquals(user.getName().get().getHonorificPrefix().get(), userAttributes.getNameHonorificPrefix());
+    Assertions.assertEquals(user.getName().orElse(null).getHonorificPrefix().orElse(null),
+                            createdUser.getName().orElse(null).getHonorificPrefix().orElse(null));
+    Assertions.assertEquals(user.getName().orElse(null).getHonorificPrefix().orElse(null),
+                            userAttributes.getNameHonorificPrefix());
 
-    Assertions.assertEquals(user.getName().get().getHonorificSuffix().get(),
-                            createdUser.getName().get().getHonorificSuffix().get());
-    Assertions.assertEquals(user.getName().get().getHonorificSuffix().get(), userAttributes.getNameHonorificSuffix());
+    Assertions.assertEquals(user.getName().orElse(null).getHonorificSuffix().orElse(null),
+                            createdUser.getName().orElse(null).getHonorificSuffix().orElse(null));
+    Assertions.assertEquals(user.getName().orElse(null).getHonorificSuffix().orElse(null),
+                            userAttributes.getNameHonorificSuffix());
 
-    Assertions.assertEquals(user.isActive().get(), createdUser.isActive().get());
-    Assertions.assertEquals(user.isActive().get(), userAttributes.getUserEntity().isEnabled());
+    Assertions.assertEquals(user.isActive().orElse(null), createdUser.isActive().orElse(null));
+    Assertions.assertEquals(user.isActive().orElse(null), userAttributes.getUserEntity().isEnabled());
 
-    Assertions.assertEquals(user.getNickName().get(), createdUser.getNickName().get());
-    Assertions.assertEquals(user.getNickName().get(), userAttributes.getNickName());
+    Assertions.assertEquals(user.getNickName().orElse(null), createdUser.getNickName().orElse(null));
+    Assertions.assertEquals(user.getNickName().orElse(null), userAttributes.getNickName());
 
-    Assertions.assertEquals(user.getTitle().get(), createdUser.getTitle().get());
-    Assertions.assertEquals(user.getTitle().get(), userAttributes.getTitle());
+    Assertions.assertEquals(user.getTitle().orElse(null), createdUser.getTitle().orElse(null));
+    Assertions.assertEquals(user.getTitle().orElse(null), userAttributes.getTitle());
 
-    Assertions.assertEquals(user.getDisplayName().get(), createdUser.getDisplayName().get());
-    Assertions.assertEquals(user.getDisplayName().get(), userAttributes.getDisplayName());
+    Assertions.assertEquals(user.getDisplayName().orElse(null), createdUser.getDisplayName().orElse(null));
+    Assertions.assertEquals(user.getDisplayName().orElse(null), userAttributes.getDisplayName());
 
-    Assertions.assertEquals(user.getUserType().get(), createdUser.getUserType().get());
-    Assertions.assertEquals(user.getUserType().get(), userAttributes.getUserType());
+    Assertions.assertEquals(user.getUserType().orElse(null), createdUser.getUserType().orElse(null));
+    Assertions.assertEquals(user.getUserType().orElse(null), userAttributes.getUserType());
 
-    Assertions.assertEquals(user.getLocale().get(), createdUser.getLocale().get());
-    Assertions.assertEquals(user.getLocale().get(), userAttributes.getLocale());
+    Assertions.assertEquals(user.getLocale().orElse(null), createdUser.getLocale().orElse(null));
+    Assertions.assertEquals(user.getLocale().orElse(null), userAttributes.getLocale());
 
-    Assertions.assertEquals(user.getPreferredLanguage().get(), createdUser.getPreferredLanguage().get());
-    Assertions.assertEquals(user.getPreferredLanguage().get(), userAttributes.getPreferredLanguage());
+    Assertions.assertEquals(user.getPreferredLanguage().orElse(null), createdUser.getPreferredLanguage().orElse(null));
+    Assertions.assertEquals(user.getPreferredLanguage().orElse(null), userAttributes.getPreferredLanguage());
 
-    Assertions.assertEquals(user.getTimezone().get(), createdUser.getTimezone().get());
-    Assertions.assertEquals(user.getTimezone().get(), userAttributes.getTimezone());
+    Assertions.assertEquals(user.getTimezone().orElse(null), createdUser.getTimezone().orElse(null));
+    Assertions.assertEquals(user.getTimezone().orElse(null), userAttributes.getTimezone());
 
-    Assertions.assertEquals(user.getProfileUrl().get(), createdUser.getProfileUrl().get());
-    Assertions.assertEquals(user.getProfileUrl().get(), userAttributes.getProfileUrl());
+    Assertions.assertEquals(user.getProfileUrl().orElse(null), createdUser.getProfileUrl().orElse(null));
+    Assertions.assertEquals(user.getProfileUrl().orElse(null), userAttributes.getProfileUrl());
 
-    Assertions.assertEquals(user.getProfileUrl().get(), createdUser.getProfileUrl().get());
-    Assertions.assertEquals(user.getProfileUrl().get(), userAttributes.getProfileUrl());
+    Assertions.assertEquals(user.getProfileUrl().orElse(null), createdUser.getProfileUrl().orElse(null));
+    Assertions.assertEquals(user.getProfileUrl().orElse(null), userAttributes.getProfileUrl());
 
-    Assertions.assertEquals(user.getEnterpriseUser().get().getEmployeeNumber().get(),
-                            createdUser.getEnterpriseUser().get().getEmployeeNumber().get());
-    Assertions.assertEquals(user.getEnterpriseUser().get().getEmployeeNumber().get(),
+    Assertions.assertEquals(user.getEnterpriseUser().flatMap(EnterpriseUser::getEmployeeNumber).orElse(null),
+                            createdUser.getEnterpriseUser().flatMap(EnterpriseUser::getEmployeeNumber).orElse(null));
+    Assertions.assertEquals(user.getEnterpriseUser().flatMap(EnterpriseUser::getEmployeeNumber).orElse(null),
                             userAttributes.getEmployeeNumber());
 
-    Assertions.assertEquals(user.getEnterpriseUser().get().getDepartment().get(),
-                            createdUser.getEnterpriseUser().get().getDepartment().get());
-    Assertions.assertEquals(user.getEnterpriseUser().get().getDepartment().get(), userAttributes.getDepartment());
+    Assertions.assertEquals(user.getEnterpriseUser().flatMap(EnterpriseUser::getDepartment).orElse(null),
+                            createdUser.getEnterpriseUser().flatMap(EnterpriseUser::getDepartment).orElse(null));
+    Assertions.assertEquals(user.getEnterpriseUser().flatMap(EnterpriseUser::getDepartment).orElse(null),
+                            userAttributes.getDepartment());
 
-    Assertions.assertEquals(user.getEnterpriseUser().get().getCostCenter().get(),
-                            createdUser.getEnterpriseUser().get().getCostCenter().get());
-    Assertions.assertEquals(user.getEnterpriseUser().get().getCostCenter().get(), userAttributes.getCostCenter());
+    Assertions.assertEquals(user.getEnterpriseUser().flatMap(EnterpriseUser::getCostCenter).orElse(null),
+                            createdUser.getEnterpriseUser().flatMap(EnterpriseUser::getCostCenter).orElse(null));
+    Assertions.assertEquals(user.getEnterpriseUser().flatMap(EnterpriseUser::getCostCenter).orElse(null),
+                            userAttributes.getCostCenter());
 
-    Assertions.assertEquals(user.getEnterpriseUser().get().getDivision().get(),
-                            createdUser.getEnterpriseUser().get().getDivision().get());
-    Assertions.assertEquals(user.getEnterpriseUser().get().getDivision().get(), userAttributes.getDivision());
+    Assertions.assertEquals(user.getEnterpriseUser().flatMap(EnterpriseUser::getDivision).orElse(null),
+                            createdUser.getEnterpriseUser().flatMap(EnterpriseUser::getDivision).orElse(null));
+    Assertions.assertEquals(user.getEnterpriseUser().flatMap(EnterpriseUser::getDivision).orElse(null),
+                            userAttributes.getDivision());
 
-    Assertions.assertEquals(user.getEnterpriseUser().get().getOrganization().get(),
-                            createdUser.getEnterpriseUser().get().getOrganization().get());
-    Assertions.assertEquals(user.getEnterpriseUser().get().getOrganization().get(), userAttributes.getOrganization());
+    Assertions.assertEquals(user.getEnterpriseUser().flatMap(EnterpriseUser::getOrganization).orElse(null),
+                            createdUser.getEnterpriseUser().flatMap(EnterpriseUser::getOrganization).orElse(null));
+    Assertions.assertEquals(user.getEnterpriseUser().flatMap(EnterpriseUser::getOrganization).orElse(null),
+                            userAttributes.getOrganization());
 
-    Assertions.assertEquals(user.getEnterpriseUser().get().getManager().get().getValue().get(),
-                            createdUser.getEnterpriseUser().get().getManager().get().getValue().get());
-    Assertions.assertEquals(user.getEnterpriseUser().get().getManager().get().getValue().get(),
+    Assertions.assertEquals(user.getEnterpriseUser()
+                                .flatMap(EnterpriseUser::getManager)
+                                .flatMap(Manager::getValue)
+                                .orElse(null),
+                            createdUser.getEnterpriseUser()
+                                       .flatMap(EnterpriseUser::getManager)
+                                       .flatMap(Manager::getValue)
+                                       .orElse(null));
+    Assertions.assertEquals(user.getEnterpriseUser()
+                                .flatMap(EnterpriseUser::getManager)
+                                .flatMap(Manager::getValue)
+                                .orElse(null),
                             userAttributes.getManagerValue());
 
-    Assertions.assertEquals(user.getEnterpriseUser().get().getManager().get().getRef().get(),
-                            createdUser.getEnterpriseUser().get().getManager().get().getRef().get());
-    Assertions.assertEquals(user.getEnterpriseUser().get().getManager().get().getRef().get(),
+    Assertions.assertEquals(user.getEnterpriseUser()
+                                .flatMap(EnterpriseUser::getManager)
+                                .flatMap(Manager::getRef)
+                                .orElse(null),
+                            createdUser.getEnterpriseUser()
+                                       .flatMap(EnterpriseUser::getManager)
+                                       .flatMap(Manager::getRef)
+                                       .orElse(null));
+    Assertions.assertEquals(user.getEnterpriseUser().orElse(null).getManager().flatMap(Manager::getRef).orElse(null),
                             userAttributes.getManagerReference());
 
     checkAddresses(user.getAddresses(), userAttributes.getAddresses());
@@ -336,7 +378,8 @@ public class UserHandler2Test extends AbstractScimEndpointTest
     UserModel userModel = new UserAdapter(getKeycloakSession(), getRealmModel(), getEntityManager(),
                                           userAttributes.getUserEntity());
     UserCredentialModel userCredential = UserCredentialModel.password(pw);
-    Assertions.assertTrue(credentialManager.isValid(getRealmModel(), userModel, userCredential));
+    Assertions.assertTrue(credentialManager.isValid(getRealmModel(), userModel, userCredential),
+                          "Password verification has failed");
   }
 
   private void checkAddresses(List<Address> expectedAddresses, List<ScimAddressEntity> actualAddresses)
