@@ -131,7 +131,6 @@ public class UserHandlerTest extends AbstractScimEndpointTest
         // pointless
         updateddUser.getMeta().get().setLastModified(adminEventUser.getMeta().get().getLastModified().get());
       }
-      Assertions.assertEquals(updateddUser, updateddUser);
     }
   }
 

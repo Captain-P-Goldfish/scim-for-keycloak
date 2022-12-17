@@ -1,5 +1,6 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim.handler;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,7 @@ import de.captaingoldfish.scim.sdk.common.constants.enums.SortOrder;
 import de.captaingoldfish.scim.sdk.common.exceptions.BadRequestException;
 import de.captaingoldfish.scim.sdk.common.exceptions.ConflictException;
 import de.captaingoldfish.scim.sdk.common.exceptions.ResourceNotFoundException;
+import de.captaingoldfish.scim.sdk.common.resources.complex.Meta;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Name;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
 import de.captaingoldfish.scim.sdk.keycloak.audit.ScimAdminEventBuilder;
@@ -74,7 +76,7 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
                                     String.format("users/%s", userModel.getId()),
                                     newUser);
     }
-    log.debug("Created user with username: {}", userModel.getUsername());
+    log.info("SCIM endpoint created user with username: {}", userModel.getUsername());
     return newUser;
   }
 
@@ -136,6 +138,8 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
   @Override
   public CustomUser updateResource(CustomUser resourceToUpdate, Context context)
   {
+
+
     return null;
   }
 
@@ -150,8 +154,22 @@ public class UserHandler2 extends ResourceHandler<CustomUser>
       throw new ResourceNotFoundException(String.format("User with id '%s' does not exist", id));
     }
     keycloakSession.users().removeUser(keycloakSession.getContext().getRealm(), userModel);
+    {
+      ScimAdminEventBuilder adminEventAuditer = ((ScimKeycloakContext)context).getAdminEventAuditer();
+      adminEventAuditer.createEvent(OperationType.DELETE,
+                                    ResourceType.USER,
+                                    String.format("users/%s", userModel.getId()),
+                                    CustomUser.builder()
+                                              .id(userModel.getId())
+                                              .userName(userModel.getUsername())
+                                              .meta(Meta.builder()
+                                                        .created(Instant.ofEpochMilli(userModel.getCreatedTimestamp()))
+                                                        .lastModified(Instant.now())
+                                                        .build())
+                                              .build());
+    }
+    log.info("SCIM endpoint deleted user with username: {}", userModel.getUsername());
   }
-
 
   /* ******************************************************************************************************** */
 

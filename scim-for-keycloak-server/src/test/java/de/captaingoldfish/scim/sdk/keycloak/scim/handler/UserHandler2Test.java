@@ -4,12 +4,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.keycloak.events.admin.AdminEvent;
+import org.keycloak.events.admin.OperationType;
 import org.keycloak.models.UserCredentialManager;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
@@ -17,6 +20,7 @@ import org.keycloak.models.jpa.UserAdapter;
 import org.keycloak.models.jpa.entities.UserEntity;
 
 import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
+import de.captaingoldfish.scim.sdk.common.constants.SchemaUris;
 import de.captaingoldfish.scim.sdk.common.constants.enums.HttpMethod;
 import de.captaingoldfish.scim.sdk.common.resources.EnterpriseUser;
 import de.captaingoldfish.scim.sdk.common.resources.ServiceProvider;
@@ -186,6 +190,7 @@ public class UserHandler2Test extends AbstractScimEndpointTest
     ScimUserAttributesEntity userAttributes = ScimJpaUserProvider.findUserById(getKeycloakSession(), userId);
     Assertions.assertNotNull(userAttributes);
     checkUserEquality(pw, user, createdUser, userAttributes);
+    checkForAdminEvent(createdUser, OperationType.CREATE);
   }
 
   /**
@@ -216,6 +221,10 @@ public class UserHandler2Test extends AbstractScimEndpointTest
     Assertions.assertEquals(0, countEntriesInTable(ScimUserAttributesEntity.class));
     // the admin user still remains within the database
     Assertions.assertEquals(1, countEntriesInTable(UserEntity.class));
+
+    checkForAdminEvent(superMarioScim, OperationType.DELETE);
+    checkForAdminEvent(donkeyKongScim, OperationType.DELETE);
+    checkForAdminEvent(linkScim, OperationType.DELETE);
   }
 
 
@@ -430,5 +439,30 @@ public class UserHandler2Test extends AbstractScimEndpointTest
       Assertions.assertEquals(expectedPhoto.getType().orElse(null), actualPhoto.getType());
       Assertions.assertEquals(expectedPhoto.isPrimary(), actualPhoto.isPrimary());
     }
+  }
+
+  private void checkForAdminEvent(User user, OperationType operationType)
+  {
+    // check for created admin event
+    List<AdminEvent> adminEventList = getAdminEventStoreProvider().createAdminQuery()
+                                                                  .getResultStream()
+                                                                  .collect(Collectors.toList());
+    AdminEvent adminEvent = adminEventList.stream()
+                                          .filter(event -> event.getOperationType().equals(operationType)
+                                                           && event.getResourcePath()
+                                                                   .equals("users/" + user.getId().get()))
+                                          .findAny()
+                                          .orElse(null);
+    Assertions.assertNotNull(adminEvent);
+    Assertions.assertEquals(getTestClient().getId(), adminEvent.getAuthDetails().getClientId());
+    Assertions.assertEquals(getTestUser().getId(), adminEvent.getAuthDetails().getUserId());
+    Assertions.assertEquals("users/" + user.getId().get(), adminEvent.getResourcePath());
+    Assertions.assertEquals(operationType, adminEvent.getOperationType());
+    Assertions.assertEquals(org.keycloak.events.admin.ResourceType.USER, adminEvent.getResourceType());
+    // equalize the two objects by modifying the meta-attribute. The meta-attribute is not identical because the
+    // schema-validation is modifying the meta-attribute when evaluating the response
+    User adminEventUser = JsonHelper.readJsonDocument(adminEvent.getRepresentation(), User.class);
+    // the structure of the user is not so important here but that it is a JSON SCIM user that was persisted
+    Assertions.assertTrue(adminEventUser.getSchemas().contains(SchemaUris.USER_URI));
   }
 }
