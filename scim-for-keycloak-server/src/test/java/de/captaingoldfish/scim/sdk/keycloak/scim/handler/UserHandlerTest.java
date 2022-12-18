@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.keycloak.events.admin.AdminEvent;
 import org.keycloak.events.admin.OperationType;
+import org.keycloak.models.GroupModel;
 import org.keycloak.models.UserCredentialManager;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
@@ -35,6 +36,7 @@ import de.captaingoldfish.scim.sdk.common.resources.complex.Name;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Address;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Email;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Entitlement;
+import de.captaingoldfish.scim.sdk.common.resources.multicomplex.GroupNode;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Ims;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PhoneNumber;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
@@ -247,12 +249,53 @@ public class UserHandlerTest extends AbstractScimEndpointTest
     superMarioScim = createUser(superMarioScim);
     final String userId = superMarioScim.getId().get();
 
+    GroupModel adminGroup = getKeycloakSession().groups().createGroup(getRealmModel(), "admin");
+    UserModel marioModel = getKeycloakSession().users().getUserById(getRealmModel(), userId);
+    marioModel.joinGroup(adminGroup);
+    linkScim.setGroups(Arrays.asList(GroupNode.builder()
+                                              .value(adminGroup.getId())
+                                              .display(adminGroup.getName())
+                                              .type("direct")
+                                              .build()));
+
     // now update the data of mario with links data
     CustomUser updatedUser = updateUser(userId, linkScim);
 
     ScimUserAttributesEntity userAttributes = ScimJpaUserProvider.findUserById(getKeycloakSession(), userId);
     String password = linkScim.getPassword().get();
     checkUserEquality(password, linkScim, updatedUser, userAttributes);
+  }
+
+  /**
+   * verifies that a user can be correctly retrieved if created
+   */
+  @Test
+  public void testGetUser()
+  {
+    ServiceProvider serviceProvider = ScimConfiguration.getScimEndpoint(getKeycloakSession(), false)
+                                                       .getServiceProvider();
+    serviceProvider.setChangePasswordConfig(ChangePasswordConfig.builder().supported(true).build());
+
+    CustomUser superMarioScim = JsonHelper.loadJsonDocument(USER_SUPER_MARIO, CustomUser.class);
+    String password = superMarioScim.getPassword().get();
+
+    superMarioScim = createUser(superMarioScim);
+    final String userId = superMarioScim.getId().get();
+
+    GroupModel adminGroup = getKeycloakSession().groups().createGroup(getRealmModel(), "admin");
+    UserModel marioModel = getKeycloakSession().users().getUserById(getRealmModel(), userId);
+    marioModel.joinGroup(adminGroup);
+    superMarioScim.setGroups(Arrays.asList(GroupNode.builder()
+                                                    .value(adminGroup.getId())
+                                                    .display(adminGroup.getName())
+                                                    .type("direct")
+                                                    .build()));
+
+    // now update the data of mario with links data
+    CustomUser retrievedUser = getUser(userId);
+
+    ScimUserAttributesEntity userAttributes = ScimJpaUserProvider.findUserById(getKeycloakSession(), userId);
+    checkUserEquality(password, superMarioScim, retrievedUser, userAttributes);
   }
 
   /**
@@ -425,6 +468,7 @@ public class UserHandlerTest extends AbstractScimEndpointTest
     checkIms(user.getIms(), userAttributes.getInstantMessagingAddresses());
     checkPhoneNumbers(user.getPhoneNumbers(), userAttributes.getPhoneNumbers());
     checkPhotos(user.getPhotos(), userAttributes.getPhotos());
+    checkGroups(user.getGroups(), createdUser.getGroups());
 
     Assertions.assertNotEquals(0, user.getCountryUserExtension().getBusinessLine().size());
     MatcherAssert.assertThat(user.getCountryUserExtension().getBusinessLine(),
@@ -550,6 +594,18 @@ public class UserHandlerTest extends AbstractScimEndpointTest
       Assertions.assertEquals(expectedPhoto.isPrimary(), actualPhoto.isPrimary());
     }
   }
+
+  /**
+   * verifies that the groups object is equals among the created group and the returned one
+   */
+  private void checkGroups(List<GroupNode> expectedGroups, List<GroupNode> actualGroups)
+  {
+    Assertions.assertEquals(expectedGroups.size(), actualGroups.size());
+    Assertions.assertTrue(expectedGroups.stream().allMatch(expectedGroup -> {
+      return actualGroups.stream().anyMatch(expectedGroup::equals);
+    }));
+  }
+
 
   private void checkForAdminEvent(User user, OperationType operationType)
   {

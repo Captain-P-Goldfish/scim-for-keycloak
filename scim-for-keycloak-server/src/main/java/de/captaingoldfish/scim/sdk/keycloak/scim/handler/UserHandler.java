@@ -1,14 +1,13 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim.handler;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.StopWatch;
 import org.jetbrains.annotations.NotNull;
 import org.keycloak.connections.jpa.JpaConnectionProvider;
 import org.keycloak.events.admin.OperationType;
@@ -80,6 +79,7 @@ public class UserHandler extends ResourceHandler<CustomUser>
                                     newUser);
     }
     log.info("SCIM endpoint created user with username: {}", userModel.getUsername());
+    // we do not need to add groups here to the user since we are certain that the user won't have any yet
     return newUser;
   }
 
@@ -108,7 +108,10 @@ public class UserHandler extends ResourceHandler<CustomUser>
     {
       return null;
     }
-    return DatabaseUserToScimConverter.databaseUserModelToScimModel(userAttributes);
+    CustomUser customUser = DatabaseUserToScimConverter.databaseUserModelToScimModel(userAttributes);
+    DatabaseUserToScimConverter.addAdditionalAttributesToUsers(new UserFiltering(keycloakSession),
+                                                               Collections.singletonList(customUser));
+    return customUser;
   }
 
   /**
@@ -140,27 +143,14 @@ public class UserHandler extends ResourceHandler<CustomUser>
                                                        List<SchemaAttribute> excludedAttributes,
                                                        Context context)
   {
-    StopWatch stopWatch = new StopWatch();
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
-    stopWatch.start();
     UserFiltering userFiltering = new UserFiltering(keycloakSession, startIndex, count, filter, sortBy, sortOrder);
     long totalResults = userFiltering.countResources();
-    log.debug("Counting users took {}ms", stopWatch.getTime(TimeUnit.MILLISECONDS));
-    stopWatch.reset();
-    stopWatch.start();
     List<ScimUserAttributesEntity> userAttributesList = userFiltering.filterResources();
-    log.debug("Selecting users took {}ms", stopWatch.getTime(TimeUnit.MILLISECONDS));
-    stopWatch.reset();
-    stopWatch.start();
     List<CustomUser> customUsers = userAttributesList.stream()
                                                      .map(DatabaseUserToScimConverter::databaseUserModelToScimModel)
                                                      .collect(Collectors.toList());
-    log.debug("Parsing of users took {}ms", stopWatch.getTime(TimeUnit.MILLISECONDS));
-    stopWatch.reset();
-    stopWatch.start();
-    List<String> userIds = customUsers.parallelStream().map(user -> user.getId().get()).collect(Collectors.toList());
-    log.debug("Getting userIds took {}ms", stopWatch.getTime(TimeUnit.MILLISECONDS));
-    stopWatch.reset();
+    DatabaseUserToScimConverter.addAdditionalAttributesToUsers(userFiltering, customUsers);
     return PartialListResponse.<CustomUser> builder().totalResults(totalResults).resources(customUsers).build();
   }
 
@@ -183,7 +173,10 @@ public class UserHandler extends ResourceHandler<CustomUser>
       throw new ResourceNotFoundException(String.format("User with id '%s' does not exist", id));
     }
     userAttributes = updateUserInDatabase(userToUpdate, userAttributes, keycloakSession);
-    return DatabaseUserToScimConverter.databaseUserModelToScimModel(userAttributes);
+    CustomUser customUser = DatabaseUserToScimConverter.databaseUserModelToScimModel(userAttributes);
+    DatabaseUserToScimConverter.addAdditionalAttributesToUsers(new UserFiltering(keycloakSession),
+                                                               Collections.singletonList(customUser));
+    return customUser;
   }
 
   /**

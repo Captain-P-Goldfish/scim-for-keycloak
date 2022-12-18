@@ -185,18 +185,9 @@ public abstract class AbstractFiltering<T>
     getParameterResolverList().forEach(queryConsumer -> queryConsumer.accept(query));
     getParameterResolverList().clear();
 
-    Stream<Object> results = query.getResultStream();
+    Stream<Object[]> results = query.getResultStream();
 
-    return parseResultStream(results.parallel().map(o -> {
-      if (o.getClass().isArray())
-      {
-        return (Object[])o;
-      }
-      else
-      {
-        return new Object[]{o};
-      }
-    }));
+    return parseResultStream(results.parallel());
   }
 
   /**

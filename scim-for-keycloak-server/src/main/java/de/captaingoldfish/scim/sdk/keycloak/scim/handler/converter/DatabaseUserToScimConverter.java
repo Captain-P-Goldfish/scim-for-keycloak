@@ -3,9 +3,12 @@ package de.captaingoldfish.scim.sdk.keycloak.scim.handler.converter;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
+import org.keycloak.models.jpa.entities.GroupEntity;
 import org.keycloak.models.jpa.entities.UserEntity;
 
 import de.captaingoldfish.scim.sdk.common.constants.ResourceTypeNames;
@@ -16,6 +19,7 @@ import de.captaingoldfish.scim.sdk.common.resources.complex.Name;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Address;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Email;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Entitlement;
+import de.captaingoldfish.scim.sdk.common.resources.multicomplex.GroupNode;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Ims;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PhoneNumber;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
@@ -23,6 +27,7 @@ import de.captaingoldfish.scim.sdk.common.resources.multicomplex.ScimX509Certifi
 import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertBusinessLineEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertCountriesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.UserFiltering;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CountryUserExtension;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
 import lombok.AccessLevel;
@@ -58,35 +63,37 @@ public final class DatabaseUserToScimConverter
 
     EnterpriseUser enterpriseUser = toScimEnterpriseUser(userAttributes);
     CountryUserExtension countryUserExtension = toCountryUserExtension(userAttributes);
-    return CustomUser.builder()
-                     .id(userEntity.getId())
-                     .externalId(userAttributes.getExternalId())
-                     .userName(userEntity.getUsername())
-                     .active(userEntity.isEnabled())
-                     .name(name)
-                     .displayName(userAttributes.getDisplayName())
-                     .nickName(userAttributes.getNickName())
-                     .profileUrl(userAttributes.getProfileUrl())
-                     .title(userAttributes.getTitle())
-                     .userType(userAttributes.getUserType())
-                     .preferredLanguage(userAttributes.getPreferredLanguage())
-                     .locale(userAttributes.getLocale())
-                     .timeZone(userAttributes.getTimezone())
-                     .addresses(addresses)
-                     .x509Certificates(certificates)
-                     .emails(emails)
-                     .entitlements(entitlements)
-                     .ims(ims)
-                     .phoneNumbers(phoneNumbers)
-                     .photos(photos)
-                     .enterpriseUser(enterpriseUser)
-                     .countryUserExtension(countryUserExtension)
-                     .meta(Meta.builder()
-                               .created(Instant.ofEpochMilli(userEntity.getCreatedTimestamp()))
-                               .lastModified(userAttributes.getLastModified())
-                               .resourceType(ResourceTypeNames.USER)
-                               .build())
-                     .build();
+    CustomUser customUser = CustomUser.builder()
+                                      .id(userEntity.getId())
+                                      .externalId(userAttributes.getExternalId())
+                                      .userName(userEntity.getUsername())
+                                      .active(userEntity.isEnabled())
+                                      .name(name)
+                                      .displayName(userAttributes.getDisplayName())
+                                      .nickName(userAttributes.getNickName())
+                                      .profileUrl(userAttributes.getProfileUrl())
+                                      .title(userAttributes.getTitle())
+                                      .userType(userAttributes.getUserType())
+                                      .preferredLanguage(userAttributes.getPreferredLanguage())
+                                      .locale(userAttributes.getLocale())
+                                      .timeZone(userAttributes.getTimezone())
+                                      .addresses(addresses)
+                                      .x509Certificates(certificates)
+                                      .emails(emails)
+                                      .entitlements(entitlements)
+                                      .ims(ims)
+                                      .phoneNumbers(phoneNumbers)
+                                      .photos(photos)
+                                      .enterpriseUser(enterpriseUser)
+                                      .countryUserExtension(countryUserExtension)
+                                      .meta(Meta.builder()
+                                                .created(Instant.ofEpochMilli(userEntity.getCreatedTimestamp()))
+                                                .lastModified(userAttributes.getLastModified())
+                                                .resourceType(ResourceTypeNames.USER)
+                                                .build())
+                                      .build();
+
+    return customUser;
   }
 
   /**
@@ -285,4 +292,49 @@ public final class DatabaseUserToScimConverter
     }).collect(Collectors.toList());
   }
 
+  /**
+   * will be used to add additional attributes to the user that are read from the database with an extra SQL
+   * 
+   * @param userFiltering the user filtering that contains the logic to extract the additional attributes
+   * @param customUsers the users to which the attributes should be added
+   */
+  public static void addAdditionalAttributesToUsers(UserFiltering userFiltering, List<CustomUser> customUsers)
+  {
+    // since we might need to use the userId list at several points we extract them here once and pass them as
+    // parameters to all following methods
+    List<String> userIds = customUsers.parallelStream().map(user -> user.getId().get()).collect(Collectors.toList());
+    addGroupsToUsers(userFiltering, userIds, customUsers);
+  }
+
+  /**
+   * will add the users groups to the given list of users
+   * 
+   * @param userFiltering the instance that contains the logic to extract the groups for the given userIds
+   * @param userIds the userIds for which the groups should be extracted
+   * @param customUsers the users to which the groups should be added
+   */
+  private static void addGroupsToUsers(UserFiltering userFiltering, List<String> userIds, List<CustomUser> customUsers)
+  {
+    List<Pair<GroupEntity, String>> orderedUserGroups = userFiltering.getUserGroups(userIds);
+
+    Map<String, List<Pair<GroupEntity, String>>> splittedMap = orderedUserGroups.stream()
+                                                                                .parallel()
+                                                                                .collect(Collectors.groupingBy(Pair::getRight));
+
+    splittedMap.entrySet().stream().parallel().forEach(entry -> {
+      final String userId = entry.getKey();
+      CustomUser user = customUsers.stream().filter(u -> u.getId().get().equals(userId)).findAny().get();
+      List<GroupNode> groups = entry.getValue()
+                                    .stream()
+                                    .parallel()
+                                    .map(Pair::getLeft)
+                                    .map(group -> GroupNode.builder()
+                                                           .value(group.getId())
+                                                           .display(group.getName())
+                                                           .type("direct")
+                                                           .build())
+                                    .collect(Collectors.toList());
+      user.setGroups(groups);
+    });
+  }
 }

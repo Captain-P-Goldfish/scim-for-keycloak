@@ -58,6 +58,20 @@ public class AbstractScimEndpointTest extends KeycloakScimManagementTest impleme
   /**
    * updates an existing user using the SCIM endpoint
    */
+  public CustomUser getUser(String id)
+  {
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .method(HttpMethod.GET)
+                                               .endpoint(EndpointPaths.USERS + "/" + id)
+                                               .build();
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.OK, response.getStatus());
+    return JsonHelper.readJsonDocument(response.readEntity(String.class), CustomUser.class);
+  }
+
+  /**
+   * updates an existing user using the SCIM endpoint
+   */
   public CustomUser updateUser(String id, User user)
   {
     HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())

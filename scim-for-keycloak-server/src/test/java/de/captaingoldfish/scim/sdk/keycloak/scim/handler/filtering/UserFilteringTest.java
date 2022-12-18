@@ -24,6 +24,7 @@ import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
 import de.captaingoldfish.scim.sdk.common.constants.enums.HttpMethod;
 import de.captaingoldfish.scim.sdk.common.resources.base.ScimObjectNode;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Meta;
+import de.captaingoldfish.scim.sdk.common.resources.multicomplex.GroupNode;
 import de.captaingoldfish.scim.sdk.common.response.ErrorResponse;
 import de.captaingoldfish.scim.sdk.common.response.ListResponse;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
@@ -108,6 +109,14 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
       linkModel.joinGroup(userGroup);
       marioModel.joinGroup(userGroup);
       donkeyKongModel.joinGroup(userGroup);
+
+      // add the groups also to the scim object for later comparison to check that the attributes are returned from
+      // the endpoint
+      superMarioScim.setGroups(Arrays.asList(GroupNode.builder().value(moderatorGroup.getName()).build(),
+                                             GroupNode.builder().value(userGroup.getName()).build()));
+      donkeyKongScim.setGroups(Arrays.asList(GroupNode.builder().value(userGroup.getName()).build()));
+      linkScim.setGroups(Arrays.asList(GroupNode.builder().value(adminGroup.getName()).build(),
+                                       GroupNode.builder().value(userGroup.getName()).build()));
     }
 
     return Stream.of(Arguments.arguments(null, new CustomUser[]{superMarioScim, donkeyKongScim, linkScim, zeldaScim}),
