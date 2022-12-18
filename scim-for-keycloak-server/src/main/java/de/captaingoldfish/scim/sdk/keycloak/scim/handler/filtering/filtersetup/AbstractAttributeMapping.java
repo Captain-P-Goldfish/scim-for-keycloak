@@ -54,10 +54,12 @@ public abstract class AbstractAttributeMapping
     // or
     // "urn:ietf:params:scim:schemas:core:2.0:User:name.givenName"
     final String fullAttributeName = String.format("%s:%s", resourceUri, attributeName);
+    final String parentAttributeName = String.format("%s:%s", resourceUri, complexParentName);
 
     FilterAttribute filterAttribute = new FilterAttribute(fullAttributeName, jpqlReference,
                                                           Arrays.asList(jpqlTableJoins));
     attributeMapping.put(fullAttributeName, filterAttribute);
+    attributeMapping.put(parentAttributeName, filterAttribute);
   }
 
   /**

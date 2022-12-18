@@ -74,7 +74,7 @@ public class JpqlTableJoin
     this.joinOnBase = joinOnBase;
     this.joinOn = joinOn;
     this.joinIntoSelection = joinIntoSelection;
-    this.joinType = JoinType.INNER;
+    this.joinType = JoinType.LEFT;
   }
 
   /**

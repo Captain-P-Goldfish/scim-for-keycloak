@@ -56,8 +56,7 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
   @Override
   protected JpqlTableJoin getBaseSelection()
   {
-    return new JpqlTableJoin(USER_ENTITY, SCIM_USER_ATTRIBUTES, "id", "userEntity.id", true,
-                             JpqlTableJoin.JoinType.LEFT);
+    return new JpqlTableJoin(USER_ENTITY, SCIM_USER_ATTRIBUTES, "id", "userEntity.id", true);
   }
 
   /**
