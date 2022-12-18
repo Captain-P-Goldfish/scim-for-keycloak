@@ -22,13 +22,14 @@ import de.captaingoldfish.scim.sdk.common.constants.AttributeNames;
 import de.captaingoldfish.scim.sdk.common.constants.EndpointPaths;
 import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
 import de.captaingoldfish.scim.sdk.common.constants.enums.HttpMethod;
-import de.captaingoldfish.scim.sdk.common.resources.User;
 import de.captaingoldfish.scim.sdk.common.resources.base.ScimObjectNode;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Meta;
 import de.captaingoldfish.scim.sdk.common.response.ErrorResponse;
 import de.captaingoldfish.scim.sdk.common.response.ListResponse;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
 import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
+import de.captaingoldfish.scim.sdk.keycloak.scim.helper.UserComparator;
+import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
 import de.captaingoldfish.scim.sdk.keycloak.setup.FileReferences;
 import de.captaingoldfish.scim.sdk.keycloak.setup.RequestBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -76,9 +77,9 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
   @TestFactory
   public List<DynamicTest> testUserFiltering()
   {
-    User superMarioScim = JsonHelper.loadJsonDocument(USER_SUPER_MARIO, User.class);
-    User donkeyKongScim = JsonHelper.loadJsonDocument(USER_DONKEY_KONG, User.class);
-    User linkScim = JsonHelper.loadJsonDocument(USER_LINK, User.class);
+    CustomUser superMarioScim = JsonHelper.loadJsonDocument(USER_SUPER_MARIO, CustomUser.class);
+    CustomUser donkeyKongScim = JsonHelper.loadJsonDocument(USER_DONKEY_KONG, CustomUser.class);
+    CustomUser linkScim = JsonHelper.loadJsonDocument(USER_LINK, CustomUser.class);
 
     superMarioScim = createUser(superMarioScim);
     donkeyKongScim = createUser(donkeyKongScim);
@@ -107,144 +108,147 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
       donkeyKongModel.joinGroup(userGroup);
     }
 
-    return Stream.of(Arguments.arguments(null, new User[]{superMarioScim, donkeyKongScim, linkScim}),
+    return Stream.of(Arguments.arguments(null, new CustomUser[]{superMarioScim, donkeyKongScim, linkScim}),
                      Arguments.arguments(String.format("username eq " + "\"%s\"", superMarioScim.getUserName().get()),
-                                         new User[]{superMarioScim}),
+                                         new CustomUser[]{superMarioScim}),
                      Arguments.arguments(String.format("username eq " + "\"%s\"", donkeyKongScim.getUserName().get()),
-                                         new User[]{donkeyKongScim}),
+                                         new CustomUser[]{donkeyKongScim}),
                      Arguments.arguments(String.format("username eq " + "\"%s\"", linkScim.getUserName().get()),
-                                         new User[]{linkScim}),
-                     Arguments.arguments("externalid co " + "\"c\"", new User[]{donkeyKongScim, linkScim}),
-                     Arguments.arguments("externalid ew " + "\"2\"", new User[]{donkeyKongScim, superMarioScim}),
-                     Arguments.arguments("active eq true", new User[]{superMarioScim, linkScim}),
-                     Arguments.arguments("active eq false", new User[]{donkeyKongScim}),
-                     Arguments.arguments("name.formatted eq \"Donkey Kong\"", new User[]{donkeyKongScim}),
-                     Arguments.arguments("name.givenname eq \"Link\"", new User[]{linkScim}),
-                     Arguments.arguments("name.familyName eq \"super\"", new User[]{superMarioScim}),
-                     Arguments.arguments("name.middleName eq \"-\"", new User[]{superMarioScim}),
-                     Arguments.arguments("name.middleName pr", new User[]{superMarioScim, donkeyKongScim}),
-                     Arguments.arguments("not (name.middleName pr)", new User[]{linkScim}),
-                     Arguments.arguments("name.honorificPrefix eq \"GG\"", new User[]{donkeyKongScim}),
-                     Arguments.arguments("name.honorificSuffix eq \"Mushroom\"", new User[]{superMarioScim}),
-                     Arguments.arguments("displayName co \"k\"", new User[]{donkeyKongScim, linkScim}),
-                     Arguments.arguments("nickname co \"k\"", new User[]{donkeyKongScim, linkScim}),
-                     Arguments.arguments("profileurl ew \"Mario\"", new User[]{superMarioScim}),
-                     Arguments.arguments("usertype eq \"plumber\"", new User[]{superMarioScim}),
-                     Arguments.arguments("preferredLanguage ne \"de\"", new User[]{superMarioScim}),
-                     Arguments.arguments("locale sw \"en\"", new User[]{superMarioScim}),
-                     Arguments.arguments("timezone sw \"America\"", new User[]{superMarioScim}),
+                                         new CustomUser[]{linkScim}),
+                     Arguments.arguments("externalid co " + "\"c\"", new CustomUser[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("externalid ew " + "\"2\"", new CustomUser[]{donkeyKongScim, superMarioScim}),
+                     Arguments.arguments("active eq true", new CustomUser[]{superMarioScim, linkScim}),
+                     Arguments.arguments("active eq false", new CustomUser[]{donkeyKongScim}),
+                     Arguments.arguments("name.formatted eq \"Donkey Kong\"", new CustomUser[]{donkeyKongScim}),
+                     Arguments.arguments("name.givenname eq \"Link\"", new CustomUser[]{linkScim}),
+                     Arguments.arguments("name.familyName eq \"super\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("name.middleName eq \"-\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("name.middleName pr", new CustomUser[]{superMarioScim, donkeyKongScim}),
+                     Arguments.arguments("not (name.middleName pr)", new CustomUser[]{linkScim}),
+                     Arguments.arguments("name.honorificPrefix eq \"GG\"", new CustomUser[]{donkeyKongScim}),
+                     Arguments.arguments("name.honorificSuffix eq \"Mushroom\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("displayName co \"k\"", new CustomUser[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("nickname co \"k\"", new CustomUser[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("profileurl ew \"Mario\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("usertype eq \"plumber\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("preferredLanguage ne \"de\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("locale sw \"en\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("timezone sw \"America\"", new CustomUser[]{superMarioScim}),
                      Arguments.arguments("username eq \"donkey-kong\" or username eq \"link\"",
-                                         new User[]{donkeyKongScim, linkScim}),
+                                         new CustomUser[]{donkeyKongScim, linkScim}),
                      Arguments.arguments("username co \"n\" and username co \"k\"",
-                                         new User[]{donkeyKongScim, linkScim}),
+                                         new CustomUser[]{donkeyKongScim, linkScim}),
                      Arguments.arguments("username co \"i\" and (username co \"k\" or username co \"d\")",
-                                         new User[]{linkScim}),
+                                         new CustomUser[]{linkScim}),
                      Arguments.arguments("username co \"i\" and username co \"k\" or username co \"d\"",
-                                         new User[]{donkeyKongScim, linkScim}),
+                                         new CustomUser[]{donkeyKongScim, linkScim}),
                      Arguments.arguments("username co \"i\" and not (username co \"k\" or username co \"d\")",
-                                         new User[]{superMarioScim}),
+                                         new CustomUser[]{superMarioScim}),
                      Arguments.arguments("meta.created gt \"" + superMarioScim.getMeta().flatMap(Meta::getCreated).get()
                                          + "\"",
-                                         new User[]{donkeyKongScim, linkScim}),
+                                         new CustomUser[]{donkeyKongScim, linkScim}),
                      Arguments.arguments("meta.created le \"" + superMarioScim.getMeta().flatMap(Meta::getCreated).get()
                                          + "\"",
-                                         new User[]{superMarioScim}),
+                                         new CustomUser[]{superMarioScim}),
                      Arguments.arguments("meta.created eq \"" + superMarioScim.getMeta().flatMap(Meta::getCreated).get()
                                          + "\"",
-                                         new User[]{superMarioScim}),
+                                         new CustomUser[]{superMarioScim}),
                      Arguments.arguments("meta.created lt \"" + superMarioScim.getMeta().flatMap(Meta::getCreated).get()
                                          + "\"",
-                                         new User[]{}),
+                                         new CustomUser[]{}),
                      Arguments.arguments("meta.created lt \"" + donkeyKongScim.getMeta().flatMap(Meta::getCreated).get()
                                          + "\"",
-                                         new User[]{superMarioScim}),
+                                         new CustomUser[]{superMarioScim}),
                      Arguments.arguments("meta.created le \"" + donkeyKongScim.getMeta().flatMap(Meta::getCreated).get()
                                          + "\"",
-                                         new User[]{superMarioScim, donkeyKongScim}),
+                                         new CustomUser[]{superMarioScim, donkeyKongScim}),
                      Arguments.arguments("meta.created gt \"" + donkeyKongScim.getMeta().flatMap(Meta::getCreated).get()
                                          + "\"",
-                                         new User[]{linkScim}),
+                                         new CustomUser[]{linkScim}),
                      Arguments.arguments("meta.created ge \"" + donkeyKongScim.getMeta().flatMap(Meta::getCreated).get()
                                          + "\"",
-                                         new User[]{linkScim, donkeyKongScim}),
+                                         new CustomUser[]{linkScim, donkeyKongScim}),
                      Arguments.arguments("meta.lastmodified eq \""
                                          + linkScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
-                                         new User[]{linkScim}),
+                                         new CustomUser[]{linkScim}),
                      Arguments.arguments("meta.lastmodified lt \""
                                          + linkScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
-                                         new User[]{superMarioScim, donkeyKongScim}),
+                                         new CustomUser[]{superMarioScim, donkeyKongScim}),
                      Arguments.arguments("meta.lastmodified gt \""
                                          + donkeyKongScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
-                                         new User[]{linkScim}),
+                                         new CustomUser[]{linkScim}),
                      Arguments.arguments("meta.lastmodified eq \""
                                          + donkeyKongScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
-                                         new User[]{donkeyKongScim}),
+                                         new CustomUser[]{donkeyKongScim}),
                      Arguments.arguments("meta.lastmodified lt \""
                                          + donkeyKongScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
-                                         new User[]{superMarioScim}),
+                                         new CustomUser[]{superMarioScim}),
                      Arguments.arguments("meta.lastmodified le \""
                                          + donkeyKongScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
-                                         new User[]{superMarioScim, donkeyKongScim}),
+                                         new CustomUser[]{superMarioScim, donkeyKongScim}),
 
-                     Arguments.arguments("addresses.streetAddress co \"jungle\"", new User[]{donkeyKongScim}),
-                     Arguments.arguments("addresses.locality eq \"worpswede\"", new User[]{donkeyKongScim}),
-                     Arguments.arguments("addresses.region eq \"bremen\"", new User[]{donkeyKongScim}),
-                     Arguments.arguments("addresses.postalCode eq \"546987\"", new User[]{superMarioScim}),
-                     Arguments.arguments("addresses.country eq \"hyrule\"", new User[]{linkScim}),
-                     Arguments.arguments("addresses.type eq \"home\"", new User[]{donkeyKongScim}),
-                     Arguments.arguments("addresses.primary eq true", new User[]{superMarioScim, linkScim}),
+                     Arguments.arguments("addresses.streetAddress co \"jungle\"", new CustomUser[]{donkeyKongScim}),
+                     Arguments.arguments("addresses.locality eq \"worpswede\"", new CustomUser[]{donkeyKongScim}),
+                     Arguments.arguments("addresses.region eq \"bremen\"", new CustomUser[]{donkeyKongScim}),
+                     Arguments.arguments("addresses.postalCode eq \"546987\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("addresses.country eq \"hyrule\"", new CustomUser[]{linkScim}),
+                     Arguments.arguments("addresses.type eq \"home\"", new CustomUser[]{donkeyKongScim}),
+                     Arguments.arguments("addresses.primary eq true", new CustomUser[]{superMarioScim, linkScim}),
 
-                     Arguments.arguments("x509Certificates.value eq \"MII...2\"", new User[]{donkeyKongScim}),
+                     Arguments.arguments("x509Certificates.value eq \"MII...2\"", new CustomUser[]{donkeyKongScim}),
                      Arguments.arguments("x509Certificates.value sw \"MII...\"",
-                                         new User[]{donkeyKongScim, superMarioScim, linkScim}),
-                     Arguments.arguments("x509Certificates.display eq \"****\"", new User[]{superMarioScim}),
-                     Arguments.arguments("x509Certificates.type pr", new User[]{donkeyKongScim}),
-                     Arguments.arguments("x509Certificates.primary eq true", new User[]{superMarioScim, linkScim}),
+                                         new CustomUser[]{donkeyKongScim, superMarioScim, linkScim}),
+                     Arguments.arguments("x509Certificates.display eq \"****\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("x509Certificates.type pr", new CustomUser[]{donkeyKongScim}),
+                     Arguments.arguments("x509Certificates.primary eq true",
+                                         new CustomUser[]{superMarioScim, linkScim}),
 
-                     Arguments.arguments("emails.type eq \"work\"", new User[]{donkeyKongScim, linkScim}),
-                     Arguments.arguments("emails.type eq \"home\"", new User[]{donkeyKongScim, superMarioScim}),
-                     Arguments.arguments("emails.type eq \"castle\"", new User[]{linkScim}),
+                     Arguments.arguments("emails.type eq \"work\"", new CustomUser[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("emails.type eq \"home\"", new CustomUser[]{donkeyKongScim, superMarioScim}),
+                     Arguments.arguments("emails.type eq \"castle\"", new CustomUser[]{linkScim}),
                      Arguments.arguments("emails.type eq \"cabin\" or emails.type eq \"castle\"",
-                                         new User[]{superMarioScim, linkScim}),
-                     Arguments.arguments("emails.value eq \"donkey-kong@nintendo.de\"", new User[]{donkeyKongScim}),
-                     Arguments.arguments("emails.value eq \"mario@home.net\"", new User[]{superMarioScim}),
-                     Arguments.arguments("emails.value eq \"link@hyrule.de\"", new User[]{linkScim}),
-                     Arguments.arguments("emails.type eq \"home\"", new User[]{superMarioScim, donkeyKongScim}),
-                     Arguments.arguments("emails.primary eq true", new User[]{linkScim, donkeyKongScim}),
+                                         new CustomUser[]{superMarioScim, linkScim}),
+                     Arguments.arguments("emails.value eq \"donkey-kong@nintendo.de\"",
+                                         new CustomUser[]{donkeyKongScim}),
+                     Arguments.arguments("emails.value eq \"mario@home.net\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("emails.value eq \"link@hyrule.de\"", new CustomUser[]{linkScim}),
+                     Arguments.arguments("emails.type eq \"home\"", new CustomUser[]{superMarioScim, donkeyKongScim}),
+                     Arguments.arguments("emails.primary eq true", new CustomUser[]{linkScim, donkeyKongScim}),
 
-                     Arguments.arguments("entitlements.value eq \"donkey-ent-1\"", new User[]{donkeyKongScim}),
-                     Arguments.arguments("entitlements.display eq \"---\"", new User[]{superMarioScim}),
-                     Arguments.arguments("entitlements.type eq \"home\"", new User[]{linkScim}),
-                     Arguments.arguments("entitlements.primary eq true", new User[]{linkScim}),
+                     Arguments.arguments("entitlements.value eq \"donkey-ent-1\"", new CustomUser[]{donkeyKongScim}),
+                     Arguments.arguments("entitlements.display eq \"---\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("entitlements.type eq \"home\"", new CustomUser[]{linkScim}),
+                     Arguments.arguments("entitlements.primary eq true", new CustomUser[]{linkScim}),
 
-                     Arguments.arguments("ims.value eq \"donkey@kong\"", new User[]{donkeyKongScim}),
-                     Arguments.arguments("ims.display eq \"hello\"", new User[]{superMarioScim}),
-                     Arguments.arguments("ims.type eq \"work\"", new User[]{linkScim}),
-                     Arguments.arguments("ims.primary eq true", new User[]{donkeyKongScim}),
+                     Arguments.arguments("ims.value eq \"donkey@kong\"", new CustomUser[]{donkeyKongScim}),
+                     Arguments.arguments("ims.display eq \"hello\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("ims.type eq \"work\"", new CustomUser[]{linkScim}),
+                     Arguments.arguments("ims.primary eq true", new CustomUser[]{donkeyKongScim}),
 
-                     Arguments.arguments("phoneNumbers.value eq \"987789987789\"", new User[]{donkeyKongScim}),
-                     Arguments.arguments("phoneNumbers.display eq \"*\"", new User[]{superMarioScim}),
-                     Arguments.arguments("phoneNumbers.type eq \"work\"", new User[]{linkScim}),
-                     Arguments.arguments("phoneNumbers.primary eq true", new User[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("phoneNumbers.value eq \"987789987789\"", new CustomUser[]{donkeyKongScim}),
+                     Arguments.arguments("phoneNumbers.display eq \"*\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("phoneNumbers.type eq \"work\"", new CustomUser[]{linkScim}),
+                     Arguments.arguments("phoneNumbers.primary eq true", new CustomUser[]{donkeyKongScim, linkScim}),
 
-                     Arguments.arguments("photos.value eq \"super-mario.png\"", new User[]{superMarioScim}),
-                     Arguments.arguments("photos.display eq \"hello world\"", new User[]{superMarioScim}),
-                     Arguments.arguments("photos.type eq \"home\"", new User[]{superMarioScim}),
-                     Arguments.arguments("photos.primary eq true", new User[]{superMarioScim}),
+                     Arguments.arguments("photos.value eq \"super-mario.png\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("photos.display eq \"hello world\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("photos.type eq \"home\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("photos.primary eq true", new CustomUser[]{superMarioScim}),
                      Arguments.arguments("photos.value eq \"super-mario.png\" and photos.type eq \"home\"",
-                                         new User[]{superMarioScim}),
+                                         new CustomUser[]{superMarioScim}),
 
-                     Arguments.arguments("groups.value eq \"admin\"", new User[]{linkScim}),
-                     Arguments.arguments("groups.value eq \"moderator\"", new User[]{superMarioScim}),
+                     Arguments.arguments("groups.value eq \"admin\"", new CustomUser[]{linkScim}),
+                     Arguments.arguments("groups.value eq \"moderator\"", new CustomUser[]{superMarioScim}),
                      Arguments.arguments("groups.value eq \"user\"",
-                                         new User[]{superMarioScim, donkeyKongScim, linkScim}),
+                                         new CustomUser[]{superMarioScim, donkeyKongScim, linkScim}),
 
-                     Arguments.arguments("countries eq \"USA\"", new User[]{linkScim}),
-                     Arguments.arguments("countries eq \"italy\"", new User[]{donkeyKongScim, superMarioScim}),
-                     Arguments.arguments("countries eq \"japan\"", new User[]{donkeyKongScim, linkScim}),
-                     Arguments.arguments("businessLine eq \"3\"", new User[]{donkeyKongScim, linkScim}),
-                     Arguments.arguments("businessLine eq \"2\"", new User[]{donkeyKongScim, superMarioScim, linkScim}),
-                     Arguments.arguments("businessLine eq \"5\"", new User[]{linkScim})
+                     Arguments.arguments("countries eq \"USA\"", new CustomUser[]{linkScim}),
+                     Arguments.arguments("countries eq \"italy\"", new CustomUser[]{donkeyKongScim, superMarioScim}),
+                     Arguments.arguments("countries eq \"japan\"", new CustomUser[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("businessLine eq \"3\"", new CustomUser[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("businessLine eq \"2\"",
+                                         new CustomUser[]{donkeyKongScim, superMarioScim, linkScim}),
+                     Arguments.arguments("businessLine eq \"5\"", new CustomUser[]{linkScim})
     //
     ).map(this::toFilterTest).collect(Collectors.toList());
   }
@@ -256,7 +260,7 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
   {
     Object[] argumentArray = arguments.get();
     String filter = (String)argumentArray[0];
-    User[] expectedUsers = (User[])(argumentArray.length == 2 ? argumentArray[1] : null);
+    CustomUser[] expectedUsers = (CustomUser[])(argumentArray.length == 2 ? argumentArray[1] : null);
     int expectedResults = expectedUsers == null ? 0 : expectedUsers.length;
 
     Assertions.assertEquals(expectedResults, expectedUsers == null ? 0 : expectedUsers.length);
@@ -299,6 +303,14 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
                                             resources.stream()
                                                      .map(u -> u.get(AttributeNames.RFC7643.USER_NAME).textValue())
                                                      .collect(Collectors.toList())));
+
+        Arrays.stream(expectedUsers).forEach(expectedUser -> {
+          CustomUser returnedUser = resources.stream().filter(user -> {
+            return user.get(AttributeNames.RFC7643.USER_NAME).textValue().equals(expectedUser.getUserName().get());
+          }).map(user -> JsonHelper.copyResourceToObject(user, CustomUser.class)).findAny().get();
+          UserComparator.checkUserEquality(expectedUser, returnedUser);
+        });
+
       }
     });
   }

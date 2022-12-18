@@ -127,7 +127,7 @@ public abstract class AbstractFiltering<T>
   /**
    * gets the base entity on which the selection is started
    */
-  protected abstract JpaEntityReferences getBaseEntity();
+  protected abstract JpqlTableJoin getBaseSelection();
 
   /**
    * @return the basic restriction clause that makes sure that only the resources from the current realm are
@@ -212,15 +212,21 @@ public abstract class AbstractFiltering<T>
     // to other tables are necessary
     String whereClause = getWhereClause();
 
-    final JpaEntityReferences baseEntity = getBaseEntity();
+    final JpqlTableJoin baseSelection = getBaseSelection();
     final StringBuilder baseSelect = new StringBuilder();
     // @formatter:off
-    baseSelect.append(countResources ? String.format("select count(distinct %s)", baseEntity.getIdentifier())
-                                     : String.format("select distinct %s", baseEntity.getIdentifier()));
+    baseSelect.append(countResources ? String.format("select count(distinct %s)", baseSelection.getBaseTable().getIdentifier())
+                                     : String.format("select distinct %s", baseSelection.getBaseTable().getIdentifier()));
     // @formatter:on
     final StringBuilder fromClause = new StringBuilder(String.format("from %s %s",
-                                                                     baseEntity.getTableName(),
-                                                                     baseEntity.getIdentifier()));
+                                                                     baseSelection.getBaseTable().getTableName(),
+                                                                     baseSelection.getBaseTable().getIdentifier()));
+
+    // if the selection requires by default a join to another table we will add this join here to the joins-set
+    if (baseSelection.getJoinTable() != null)
+    {
+      joins.add(baseSelection);
+    }
 
     // add additional joins if necessary. Creating the where clause analyzed the filterNode-tree and while doing
     // this we are getting informed if additional joins to other tables are necessary. These joins will be added
@@ -260,7 +266,7 @@ public abstract class AbstractFiltering<T>
 
       // if the join is done on the base entity it can be put in first position. For all tables that are directly
       // joined on the base-table an order is not required
-      if (getBaseEntity().equals(join.getBaseTable()))
+      if (getBaseSelection().equals(join.getBaseTable()))
       {
         sortedJoins.add(0, join);
         continue;

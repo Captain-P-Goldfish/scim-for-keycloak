@@ -1,5 +1,8 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering;
 
+import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_USER_ATTRIBUTES;
+import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.USER_ENTITY;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -13,6 +16,7 @@ import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.AbstractFiltering;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpqlTableJoin;
 import de.captaingoldfish.scim.sdk.server.filter.FilterNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,9 +54,9 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
    * @return the basic jpa entity to start with to do some sql
    */
   @Override
-  protected JpaEntityReferences getBaseEntity()
+  protected JpqlTableJoin getBaseSelection()
   {
-    return JpaEntityReferences.USER_ENTITY;
+    return new JpqlTableJoin(USER_ENTITY, SCIM_USER_ATTRIBUTES, "id", "userEntity.id", true);
   }
 
   /**
