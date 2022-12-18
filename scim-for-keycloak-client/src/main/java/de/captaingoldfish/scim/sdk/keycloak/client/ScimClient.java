@@ -64,7 +64,7 @@ public class ScimClient
 
   private static int START_INDEX = 0;
 
-  private static int NUMBER_OF_USERS = 500;
+  private static int NUMBER_OF_USERS = 50000;
 
   /**
    * creates almost 5000 users and 5 groups with 10 random users as members for these groups
@@ -102,7 +102,7 @@ public class ScimClient
     ScimClientConfig scimClientConfig = ScimClientConfig.builder()
                                                         .socketTimeout(120)
                                                         .requestTimeout(120)
-                                                        .basic("scim-client", "1MkqW6owjFaIb4QH4W73tVt9vZaWYFYm")
+                                                        .basic("scim-client", "k9xE62pv4BdyY2PghQpe8oP1hKdOJU5x")
                                                         .enableAutomaticBulkRequestSplitting(true)
                                                         .build();
     try (ScimHttpClient scimHttpClient = new ScimHttpClient(scimClientConfig))

@@ -153,7 +153,7 @@ public abstract class AbstractFiltering<T>
   {
     final String jpqlQuery = getJpqlQueryString(true);
 
-    log.info("Counting users from database with JPQL query:\n\t[{}]", jpqlQuery);
+    log.debug("Counting users from database with JPQL query:\n\t[{}]", jpqlQuery);
 
     Query query = entityManager.createQuery(jpqlQuery);
 

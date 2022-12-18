@@ -3,6 +3,7 @@ package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_USER_ATTRIBUTES;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.USER_ENTITY;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -121,10 +122,16 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
    */
   public List<Pair<GroupEntity, String>> getUserGroups(List<String> userIds)
   {
+    if (userIds.isEmpty())
+    {
+      return Collections.emptyList();
+    }
     final String jpqlQuery = "select distinct g, u.id from GroupEntity g "
                              + "inner join UserGroupMembershipEntity ugm on g.id = ugm.groupId "
                              + "inner join UserEntity u on ugm.user.id = u.id where u.id in (:userIdList) "
                              + "order by u.id";
+
+    log.debug("Loading user groups with query: {}", jpqlQuery);
 
     Query query = getEntityManager().createQuery(jpqlQuery);
     query.setParameter("userIdList", userIds);
