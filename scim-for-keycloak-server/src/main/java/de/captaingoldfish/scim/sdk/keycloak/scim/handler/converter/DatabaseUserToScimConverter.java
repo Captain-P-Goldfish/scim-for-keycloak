@@ -102,9 +102,9 @@ public final class DatabaseUserToScimConverter
                                            .collect(Collectors.toList()));
     });
     Optional.ofNullable(userAttributes.getInfoCertCountries()).filter(list -> !list.isEmpty()).ifPresent(list -> {
-      countryExtension.setBusinessLine(list.stream()
-                                           .map(InfoCertCountriesEntity::getCountry)
-                                           .collect(Collectors.toList()));
+      countryExtension.setCountries(list.stream()
+                                        .map(InfoCertCountriesEntity::getCountry)
+                                        .collect(Collectors.toList()));
     });
 
     if (countryExtension.isEmpty())

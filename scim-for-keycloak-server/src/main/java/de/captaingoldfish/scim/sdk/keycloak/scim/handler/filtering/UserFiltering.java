@@ -56,7 +56,8 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
   @Override
   protected JpqlTableJoin getBaseSelection()
   {
-    return new JpqlTableJoin(USER_ENTITY, SCIM_USER_ATTRIBUTES, "id", "userEntity.id", true);
+    return new JpqlTableJoin(USER_ENTITY, SCIM_USER_ATTRIBUTES, "id", "userEntity.id", true,
+                             JpqlTableJoin.JoinType.LEFT);
   }
 
   /**
@@ -70,7 +71,7 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
   {
     return resultStream.map(objectArray -> {
       UserEntity userEntity = (UserEntity)objectArray[0];
-      if (objectArray.length == 1)
+      if (objectArray.length == 2 && objectArray[1] == null)
       {
         return ScimUserAttributesEntity.builder().userEntity(userEntity).build();
       }

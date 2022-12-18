@@ -60,6 +60,12 @@ import lombok.extern.slf4j.Slf4j;
 public class ScimClient
 {
 
+  private static final String USER_ENDPOINT = EndpointPaths.USERS;
+
+  private static int START_INDEX = 0;
+
+  private static int NUMBER_OF_USERS = 500;
+
   /**
    * creates almost 5000 users and 5 groups with 10 random users as members for these groups
    */
@@ -82,11 +88,11 @@ public class ScimClient
                                                                  .sendRequest();
     ServiceProvider serviceProviderConfig = response.getResource();
 
-    // deleteAllUsers(scimRequestBuilder);
+    deleteAllUsers(scimRequestBuilder);
     // deleteAllGroups(scimRequestBuilder);
-    // createUsers(scimRequestBuilder);
-    // createGroups(scimRequestBuilder);
-    // updateGroups(scimRequestBuilder);
+    createUsers(scimRequestBuilder);
+    createGroups(scimRequestBuilder);
+    updateGroups(scimRequestBuilder);
   }
 
   @SneakyThrows
@@ -96,7 +102,8 @@ public class ScimClient
     ScimClientConfig scimClientConfig = ScimClientConfig.builder()
                                                         .socketTimeout(120)
                                                         .requestTimeout(120)
-                                                        .basic("scim-client", "FHwtS2sEj2K2AENTFMEs1PjKOuctOu3Q")
+                                                        .basic("scim-client", "1MkqW6owjFaIb4QH4W73tVt9vZaWYFYm")
+                                                        .enableAutomaticBulkRequestSplitting(true)
                                                         .build();
     try (ScimHttpClient scimHttpClient = new ScimHttpClient(scimClientConfig))
     {
@@ -127,7 +134,7 @@ public class ScimClient
     List<User> bulkList = getUserList();
     BulkBuilder bulkBuilder = scimRequestBuilder.bulk();
     bulkList.parallelStream().forEach(user -> {
-      bulkBuilder.bulkRequestOperation(EndpointPaths.USERS)
+      bulkBuilder.bulkRequestOperation(USER_ENDPOINT)
                  .bulkId(UUID.randomUUID().toString())
                  .method(HttpMethod.POST)
                  .data(user)
@@ -149,7 +156,7 @@ public class ScimClient
    */
   private static void deleteAllUsers(ScimRequestBuilder scimRequestBuilder)
   {
-    ServerResponse<ListResponse<User>> response = scimRequestBuilder.list(User.class, EndpointPaths.USERS)
+    ServerResponse<ListResponse<User>> response = scimRequestBuilder.list(User.class, USER_ENDPOINT)
                                                                     .attributes(AttributeNames.RFC7643.ID,
                                                                                 AttributeNames.RFC7643.USER_NAME)
                                                                     .get()
@@ -161,7 +168,7 @@ public class ScimClient
       listResponse.getListedResources().stream().parallel().forEach(user -> {
         final String username = StringUtils.lowerCase(user.get(AttributeNames.RFC7643.USER_NAME).textValue());
         ServerResponse<User> deleteResponse = scimRequestBuilder.delete(User.class,
-                                                                        EndpointPaths.USERS,
+                                                                        USER_ENDPOINT,
                                                                         user.get(AttributeNames.RFC7643.ID).textValue())
                                                                 .sendRequest();
         if (deleteResponse.isSuccess())
@@ -173,7 +180,7 @@ public class ScimClient
           log.error("user with name {} could not be deleted", username);
         }
       });
-      response = scimRequestBuilder.list(User.class, EndpointPaths.USERS)
+      response = scimRequestBuilder.list(User.class, USER_ENDPOINT)
                                    .filter("username", Comparator.NE, "admin")
                                    .build()
                                    .get()
@@ -199,55 +206,57 @@ public class ScimClient
       {
         name = name.toLowerCase();
         Meta meta = Meta.builder().created(LocalDateTime.now()).lastModified(LocalDateTime.now()).build();
-        userList.add(User.builder()
-                         .userName(name)
-                         .name(Name.builder()
-                                   .givenName(name)
-                                   .middlename(UUID.randomUUID().toString())
-                                   .familyName("Mustermann")
-                                   .honorificPrefix(random.nextInt(20) == 0 ? "Mr." : "Ms.")
-                                   .honorificSuffix(random.nextInt(20) == 0 ? "sama" : null)
-                                   .formatted(name)
-                                   .build())
-                         .active(random.nextBoolean())
-                         .nickName(name)
-                         .title("Dr.")
-                         .displayName(name)
-                         .userType(random.nextInt(50) == 0 ? "admin" : "user")
-                         .locale(random.nextBoolean() ? "de-DE" : "en-US")
-                         .preferredLanguage(random.nextBoolean() ? "de" : "en")
-                         .timeZone(random.nextBoolean() ? "Europe/Berlin" : "America/Los_Angeles")
-                         .profileUrl("http://localhost/" + name)
-                         .emails(Arrays.asList(Email.builder()
-                                                    .value(name + "@test.de")
-                                                    .primary(random.nextInt(20) == 0)
-                                                    .build(),
-                                               Email.builder().value(name + "_the_second@test.de").build()))
-                         .phoneNumbers(Arrays.asList(PhoneNumber.builder()
-                                                                .value(String.valueOf(random.nextLong()
-                                                                                      + Integer.MAX_VALUE))
-                                                                .primary(random.nextInt(20) == 0)
-                                                                .build(),
-                                                     PhoneNumber.builder()
-                                                                .value(String.valueOf(random.nextLong()
-                                                                                      + Integer.MAX_VALUE))
-                                                                .build()))
-                         .addresses(Arrays.asList(Address.builder()
-                                                         .streetAddress(name + " street " + random.nextInt(500))
-                                                         .country(random.nextBoolean() ? "germany" : "united states")
-                                                         .postalCode(String.valueOf(random.nextLong()
-                                                                                    + Integer.MAX_VALUE))
-                                                         .primary(random.nextInt(20) == 0)
-                                                         .build(),
-                                                  Address.builder()
-                                                         .streetAddress(name + " second street " + random.nextInt(500))
-                                                         .country(random.nextBoolean() ? "germany" : "united states")
-                                                         .postalCode(String.valueOf(random.nextLong()
-                                                                                    + Integer.MAX_VALUE))
-                                                         .build()))
-                         .meta(meta)
-                         .build());
-        if (counter++ == 200)
+        User user = User.builder()
+                        .userName(name)
+                        .name(Name.builder()
+                                  .givenName(name)
+                                  .middlename(UUID.randomUUID().toString())
+                                  .familyName("Mustermann")
+                                  .honorificPrefix(random.nextInt(20) == 0 ? "Mr." : "Ms.")
+                                  .honorificSuffix(random.nextInt(20) == 0 ? "sama" : null)
+                                  .formatted(name)
+                                  .build())
+                        .active(random.nextBoolean())
+                        .nickName(name)
+                        .title("Dr.")
+                        .displayName(name)
+                        .userType(random.nextInt(50) == 0 ? "admin" : "user")
+                        .locale(random.nextBoolean() ? "de-DE" : "en-US")
+                        .preferredLanguage(random.nextBoolean() ? "de" : "en")
+                        .timeZone(random.nextBoolean() ? "Europe/Berlin" : "America/Los_Angeles")
+                        .profileUrl("http://localhost/" + name)
+                        .emails(Arrays.asList(Email.builder()
+                                                   .value(name + "@test.de")
+                                                   .primary(random.nextInt(20) == 0)
+                                                   .build(),
+                                              Email.builder().value(name + "_the_second@test.de").build()))
+                        .phoneNumbers(Arrays.asList(PhoneNumber.builder()
+                                                               .value(String.valueOf(random.nextLong()
+                                                                                     + Integer.MAX_VALUE))
+                                                               .primary(random.nextInt(20) == 0)
+                                                               .build(),
+                                                    PhoneNumber.builder()
+                                                               .value(String.valueOf(random.nextLong()
+                                                                                     + Integer.MAX_VALUE))
+                                                               .build()))
+                        .addresses(Arrays.asList(Address.builder()
+                                                        .streetAddress(name + " street " + random.nextInt(500))
+                                                        .country(random.nextBoolean() ? "germany" : "united states")
+                                                        .postalCode(String.valueOf(random.nextLong()
+                                                                                   + Integer.MAX_VALUE))
+                                                        .primary(random.nextInt(20) == 0)
+                                                        .build(),
+                                                 Address.builder()
+                                                        .streetAddress(name + " second street " + random.nextInt(500))
+                                                        .country(random.nextBoolean() ? "germany" : "united states")
+                                                        .postalCode(String.valueOf(random.nextLong()
+                                                                                   + Integer.MAX_VALUE))
+                                                        .build()))
+                        .meta(meta)
+                        .build();
+        log.info(user.toString());
+        userList.add(user);
+        if (++counter == NUMBER_OF_USERS)
         {
           break;
         }
@@ -257,7 +266,7 @@ public class ScimClient
     {
       throw new IllegalStateException(e.getMessage(), e);
     }
-    return userList.subList(100, userList.size());
+    return userList.subList(START_INDEX, userList.size());
   }
 
   /**
@@ -386,14 +395,14 @@ public class ScimClient
   private static List<User> getRandomUsers(ScimRequestBuilder scimRequestBuilder)
   {
     Random random = new Random();
-    ServerResponse<ListResponse<User>> countResponse = scimRequestBuilder.list(User.class, EndpointPaths.USERS)
+    ServerResponse<ListResponse<User>> countResponse = scimRequestBuilder.list(User.class, USER_ENDPOINT)
                                                                          .count(0)
                                                                          .get()
                                                                          .sendRequest();
     long totalResults = countResponse.getResource().getTotalResults();
-    ServerResponse<ListResponse<User>> response = scimRequestBuilder.list(User.class, EndpointPaths.USERS)
+    ServerResponse<ListResponse<User>> response = scimRequestBuilder.list(User.class, USER_ENDPOINT)
                                                                     .startIndex(random.nextInt((int)totalResults))
-                                                                    .count(2)
+                                                                    .count(15)
                                                                     .get()
                                                                     .sendRequest();
     ListResponse<User> listResponse = response.getResource();

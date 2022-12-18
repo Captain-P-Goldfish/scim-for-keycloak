@@ -154,10 +154,7 @@ public abstract class AbstractFiltering<T>
 
     log.info("Counting users from database with JPQL query:\n\t[{}]", jpqlQuery);
 
-    Query query = entityManager.createQuery(jpqlQuery)
-                               // startIndex start position is 1 as of SCIM specification but the database
-                               // starts at position 0
-                               .setFirstResult((int)startIndex - 1);
+    Query query = entityManager.createQuery(jpqlQuery);
 
     getParameterResolverList().forEach(queryConsumer -> queryConsumer.accept(query));
     getParameterResolverList().clear();
@@ -174,7 +171,9 @@ public abstract class AbstractFiltering<T>
   {
     final String jpqlQuery = getJpqlQueryString(false);
 
-    log.info("Reading users from database with JPQL query:\n\t[{}]", jpqlQuery);
+    log.debug("Reading users from database with JPQL query:\n\t[{}]", jpqlQuery);
+    log.debug("starting at index '{}'", startIndex - 1);
+    log.debug("retrieving '{}' resources from database", count);
 
     Query query = entityManager.createQuery(jpqlQuery)
                                // startIndex start position is 1 as of SCIM specification but the database

@@ -48,6 +48,11 @@ public class JpqlTableJoin
   @Getter
   private final boolean joinIntoSelection;
 
+  /**
+   * the type of join that should be used onto the {@link #joinTable}
+   */
+  private final JoinType joinType;
+
   public JpqlTableJoin(JpaEntityReferences baseTable)
   {
     this.baseTable = baseTable;
@@ -55,6 +60,21 @@ public class JpqlTableJoin
     this.joinOnBase = null;
     this.joinOn = null;
     this.joinIntoSelection = false;
+    this.joinType = null;
+  }
+
+  public JpqlTableJoin(JpaEntityReferences baseTable,
+                       JpaEntityReferences joinTable,
+                       String joinOnBase,
+                       String joinOn,
+                       boolean joinIntoSelection)
+  {
+    this.baseTable = baseTable;
+    this.joinTable = joinTable;
+    this.joinOnBase = joinOnBase;
+    this.joinOn = joinOn;
+    this.joinIntoSelection = joinIntoSelection;
+    this.joinType = JoinType.INNER;
   }
 
   /**
@@ -85,7 +105,11 @@ public class JpqlTableJoin
      *      join GroupEntity on ugm.groupId = g.id
      * @formatter:on
      */
-    return String.format("join %s %s on %s", joinTable.getTableName(), joinTable.getIdentifier(), onExpression);
+    return String.format("%s join %s %s on %s",
+                         Optional.ofNullable(joinType).map(JoinType::getKeyWord).orElse(""),
+                         joinTable.getTableName(),
+                         joinTable.getIdentifier(),
+                         onExpression);
   }
 
   /**
@@ -111,8 +135,23 @@ public class JpqlTableJoin
   @Override
   public String toString()
   {
-    return String.format("[from '%s' join '%s']",
+    return String.format("[from '%s' %s join '%s']",
                          baseTable.getTableName(),
+                         Optional.ofNullable(joinType).map(JoinType::getKeyWord).orElse(""),
                          Optional.ofNullable(joinTable).map(JpaEntityReferences::getTableName).orElse(""));
+  }
+
+  public enum JoinType
+  {
+
+    INNER("inner"), LEFT("left"), RIGHT("right");
+
+    @Getter
+    private String keyWord;
+
+    JoinType(String keyWord)
+    {
+      this.keyWord = keyWord;
+    }
   }
 }
