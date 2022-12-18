@@ -80,10 +80,12 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
     CustomUser superMarioScim = JsonHelper.loadJsonDocument(USER_SUPER_MARIO, CustomUser.class);
     CustomUser donkeyKongScim = JsonHelper.loadJsonDocument(USER_DONKEY_KONG, CustomUser.class);
     CustomUser linkScim = JsonHelper.loadJsonDocument(USER_LINK, CustomUser.class);
+    CustomUser zeldaScim = CustomUser.builder().userName("zelda").build();
 
     superMarioScim = createUser(superMarioScim);
     donkeyKongScim = createUser(donkeyKongScim);
     linkScim = createUser(linkScim);
+    zeldaScim = createUser(zeldaScim);
 
     GroupModel adminGroup = getKeycloakSession().groups().createGroup(getRealmModel(), "admin");
     GroupModel userGroup = getKeycloakSession().groups().createGroup(getRealmModel(), "user");
@@ -108,7 +110,7 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
       donkeyKongModel.joinGroup(userGroup);
     }
 
-    return Stream.of(Arguments.arguments(null, new CustomUser[]{superMarioScim, donkeyKongScim, linkScim}),
+    return Stream.of(Arguments.arguments(null, new CustomUser[]{superMarioScim, donkeyKongScim, linkScim, zeldaScim}),
                      Arguments.arguments(String.format("username eq " + "\"%s\"", superMarioScim.getUserName().get()),
                                          new CustomUser[]{superMarioScim}),
                      Arguments.arguments(String.format("username eq " + "\"%s\"", donkeyKongScim.getUserName().get()),
@@ -118,13 +120,15 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
                      Arguments.arguments("externalid co " + "\"c\"", new CustomUser[]{donkeyKongScim, linkScim}),
                      Arguments.arguments("externalid ew " + "\"2\"", new CustomUser[]{donkeyKongScim, superMarioScim}),
                      Arguments.arguments("active eq true", new CustomUser[]{superMarioScim, linkScim}),
-                     Arguments.arguments("active eq false", new CustomUser[]{donkeyKongScim}),
+                     Arguments.arguments("active eq false", new CustomUser[]{donkeyKongScim, zeldaScim}),
                      Arguments.arguments("name.formatted eq \"Donkey Kong\"", new CustomUser[]{donkeyKongScim}),
                      Arguments.arguments("name.givenname eq \"Link\"", new CustomUser[]{linkScim}),
                      Arguments.arguments("name.familyName eq \"super\"", new CustomUser[]{superMarioScim}),
                      Arguments.arguments("name.middleName eq \"-\"", new CustomUser[]{superMarioScim}),
                      Arguments.arguments("name.middleName pr", new CustomUser[]{superMarioScim, donkeyKongScim}),
-                     Arguments.arguments("not (name.middleName pr)", new CustomUser[]{linkScim}),
+                     Arguments.arguments("not (name.middleName pr)", new CustomUser[]{linkScim, zeldaScim}),
+                     Arguments.arguments("name pr", new CustomUser[]{donkeyKongScim, superMarioScim, linkScim}),
+                     Arguments.arguments("not (name pr)", new CustomUser[]{zeldaScim}),
                      Arguments.arguments("name.honorificPrefix eq \"GG\"", new CustomUser[]{donkeyKongScim}),
                      Arguments.arguments("name.honorificSuffix eq \"Mushroom\"", new CustomUser[]{superMarioScim}),
                      Arguments.arguments("displayName co \"k\"", new CustomUser[]{donkeyKongScim, linkScim}),
@@ -141,12 +145,12 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
                      Arguments.arguments("username co \"i\" and (username co \"k\" or username co \"d\")",
                                          new CustomUser[]{linkScim}),
                      Arguments.arguments("username co \"i\" and username co \"k\" or username co \"d\"",
-                                         new CustomUser[]{donkeyKongScim, linkScim}),
+                                         new CustomUser[]{donkeyKongScim, linkScim, zeldaScim}),
                      Arguments.arguments("username co \"i\" and not (username co \"k\" or username co \"d\")",
                                          new CustomUser[]{superMarioScim}),
                      Arguments.arguments("meta.created gt \"" + superMarioScim.getMeta().flatMap(Meta::getCreated).get()
                                          + "\"",
-                                         new CustomUser[]{donkeyKongScim, linkScim}),
+                                         new CustomUser[]{donkeyKongScim, linkScim, zeldaScim}),
                      Arguments.arguments("meta.created le \"" + superMarioScim.getMeta().flatMap(Meta::getCreated).get()
                                          + "\"",
                                          new CustomUser[]{superMarioScim}),
@@ -164,10 +168,10 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
                                          new CustomUser[]{superMarioScim, donkeyKongScim}),
                      Arguments.arguments("meta.created gt \"" + donkeyKongScim.getMeta().flatMap(Meta::getCreated).get()
                                          + "\"",
-                                         new CustomUser[]{linkScim}),
+                                         new CustomUser[]{linkScim, zeldaScim}),
                      Arguments.arguments("meta.created ge \"" + donkeyKongScim.getMeta().flatMap(Meta::getCreated).get()
                                          + "\"",
-                                         new CustomUser[]{linkScim, donkeyKongScim}),
+                                         new CustomUser[]{linkScim, donkeyKongScim, zeldaScim}),
                      Arguments.arguments("meta.lastmodified eq \""
                                          + linkScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
                                          new CustomUser[]{linkScim}),
@@ -176,7 +180,7 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
                                          new CustomUser[]{superMarioScim, donkeyKongScim}),
                      Arguments.arguments("meta.lastmodified gt \""
                                          + donkeyKongScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
-                                         new CustomUser[]{linkScim}),
+                                         new CustomUser[]{linkScim, zeldaScim}),
                      Arguments.arguments("meta.lastmodified eq \""
                                          + donkeyKongScim.getMeta().flatMap(Meta::getLastModified).get() + "\"",
                                          new CustomUser[]{donkeyKongScim}),

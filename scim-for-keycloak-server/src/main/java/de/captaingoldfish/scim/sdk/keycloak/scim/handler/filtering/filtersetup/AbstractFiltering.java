@@ -23,6 +23,7 @@ import org.keycloak.models.RealmModel;
 import de.captaingoldfish.scim.sdk.common.constants.enums.Comparator;
 import de.captaingoldfish.scim.sdk.common.constants.enums.SortOrder;
 import de.captaingoldfish.scim.sdk.common.constants.enums.Type;
+import de.captaingoldfish.scim.sdk.common.exceptions.BadRequestException;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
 import de.captaingoldfish.scim.sdk.server.filter.AndExpressionNode;
 import de.captaingoldfish.scim.sdk.server.filter.AttributeExpressionLeaf;
@@ -363,25 +364,59 @@ public abstract class AbstractFiltering<T>
       boolean isCaseExact = attributeExpressionLeaf.getSchemaAttribute().isCaseExact();
       final String fullResourceName = attributeExpressionLeaf.getSchemaAttribute().getFullResourceName();
 
-      FilterAttribute filterAttribute = attributeMapping.getAttribute(fullResourceName);
+      // will contain more than one element if the filter-attribute is a complex-attribute reference e.g. "name"
+      List<FilterAttribute> filterAttributeList = attributeMapping.getAttribute(fullResourceName);
       {
-        // basically informs the method {@link #getJpqlQueryString()} that an additional left-join is required
-        for ( JpqlTableJoin join : filterAttribute.getJoins() )
+        for ( FilterAttribute filterAttribute : filterAttributeList )
         {
-          // only add the joins that are not the base-table itself. For users this would be the UserEntity-join.
-          // Since the UserEntity is already the base-table we do not need to do another join onto this table
-          if (join.getJoinTable() != null)
+          // basically informs the method {@link #getJpqlQueryString()} that an additional left-join is required
+          for ( JpqlTableJoin join : filterAttribute.getJoins() )
           {
-            joins.add(join);
+            // only add the joins that are not the base-table itself. For users this would be the UserEntity-join.
+            // Since the UserEntity is already the base-table we do not need to do another join onto this table
+            if (join.getJoinTable() != null)
+            {
+              joins.add(join);
+            }
           }
         }
       }
 
-      final String jpqlAttribute = toCaseCheckedValue(attributeExpressionLeaf.getType(),
-                                                      isCaseExact,
-                                                      filterAttribute.getJpqlMapping());
-      final String comparisonExpression = resolveComparator(attributeExpressionLeaf);
-      return String.format("%s %s ", jpqlAttribute, comparisonExpression);
+      // this case represents a filter-expression on a child-attribute e.g. name.givenName or userName
+      if (filterAttributeList.size() == 1)
+      {
+        final FilterAttribute filterAttribute = filterAttributeList.get(0);
+        final String jpqlAttribute = toCaseCheckedValue(attributeExpressionLeaf.getType(),
+                                                        isCaseExact,
+                                                        filterAttribute.getJpqlMapping());
+        final String comparisonExpression = resolveComparator(attributeExpressionLeaf);
+        return String.format("%s %s ", jpqlAttribute, comparisonExpression);
+      }
+      // this case represents a filter-expression on a complex-parent-attribute e.g. name or emails
+      else
+      {
+        boolean isNotPresentComparator = !Comparator.PR.equals(attributeExpressionLeaf.getComparator());
+        if (isNotPresentComparator)
+        {
+          throw new BadRequestException("Complex attribute filtering supports only the 'PR' operator");
+        }
+
+        StringBuilder expression = new StringBuilder();
+        for ( FilterAttribute filterAttribute : filterAttributeList )
+        {
+          boolean isNotEmpty = expression.length() != 0;
+          if (isNotEmpty)
+          {
+            expression.append(" OR ");
+          }
+          final String jpqlAttribute = toCaseCheckedValue(attributeExpressionLeaf.getType(),
+                                                          isCaseExact,
+                                                          filterAttribute.getJpqlMapping());
+          final String comparisonExpression = resolveComparator(attributeExpressionLeaf);
+          expression.append(String.format("%s %s", jpqlAttribute, comparisonExpression));
+        }
+        return String.format("(%s) ", expression);
+      }
     }
   }
 
@@ -519,7 +554,9 @@ public abstract class AbstractFiltering<T>
     {
       return "";
     }
-    final String sortByAttributeName = attributeMapping.getAttribute(sortBy.getName()).getJpqlMapping();
+    // TODO check that the sortBy attribute is referencing a child-element and not a complex-element
+    final FilterAttribute filterAttribute = attributeMapping.getAttribute(sortBy.getName()).get(0);
+    final String sortByAttributeName = filterAttribute.getJpqlMapping();
     final SortOrder effectiveOrder = Optional.ofNullable(sortOrder).orElse(SortOrder.ASCENDING);
     final String sortOrderString = effectiveOrder == SortOrder.ASCENDING ? "asc" : "desc";
     return sortOrder == null ? "" : String.format("order by %s %s", sortByAttributeName, sortOrderString);

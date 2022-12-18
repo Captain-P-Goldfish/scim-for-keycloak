@@ -1,7 +1,10 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -25,7 +28,7 @@ public abstract class AbstractAttributeMapping
    * 
    * these attribute-mapping is used to build a JPQL query from the SCIM filter expression
    */
-  private final Map<String, FilterAttribute> attributeMapping = new HashMap<>();
+  private final Map<String, List<FilterAttribute>> attributeMapping = new HashMap<>();
 
   /**
    * will add a SCIM attribute with its mapping to the JPA entity attribute
@@ -54,12 +57,22 @@ public abstract class AbstractAttributeMapping
     // or
     // "urn:ietf:params:scim:schemas:core:2.0:User:name.givenName"
     final String fullAttributeName = String.format("%s:%s", resourceUri, attributeName);
-    final String parentAttributeName = String.format("%s:%s", resourceUri, complexParentName);
 
     FilterAttribute filterAttribute = new FilterAttribute(fullAttributeName, jpqlReference,
                                                           Arrays.asList(jpqlTableJoins));
-    attributeMapping.put(fullAttributeName, filterAttribute);
-    attributeMapping.put(parentAttributeName, filterAttribute);
+
+    attributeMapping.put(fullAttributeName, Collections.singletonList(filterAttribute));
+
+    // add as member of a complex attribute.
+    // example: name.givenName is a member of name
+    if (complexParentName != null)
+    {
+      final String parentAttributeName = String.format("%s:%s", resourceUri, complexParentName);
+      List<FilterAttribute> parentAttributeList = attributeMapping.computeIfAbsent(parentAttributeName,
+                                                                                   k -> new ArrayList<>());
+      parentAttributeList.add(filterAttribute);
+      attributeMapping.put(parentAttributeName, parentAttributeList);
+    }
   }
 
   /**
@@ -70,14 +83,14 @@ public abstract class AbstractAttributeMapping
    * @return the JPQL attribute-reference. e.g. "ue.userName" if the select statement before was "select ue from
    *         UserEntity ue"
    */
-  protected FilterAttribute getAttribute(String attributeName)
+  protected List<FilterAttribute> getAttribute(String attributeName)
   {
-    FilterAttribute attributeReference = attributeMapping.get(attributeName);
-    if (attributeReference == null)
+    List<FilterAttribute> attributeReferenceList = attributeMapping.get(attributeName);
+    if (attributeReferenceList == null)
     {
       // will e.g. happen if someone tries to filter for passwords
       throw new BadRequestException(String.format("Illegal filter-attribute found '%s'", attributeName));
     }
-    return attributeReference;
+    return attributeReferenceList;
   }
 }

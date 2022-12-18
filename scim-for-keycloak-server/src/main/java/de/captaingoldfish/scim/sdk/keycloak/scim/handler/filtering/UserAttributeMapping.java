@@ -113,7 +113,6 @@ public class UserAttributeMapping extends AbstractAttributeMapping
 
     addAttribute(SchemaUris.USER_URI, RFC7643.EMAILS, RFC7643.VALUE, "value", userAttributesJoin, emailsJoin);
     addAttribute(SchemaUris.USER_URI, RFC7643.EMAILS, RFC7643.TYPE, "type", userAttributesJoin, emailsJoin);
-    addAttribute(SchemaUris.USER_URI, RFC7643.EMAILS, RFC7643.DISPLAY, "display", userAttributesJoin, emailsJoin);
     addAttribute(SchemaUris.USER_URI, RFC7643.EMAILS, RFC7643.PRIMARY, "primary", userAttributesJoin, emailsJoin);
 
     addAttribute(SchemaUris.USER_URI, RFC7643.ENTITLEMENTS, RFC7643.VALUE, "value", userAttributesJoin, entitlementJoin);
