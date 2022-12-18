@@ -11,6 +11,7 @@ import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEntitlementEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimImsEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPersonRoleEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhonesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhotosEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
@@ -36,6 +37,7 @@ public enum JpaEntityReferences
   SCIM_IMS("ui", ScimImsEntity.class),
   SCIM_PHONE_NUMBERS("uphone", ScimPhonesEntity.class),
   SCIM_PHOTOS("uphoto", ScimPhotosEntity.class),
+  SCIM_PERSON_ROLES("prole", ScimPersonRoleEntity.class),
   USER_GROUPS_MEMBERSHIP("ugm", UserGroupMembershipEntity.class),
   GROUPS_ENTITY("g", GroupEntity.class),
   COUNTRIES("ic", InfoCertCountriesEntity.class),

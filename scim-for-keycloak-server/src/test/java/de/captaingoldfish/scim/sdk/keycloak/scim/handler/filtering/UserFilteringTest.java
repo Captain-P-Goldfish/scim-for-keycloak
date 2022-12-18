@@ -250,6 +250,14 @@ public class UserFilteringTest extends AbstractScimEndpointTest implements FileR
                      Arguments.arguments("photos.value eq \"super-mario.png\" and photos.type eq \"home\"",
                                          new CustomUser[]{superMarioScim}),
 
+                     Arguments.arguments("roles.value eq \"FacultyMember\"",
+                                         new CustomUser[]{donkeyKongScim, superMarioScim}),
+                     Arguments.arguments("roles.display eq \"faculty\"", new CustomUser[]{superMarioScim}),
+                     Arguments.arguments("roles.type eq \"work\"", new CustomUser[]{donkeyKongScim, linkScim}),
+                     Arguments.arguments("roles.primary eq true", new CustomUser[]{linkScim}),
+                     Arguments.arguments("roles pr", new CustomUser[]{donkeyKongScim, superMarioScim, linkScim}),
+                     Arguments.arguments("not(roles pr)", new CustomUser[]{zeldaScim}),
+
                      Arguments.arguments("groups.value eq \"admin\"", new CustomUser[]{linkScim}),
                      Arguments.arguments("groups.value eq \"moderator\"", new CustomUser[]{superMarioScim}),
                      Arguments.arguments("groups.value eq \"user\"",

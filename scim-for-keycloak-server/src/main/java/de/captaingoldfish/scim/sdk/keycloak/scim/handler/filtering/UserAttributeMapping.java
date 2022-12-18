@@ -8,6 +8,7 @@ import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filter
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_EMAILS;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_ENTITLEMENTS;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_IMS;
+import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_PERSON_ROLES;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_PHONE_NUMBERS;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_PHOTOS;
 import static de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup.JpaEntityReferences.SCIM_USER_ATTRIBUTES;
@@ -58,6 +59,8 @@ public class UserAttributeMapping extends AbstractAttributeMapping
     JpqlTableJoin phonesJoin = new JpqlTableJoin(SCIM_USER_ATTRIBUTES, SCIM_PHONE_NUMBERS, "id", "userAttributes.id",
                                                  false);
     JpqlTableJoin photosJoin = new JpqlTableJoin(SCIM_USER_ATTRIBUTES, SCIM_PHOTOS, "id", "userAttributes.id", false);
+    JpqlTableJoin personRolesJoin = new JpqlTableJoin(SCIM_USER_ATTRIBUTES, SCIM_PERSON_ROLES, "id",
+                                                      "userAttributes.id", false);
     JpqlTableJoin groupMembershipJoin = new JpqlTableJoin(USER_ENTITY, USER_GROUPS_MEMBERSHIP, "id", "user.id", false);
     JpqlTableJoin groupsJoin = new JpqlTableJoin(USER_GROUPS_MEMBERSHIP, GROUPS_ENTITY, "groupId", "id", false);
 
@@ -134,6 +137,11 @@ public class UserAttributeMapping extends AbstractAttributeMapping
     addAttribute(SchemaUris.USER_URI, RFC7643.PHOTOS, RFC7643.TYPE, "type", userAttributesJoin, photosJoin);
     addAttribute(SchemaUris.USER_URI, RFC7643.PHOTOS, RFC7643.DISPLAY, "display", userAttributesJoin, photosJoin);
     addAttribute(SchemaUris.USER_URI, RFC7643.PHOTOS, RFC7643.PRIMARY, "primary", userAttributesJoin, photosJoin);
+
+    addAttribute(SchemaUris.USER_URI, RFC7643.ROLES, RFC7643.VALUE, "value", userAttributesJoin, personRolesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.ROLES, RFC7643.TYPE, "type", userAttributesJoin, personRolesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.ROLES, RFC7643.DISPLAY, "display", userAttributesJoin, personRolesJoin);
+    addAttribute(SchemaUris.USER_URI, RFC7643.ROLES, RFC7643.PRIMARY, "primary", userAttributesJoin, personRolesJoin);
 
     addAttribute(SchemaUris.USER_URI, RFC7643.GROUPS, RFC7643.VALUE, "name", groupMembershipJoin, groupsJoin);
     // @formatter:on

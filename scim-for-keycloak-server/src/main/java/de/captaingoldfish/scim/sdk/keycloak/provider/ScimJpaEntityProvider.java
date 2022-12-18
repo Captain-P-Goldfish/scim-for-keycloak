@@ -12,6 +12,7 @@ import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEntitlementEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimImsEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPersonRoleEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhonesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhotosEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimResourceTypeEntity;
@@ -41,6 +42,7 @@ public class ScimJpaEntityProvider implements JpaEntityProvider
                          ScimPhotosEntity.class,
                          ScimEntitlementEntity.class,
                          ScimCertificatesEntity.class,
+                         ScimPersonRoleEntity.class,
                          InfoCertBusinessLineEntity.class,
                          InfoCertCountriesEntity.class
 

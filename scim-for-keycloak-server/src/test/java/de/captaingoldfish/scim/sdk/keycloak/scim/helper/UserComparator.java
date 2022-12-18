@@ -59,6 +59,7 @@ public final class UserComparator
     UserComparator.checkMultivaluedComplexEquality(expectedUser::getAddresses, actualUser::getAddresses);
     UserComparator.checkMultivaluedComplexEquality(expectedUser::getEntitlements, actualUser::getEntitlements);
     UserComparator.checkMultivaluedComplexEquality(expectedUser::getX509Certificates, actualUser::getX509Certificates);
+    UserComparator.checkMultivaluedComplexEquality(expectedUser::getRoles, actualUser::getRoles);
 
     Assertions.assertEquals(expectedUser.getCountryUserExtension(), actualUser.getCountryUserExtension());
   }

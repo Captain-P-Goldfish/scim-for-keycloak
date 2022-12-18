@@ -246,6 +246,12 @@ public class ScimUserAttributesEntity
   private List<ScimCertificatesEntity> certificates;
 
   /**
+   * list of scim person roles
+   */
+  @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<ScimPersonRoleEntity> personRoles;
+
+  /**
    * list of business line elements
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -411,6 +417,19 @@ public class ScimUserAttributesEntity
     else
     {
       this.certificates = Optional.ofNullable(certificates).orElseGet(ArrayList::new);
+    }
+  }
+
+  public void setPersonRoles(List<ScimPersonRoleEntity> personRoles)
+  {
+    if (this.personRoles != null)
+    {
+      this.personRoles.clear();
+      this.personRoles.addAll(Optional.ofNullable(personRoles).orElseGet(ArrayList::new));
+    }
+    else
+    {
+      this.personRoles = Optional.ofNullable(personRoles).orElseGet(ArrayList::new);
     }
   }
 

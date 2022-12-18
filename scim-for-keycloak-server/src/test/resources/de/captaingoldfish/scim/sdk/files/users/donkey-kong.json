@@ -102,6 +102,12 @@
       "value": "MII...3"
     }
   ],
+  "roles": [
+    {
+      "value": "FacultyMember",
+      "type": "work"
+    }
+  ],
   "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User": {
     "employeeNumber": "1ace709e-425f-464e-a5bc-057eff69e4c5",
     "costCenter": "k6",

@@ -105,6 +105,15 @@
       "value": "MII...4"
     }
   ],
+  "roles": [
+    {
+      "value": "FacultyMember",
+      "display": "faculty"
+    },
+    {
+      "value": "Student"
+    }
+  ],
   "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User": {
     "employeeNumber": "d5a33914-f300-4b1f-abac-b017be01abc4",
     "costCenter": "d5",

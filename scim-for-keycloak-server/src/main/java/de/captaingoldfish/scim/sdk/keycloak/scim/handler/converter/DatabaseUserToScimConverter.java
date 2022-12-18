@@ -21,6 +21,7 @@ import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Email;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Entitlement;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.GroupNode;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Ims;
+import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PersonRole;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PhoneNumber;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.ScimX509Certificate;
@@ -58,6 +59,7 @@ public final class DatabaseUserToScimConverter
     List<Ims> ims = databaseImsToScim(userAttributes);
     List<PhoneNumber> phoneNumbers = databasePhoneNumbersToScim(userAttributes);
     List<Photo> photos = databasePhotosToScim(userAttributes);
+    List<PersonRole> personRoles = databasePersonRolesToScim(userAttributes);
 
     Name name = databaseNameToScimName(userAttributes);
 
@@ -84,6 +86,7 @@ public final class DatabaseUserToScimConverter
                                       .ims(ims)
                                       .phoneNumbers(phoneNumbers)
                                       .photos(photos)
+                                      .roles(personRoles)
                                       .enterpriseUser(enterpriseUser)
                                       .countryUserExtension(countryUserExtension)
                                       .meta(Meta.builder()
@@ -289,6 +292,22 @@ public final class DatabaseUserToScimConverter
                   .type(photo.getType())
                   .primary(photo.isPrimary())
                   .build();
+    }).collect(Collectors.toList());
+  }
+
+  private static List<PersonRole> databasePersonRolesToScim(ScimUserAttributesEntity userAttributes)
+  {
+    if (userAttributes.getPersonRoles() == null)
+    {
+      return Collections.emptyList();
+    }
+    return userAttributes.getPersonRoles().stream().map(personRole -> {
+      return PersonRole.builder()
+                       .value(personRole.getValue())
+                       .display(personRole.getDisplay())
+                       .type(personRole.getType())
+                       .primary(personRole.isPrimary())
+                       .build();
     }).collect(Collectors.toList());
   }
 

@@ -315,6 +315,21 @@
             <column name="IS_PRIMARY" type="BOOLEAN"/>
         </createTable>
 
+        <createTable tableName="SCIM_PERSON_ROLES">
+            <column name="ID" type="VARCHAR(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SCIM_PERSON_ROLE_ID"/>
+            </column>
+            <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)">
+                <constraints foreignKeyName="SCIM_PERSON_ROLE_USER_FK"
+                             referencedTableName="USER_SCIM_ATTRIBUTES"
+                             referencedColumnNames="ID"/>
+            </column>
+            <column name="PERSON_ROLE_VALUE" type="VARCHAR(255)"/>
+            <column name="PERSON_ROLE_DISPLAY" type="VARCHAR(255)"/>
+            <column name="PERSON_ROLE_TYPE" type="VARCHAR(255)"/>
+            <column name="IS_PRIMARY" type="BOOLEAN"/>
+        </createTable>
+
         <createIndex tableName="SCIM_ADDRESSES" indexName="PK_SCIM_ADDRESSES_IDX">
             <column name="SCIM_ATTRIBUTES_ID" type="VARCHAR(36)"/>
         </createIndex>

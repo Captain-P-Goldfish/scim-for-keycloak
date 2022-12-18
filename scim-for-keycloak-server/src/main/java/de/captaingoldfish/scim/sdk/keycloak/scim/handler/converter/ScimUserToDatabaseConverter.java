@@ -18,6 +18,7 @@ import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEntitlementEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimImsEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPersonRoleEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhonesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhotosEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
@@ -95,6 +96,9 @@ public final class ScimUserToDatabaseConverter
 
     List<ScimPhotosEntity> photos = scimPhotosToDatabasePhotos(user, userAttributes);
     userAttributes.setPhotos(photos);
+
+    List<ScimPersonRoleEntity> personRoles = scimPersonRolesToDatabasePersonRoles(user, userAttributes);
+    userAttributes.setPersonRoles(personRoles);
 
     List<InfoCertBusinessLineEntity> businessLines = scimBusinessLinesToDatabaseBusinessLines(user, userAttributes);
     userAttributes.setInfoCertBusinessLine(businessLines);
@@ -226,6 +230,22 @@ public final class ScimUserToDatabaseConverter
                                  .primary(photo.isPrimary())
                                  .userAttributes(userAttributes)
                                  .build());
+    });
+    return photos;
+  }
+
+  private static List<ScimPersonRoleEntity> scimPersonRolesToDatabasePersonRoles(CustomUser user,
+                                                                                 ScimUserAttributesEntity userAttributes)
+  {
+    List<ScimPersonRoleEntity> photos = new ArrayList<>();
+    user.getRoles().forEach(personRole -> {
+      photos.add(ScimPersonRoleEntity.builder()
+                                     .value(personRole.getValue().orElse(null))
+                                     .display(personRole.getDisplay().orElse(null))
+                                     .type(personRole.getType().orElse(null))
+                                     .primary(personRole.isPrimary())
+                                     .userAttributes(userAttributes)
+                                     .build());
     });
     return photos;
   }

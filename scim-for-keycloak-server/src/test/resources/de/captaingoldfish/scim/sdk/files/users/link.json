@@ -103,6 +103,16 @@
       "value": "MII...6"
     }
   ],
+  "roles": [
+    {
+      "value": "CEO",
+      "type": "work",
+      "primary": true
+    },
+    {
+      "value": "StaffMember"
+    }
+  ],
   "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User": {
     "employeeNumber": "d00b2edd-1d98-4e6b-a409-9ec5e9100d9d",
     "costCenter": "z3",
