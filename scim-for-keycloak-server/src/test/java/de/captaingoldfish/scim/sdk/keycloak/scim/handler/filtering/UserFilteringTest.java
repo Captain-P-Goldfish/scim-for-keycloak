@@ -31,7 +31,6 @@ import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
 import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
 import de.captaingoldfish.scim.sdk.keycloak.scim.helper.UserComparator;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
-import de.captaingoldfish.scim.sdk.keycloak.setup.FileReferences;
 import de.captaingoldfish.scim.sdk.keycloak.setup.RequestBuilder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
  * @since 12.12.2022
  */
 @Slf4j
-public class UserFilteringTest extends AbstractScimEndpointTest implements FileReferences
+public class UserFilteringTest extends AbstractScimEndpointTest
 {
 
   /**

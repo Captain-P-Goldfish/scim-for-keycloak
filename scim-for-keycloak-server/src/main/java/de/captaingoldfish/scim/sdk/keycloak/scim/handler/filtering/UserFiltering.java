@@ -52,7 +52,7 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
                        SchemaAttribute sortBy,
                        SortOrder sortOrder)
   {
-    super(keycloakSession, new UserAttributeMapping(), startIndex, count, filterNode, sortBy, sortOrder);
+    super(keycloakSession, UserAttributeMapping.getInstance(), startIndex, count, filterNode, sortBy, sortOrder);
 
     log.info("initiate user filtering: startIndex: {}, count: {}, filter: {}, sortBy: {}, sortOrder: {}",
              startIndex,
@@ -80,9 +80,9 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
    * @return the list of read users
    */
   @Override
-  protected List<ScimUserAttributesEntity> parseResultStream(Stream<Object[]> resultStream)
+  protected List<ScimUserAttributesEntity> parseResultStream(Stream<Object> resultStream)
   {
-    return resultStream.map(objectArray -> {
+    return resultStream.map(object -> (Object[])object).map(objectArray -> {
       UserEntity userEntity = (UserEntity)objectArray[0];
       if (objectArray.length == 2 && objectArray[1] == null)
       {

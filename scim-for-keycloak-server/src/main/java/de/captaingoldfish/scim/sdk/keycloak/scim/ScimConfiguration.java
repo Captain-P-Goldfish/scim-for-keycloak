@@ -81,6 +81,7 @@ public final class ScimConfiguration
 
     ResourceType userLegacyResourceType = resourceEndpoint.registerEndpoint(new CustomUserLegacyEndpoint(new UserLegacyHandler()));
     userLegacyResourceType.setFeatures(ResourceTypeFeatures.builder().autoFiltering(true).autoSorting(true).build());
+    userLegacyResourceType.getFeatures().setResourceTypeDisabled(true);
     ScimResourceTypeEntity userResourceTypeEntity = resourceTypeService.getOrCreateResourceTypeEntry(userLegacyResourceType);
     resourceTypeService.updateResourceType(userLegacyResourceType, userResourceTypeEntity);
 
@@ -89,7 +90,6 @@ public final class ScimConfiguration
     resourceTypeService.updateResourceType(userResourceType, user2ResourceTypeEntity);
 
     ResourceType groupResourceType = resourceEndpoint.registerEndpoint(new GroupEndpointDefinition(new GroupHandler()));
-    groupResourceType.setFeatures(ResourceTypeFeatures.builder().autoFiltering(true).autoSorting(true).build());
     ScimResourceTypeEntity groupResourceTypeEntity = resourceTypeService.getOrCreateResourceTypeEntry(groupResourceType);
     resourceTypeService.updateResourceType(groupResourceType, groupResourceTypeEntity);
 

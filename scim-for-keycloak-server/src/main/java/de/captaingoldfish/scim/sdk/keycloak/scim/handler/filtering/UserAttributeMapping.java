@@ -30,8 +30,10 @@ import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
 public class UserAttributeMapping extends AbstractAttributeMapping
 {
 
+  private static final UserAttributeMapping USER_ATTRIBUTE_MAPPING = new UserAttributeMapping();
 
-  public UserAttributeMapping()
+
+  private UserAttributeMapping()
   {
     /*
      * @formatter:off
@@ -39,10 +41,21 @@ public class UserAttributeMapping extends AbstractAttributeMapping
      * these joins will all together represent a sql like this:
      * 
      * select distinct u, ua from UserEntity u 
-     *   join ScimUserAttributesEntity ua on u.id = ua.userEntity.id  
-     *   join UserGroupMembershipEntity ugm on u.id = ugm.user.id 
-     *   join GroupEntity g on g.id = ugm.groupId '
-     * 
+     *   left join ScimUserAttributesEntity ua on u.id = ua.userEntity.id
+     *   left join ScimAddressEntity uad on ua.id = uad.userAttributes.id
+     *   left join ScimCertificatesEntity uc on ua.id = uc.userAttributes.id
+     *   left join ScimEmailsEntity ue on ua.id = ue.userAttributes.id
+     *   left join ScimEntitlementEntity uen on ua.id = uen.userAttributes.id
+     *   left join ScimImsEntity ui on ua.id = ui.userAttributes.id
+     *   left join ScimPhonesEntity uphone on ua.id = uphone.userAttributes.id
+     *   left join ScimPhotosEntity uphoto on ua.id = uphoto.userAttributes.id
+     *   left join ScimPersonRoleEntity prole on ua.id = prole.userAttributes.id
+     *   left join InfoCertCountriesEntity ic on ua.id = ic.userAttributes.id
+     *   left join InfoCertBusinessLineEntity ib on ua.id = ib.userAttributes.id
+     *   left join UserGroupMembershipEntity ugm on u.id = ugm.user.id
+     *   left join GroupEntity g on g.id = ugm.groupId '
+     *   left join GroupEntity g on g.id = ugm.groupId '
+     *
      * @formatter:on
      */
     JpqlTableJoin baseJpqlTableJoin = new JpqlTableJoin(USER_ENTITY);
@@ -166,6 +179,11 @@ public class UserAttributeMapping extends AbstractAttributeMapping
                  "country",
                  userAttributesJoin,
                  countriesJoin);
+  }
+
+  public static UserAttributeMapping getInstance()
+  {
+    return USER_ATTRIBUTE_MAPPING;
   }
 
 }

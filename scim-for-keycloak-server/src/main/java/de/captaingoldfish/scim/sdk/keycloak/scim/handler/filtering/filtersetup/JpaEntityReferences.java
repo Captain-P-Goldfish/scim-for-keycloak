@@ -33,7 +33,7 @@ public enum JpaEntityReferences
   SCIM_ADDRESSES("uad", ScimAddressEntity.class),
   SCIM_CERTIFICATES("uc", ScimCertificatesEntity.class),
   SCIM_EMAILS("ue", ScimEmailsEntity.class),
-  SCIM_ENTITLEMENTS("ue", ScimEntitlementEntity.class),
+  SCIM_ENTITLEMENTS("uen", ScimEntitlementEntity.class),
   SCIM_IMS("ui", ScimImsEntity.class),
   SCIM_PHONE_NUMBERS("uphone", ScimPhonesEntity.class),
   SCIM_PHOTOS("uphoto", ScimPhotosEntity.class),
@@ -41,7 +41,9 @@ public enum JpaEntityReferences
   USER_GROUPS_MEMBERSHIP("ugm", UserGroupMembershipEntity.class),
   GROUPS_ENTITY("g", GroupEntity.class),
   COUNTRIES("ic", InfoCertCountriesEntity.class),
-  BUSINESS_LINE("ib", InfoCertBusinessLineEntity.class);
+  BUSINESS_LINE("ib", InfoCertBusinessLineEntity.class),
+  //
+  ;
 
   /**
    * the JPQL identifier that should identify a specific entity

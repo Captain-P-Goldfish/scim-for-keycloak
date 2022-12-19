@@ -142,7 +142,7 @@ public abstract class AbstractFiltering<T>
    * @param resultStream the result from the database
    * @return the entities to return from the {@link #filterResources()} method
    */
-  protected abstract List<T> parseResultStream(Stream<Object[]> resultStream);
+  protected abstract List<T> parseResultStream(Stream<Object> resultStream);
 
   /**
    * will count the number of resources within the database based on the current filter expression
@@ -153,7 +153,9 @@ public abstract class AbstractFiltering<T>
   {
     final String jpqlQuery = getJpqlQueryString(true);
 
-    log.debug("Counting users from database with JPQL query:\n\t[{}]", jpqlQuery);
+    log.debug("Counting resources '{}' from database with JPQL query:\n\t[{}]",
+              getBaseSelection().getBaseTable().name(),
+              jpqlQuery);
 
     Query query = entityManager.createQuery(jpqlQuery);
 
@@ -172,7 +174,9 @@ public abstract class AbstractFiltering<T>
   {
     final String jpqlQuery = getJpqlQueryString(false);
 
-    log.debug("Reading users from database with JPQL query:\n\t[{}]", jpqlQuery);
+    log.debug("Reading resources '{}' from database with JPQL query:\n\t[{}]",
+              getBaseSelection().getBaseTable().name(),
+              jpqlQuery);
     log.debug("starting at index '{}'", startIndex - 1);
     log.debug("retrieving '{}' resources from database", count);
 
@@ -185,7 +189,7 @@ public abstract class AbstractFiltering<T>
     getParameterResolverList().forEach(queryConsumer -> queryConsumer.accept(query));
     getParameterResolverList().clear();
 
-    Stream<Object[]> results = query.getResultStream();
+    Stream<Object> results = query.getResultStream();
 
     return parseResultStream(results.parallel());
   }

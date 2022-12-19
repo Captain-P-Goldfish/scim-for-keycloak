@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
@@ -16,6 +15,7 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
+import org.keycloak.models.jpa.entities.GroupEntity;
 
 import de.captaingoldfish.scim.sdk.common.constants.AttributeNames;
 import de.captaingoldfish.scim.sdk.common.constants.EndpointPaths;
@@ -29,6 +29,8 @@ import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Member;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
 import de.captaingoldfish.scim.sdk.keycloak.audit.ScimAdminEventBuilder;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimKeycloakContext;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.converter.DatabaseGroupToScimConverter;
+import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.GroupsFiltering;
 import de.captaingoldfish.scim.sdk.keycloak.services.GroupService;
 import de.captaingoldfish.scim.sdk.server.endpoints.Context;
 import de.captaingoldfish.scim.sdk.server.endpoints.ResourceHandler;
@@ -109,15 +111,15 @@ public class GroupHandler extends ResourceHandler<Group>
                                                   Context context)
   {
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
-    // TODO in order to filter on database level the feature "autoFiltering" must be disabled and the JPA criteria
-    // api should be used
-    Stream<GroupModel> groupModelsStream = keycloakSession.getContext().getRealm().getGroupsStream();
-    List<Group> groupList = groupModelsStream.map(groupModel -> modelToGroup(keycloakSession, groupModel))
-                                             .collect(Collectors.toList());
-    return PartialListResponse.<Group> builder()
-                              .totalResults(keycloakSession.getContext().getRealm().getGroupsCount(false))
-                              .resources(groupList)
-                              .build();
+    GroupsFiltering groupsFiltering = new GroupsFiltering(keycloakSession, startIndex, count, filter, sortBy,
+                                                          sortOrder);
+    long totalResults = groupsFiltering.countResources();
+    List<GroupEntity> databaseGroups = groupsFiltering.filterResources();
+    List<Group> scimGroups = databaseGroups.stream()
+                                           .map(DatabaseGroupToScimConverter::databaseGroupModelToScimModel)
+                                           .collect(Collectors.toList());
+    DatabaseGroupToScimConverter.addMembersToGroups(groupsFiltering, scimGroups);
+    return PartialListResponse.<Group> builder().totalResults(totalResults).resources(scimGroups).build();
   }
 
   /**
