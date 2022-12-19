@@ -36,7 +36,6 @@ import de.captaingoldfish.scim.sdk.common.constants.ResourceTypeNames;
 import de.captaingoldfish.scim.sdk.common.constants.enums.Comparator;
 import de.captaingoldfish.scim.sdk.common.constants.enums.HttpMethod;
 import de.captaingoldfish.scim.sdk.common.resources.Group;
-import de.captaingoldfish.scim.sdk.common.resources.ServiceProvider;
 import de.captaingoldfish.scim.sdk.common.resources.User;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Meta;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Name;
@@ -82,14 +81,9 @@ public class ScimClient
                                                                                    .httpHeaders(defaultHeaders)
                                                                                    .enableAutomaticBulkRequestSplitting(true)
                                                                                    .build());
-    ServerResponse<ServiceProvider> response = scimRequestBuilder.get(ServiceProvider.class,
-                                                                      EndpointPaths.SERVICE_PROVIDER_CONFIG,
-                                                                      null)
-                                                                 .sendRequest();
-    ServiceProvider serviceProviderConfig = response.getResource();
 
     deleteAllUsers(scimRequestBuilder);
-    // deleteAllGroups(scimRequestBuilder);
+    deleteAllGroups(scimRequestBuilder);
     createUsers(scimRequestBuilder);
     createGroups(scimRequestBuilder);
     updateGroups(scimRequestBuilder);
@@ -402,7 +396,7 @@ public class ScimClient
     long totalResults = countResponse.getResource().getTotalResults();
     ServerResponse<ListResponse<User>> response = scimRequestBuilder.list(User.class, USER_ENDPOINT)
                                                                     .startIndex(random.nextInt((int)totalResults))
-                                                                    .count(15)
+                                                                    .count(150)
                                                                     .get()
                                                                     .sendRequest();
     ListResponse<User> listResponse = response.getResource();

@@ -54,12 +54,12 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
   {
     super(keycloakSession, UserAttributeMapping.getInstance(), startIndex, count, filterNode, sortBy, sortOrder);
 
-    log.info("initiate user filtering: startIndex: {}, count: {}, filter: {}, sortBy: {}, sortOrder: {}",
-             startIndex,
-             count,
-             Optional.ofNullable(filterNode).map(FilterNode::toString).orElse(null),
-             Optional.ofNullable(sortBy).map(SchemaAttribute::getName).orElse(null),
-             Optional.ofNullable(sortOrder).map(Enum::name).orElse(null));
+    log.debug("initiate user filtering: startIndex: {}, count: {}, filter: {}, sortBy: {}, sortOrder: {}",
+              startIndex,
+              count,
+              Optional.ofNullable(filterNode).map(FilterNode::toString).orElse(null),
+              Optional.ofNullable(sortBy).map(SchemaAttribute::getName).orElse(null),
+              Optional.ofNullable(sortOrder).map(Enum::name).orElse(null));
   }
 
   /**
