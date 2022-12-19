@@ -4,14 +4,12 @@ import java.util.List;
 import java.util.Optional;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 
 /**
  * @author Pascal Knueppel
  * @since 14.12.2022
  */
-@RequiredArgsConstructor
 public class FilterAttribute
 {
 
@@ -36,6 +34,21 @@ public class FilterAttribute
    */
   @Getter
   private final List<JpqlTableJoin> joins;
+
+  /**
+   * tells us if this attribute is part of the database selection. Only attributes that are part of the
+   * selection can be used for sorting.
+   */
+  @Getter
+  private final boolean isInSelection;
+
+  public FilterAttribute(String fullScimAttributeName, String databaseAttributeName, List<JpqlTableJoin> joins)
+  {
+    this.fullScimAttributeName = fullScimAttributeName;
+    this.databaseAttributeName = databaseAttributeName;
+    this.joins = joins;
+    this.isInSelection = joins.get(joins.size() - 1).isJoinIntoSelection();
+  }
 
   /**
    * the JPQL attribute mapping. This should look like this:

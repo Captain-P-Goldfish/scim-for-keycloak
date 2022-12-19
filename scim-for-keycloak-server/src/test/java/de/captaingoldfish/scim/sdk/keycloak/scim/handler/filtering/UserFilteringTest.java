@@ -1,5 +1,7 @@
 package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -14,13 +16,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.UserModel;
 
 import de.captaingoldfish.scim.sdk.common.constants.AttributeNames;
 import de.captaingoldfish.scim.sdk.common.constants.EndpointPaths;
 import de.captaingoldfish.scim.sdk.common.constants.HttpStatus;
+import de.captaingoldfish.scim.sdk.common.constants.SchemaUris;
 import de.captaingoldfish.scim.sdk.common.constants.enums.HttpMethod;
 import de.captaingoldfish.scim.sdk.common.resources.base.ScimObjectNode;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Meta;
@@ -32,6 +37,7 @@ import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
 import de.captaingoldfish.scim.sdk.keycloak.scim.helper.UserComparator;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
 import de.captaingoldfish.scim.sdk.keycloak.setup.RequestBuilder;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -69,6 +75,85 @@ public class UserFilteringTest extends AbstractScimEndpointTest
     ErrorResponse errorResponse = JsonHelper.readJsonDocument((String)response.getEntity(), ErrorResponse.class);
     Assertions.assertEquals("Illegal filter-attribute found 'urn:ietf:params:scim:schemas:core:2.0:User:password'",
                             errorResponse.getDetail().get());
+  }
+
+  /**
+   * verifies that an appropriate error is thrown if the user tries to sort for an attribute that is not part of
+   * the selection
+   */
+  @Test
+  public void testIllegalFilterAttribute()
+  {
+    final String sortBy = String.format("?sortBy=%s&sortOrder=%s", "groups.value", "ascending");
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .method(HttpMethod.GET)
+                                               .endpoint(EndpointPaths.USERS + sortBy)
+                                               .build();
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatus());
+    ErrorResponse errorResponse = JsonHelper.readJsonDocument((String)response.getEntity(), ErrorResponse.class);
+    Assertions.assertEquals(String.format("Cannot sort entries by attribute '%s'. "
+                                          + "Only attributes that are port of the select statement are valid "
+                                          + "sortBy-attributes.",
+                                          SchemaUris.USER_URI + ":groups.value"),
+                            errorResponse.getDetail().get());
+  }
+
+  @SneakyThrows
+  @ParameterizedTest
+  @CsvSource({"username,ascending,0,1,2,3", "username,descending,3,2,1,0", "displayname,ascending,3,0,1,2",
+              "displayname,descending,2,1,0,3", "name.givenname,ascending,3,0,1,2",
+              "name.givenname,descending,2,1,0,3"})
+  public void testGetAllUsersAndSortBy(String sortByAttribute,
+                                       String sortOrder,
+                                       int index1,
+                                       int index2,
+                                       int index3,
+                                       int index4)
+  {
+    List<Integer> expectedOrder = Arrays.asList(index1, index2, index3, index4);
+
+    CustomUser superMarioScim = JsonHelper.loadJsonDocument(USER_SUPER_MARIO, CustomUser.class);
+    CustomUser donkeyKongScim = JsonHelper.loadJsonDocument(USER_DONKEY_KONG, CustomUser.class);
+    CustomUser linkScim = JsonHelper.loadJsonDocument(USER_LINK, CustomUser.class);
+    CustomUser zeldaScim = CustomUser.builder().userName("zelda").build();
+
+    superMarioScim = createUser(superMarioScim);
+    donkeyKongScim = createUser(donkeyKongScim);
+    linkScim = createUser(linkScim);
+    zeldaScim = createUser(zeldaScim);
+
+    List<CustomUser> standardOrder = Arrays.asList(donkeyKongScim, linkScim, superMarioScim, zeldaScim);
+
+    final String sortBy = String.format("?sortBy=%s&sortOrder=%s",
+                                        URLEncoder.encode(sortByAttribute, StandardCharsets.UTF_8.displayName()),
+                                        sortOrder);
+    HttpServletRequest request = RequestBuilder.builder(getScimEndpoint())
+                                               .method(HttpMethod.GET)
+                                               .endpoint(EndpointPaths.USERS + sortBy)
+                                               .build();
+    Response response = getScimEndpoint().handleScimRequest(request);
+    Assertions.assertEquals(HttpStatus.OK, response.getStatus());
+    ListResponse<ScimObjectNode> listResponse = JsonHelper.readJsonDocument(response.readEntity(String.class),
+                                                                            ListResponse.class);
+    Assertions.assertEquals(4, listResponse.getTotalResults());
+    Assertions.assertEquals(4, listResponse.getItemsPerPage());
+
+    List<ScimObjectNode> returnedResources = listResponse.getListedResources();
+
+    for ( int i = 0 ; i < expectedOrder.size() ; i++ )
+    {
+      ScimObjectNode resource = returnedResources.get(i);
+      int index = expectedOrder.get(i);
+      CustomUser expectedUser = standardOrder.get(index);
+
+      Assertions.assertEquals(expectedUser.getUserName().get(),
+                              resource.get(AttributeNames.RFC7643.USER_NAME).textValue(),
+                              returnedResources.stream()
+                                               .map(node -> node.get(AttributeNames.RFC7643.USER_NAME).textValue())
+                                               .collect(Collectors.toList())
+                                               .toString());
+    }
   }
 
   /**

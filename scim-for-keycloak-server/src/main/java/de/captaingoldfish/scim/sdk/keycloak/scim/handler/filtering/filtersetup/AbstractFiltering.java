@@ -236,7 +236,8 @@ public abstract class AbstractFiltering<T>
       joinsString.append(" ").append(join.getJoinJpql());
     }
 
-    return baseSelect + " " + fromClause + joinsString + whereClause + getOrderBy();
+    final String sortBy = countResources ? "" : getOrderBy();
+    return baseSelect + " " + fromClause + joinsString + whereClause + sortBy;
   }
 
   /**
@@ -550,11 +551,19 @@ public abstract class AbstractFiltering<T>
       return "";
     }
     // TODO check that the sortBy attribute is referencing a child-element and not a complex-element
-    final FilterAttribute filterAttribute = attributeMapping.getAttribute(sortBy.getName()).get(0);
+    final FilterAttribute filterAttribute = attributeMapping.getAttribute(sortBy.getFullResourceName()).get(0);
+
+    if (!filterAttribute.isInSelection())
+    {
+      throw new BadRequestException(String.format("Cannot sort entries by attribute '%s'. "
+                                                  + "Only attributes that are port of the select statement are valid "
+                                                  + "sortBy-attributes.",
+                                                  filterAttribute.getFullScimAttributeName()));
+    }
     final String sortByAttributeName = filterAttribute.getJpqlMapping();
     final SortOrder effectiveOrder = Optional.ofNullable(sortOrder).orElse(SortOrder.ASCENDING);
     final String sortOrderString = effectiveOrder == SortOrder.ASCENDING ? "asc" : "desc";
-    return sortOrder == null ? "" : String.format("order by %s %s", sortByAttributeName, sortOrderString);
+    return sortOrder == null ? "" : String.format(" order by %s %s", sortByAttributeName, sortOrderString);
   }
 
 }

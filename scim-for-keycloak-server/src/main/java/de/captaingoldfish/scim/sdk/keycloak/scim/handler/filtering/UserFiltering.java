@@ -58,7 +58,7 @@ public class UserFiltering extends AbstractFiltering<ScimUserAttributesEntity>
               startIndex,
               count,
               Optional.ofNullable(filterNode).map(FilterNode::toString).orElse(null),
-              Optional.ofNullable(sortBy).map(SchemaAttribute::getName).orElse(null),
+              Optional.ofNullable(sortBy).map(SchemaAttribute::getFullResourceName).orElse(null),
               Optional.ofNullable(sortOrder).map(Enum::name).orElse(null));
   }
 
