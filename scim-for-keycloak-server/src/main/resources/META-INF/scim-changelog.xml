@@ -8,6 +8,7 @@
     <property name="clob_type" value="CLOB" dbms="h2, oracle"/>
     <property name="clob_type" value="VARCHAR(max)" dbms="mssql"/>
     <property name="clob_type" value="LONGTEXT" dbms="mysql, mariadb"/>
+    <property name="clob_type" value="TEXT" dbms="postgresql"/>
     <property name="datetime" value="datetime"/>
     <property name="datetime" value="datetime2" dbms="mssql"/>
 
