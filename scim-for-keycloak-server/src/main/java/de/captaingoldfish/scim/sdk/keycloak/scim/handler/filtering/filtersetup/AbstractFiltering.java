@@ -3,6 +3,7 @@ package de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.filtersetup;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -172,6 +173,10 @@ public abstract class AbstractFiltering<T>
    */
   public final List<T> filterResources()
   {
+    if (count == 0)
+    {
+      return Collections.emptyList();
+    }
     final String jpqlQuery = getJpqlQueryString(false);
 
     log.debug("Reading resources '{}' from database with JPQL query:\n\t[{}]",

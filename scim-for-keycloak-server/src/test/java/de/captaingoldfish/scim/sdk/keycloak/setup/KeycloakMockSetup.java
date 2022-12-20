@@ -126,6 +126,7 @@ class KeycloakMockSetup
     Mockito.doReturn(groupStorageManager).when(keycloakSession).groups();
     Mockito.doReturn(groupStorageManager).when(keycloakSession).groupStorageManager();
     Mockito.doReturn(jpaRealmProvider).when(keycloakSession).groupLocalStorage();
+    Mockito.doReturn(jpaRealmProvider).when(keycloakSession).clientScopes();
 
     ClientConnection clientConnection = Mockito.mock(ClientConnection.class);
     Mockito.doReturn(clientConnection).when(keycloakContext).getConnection();

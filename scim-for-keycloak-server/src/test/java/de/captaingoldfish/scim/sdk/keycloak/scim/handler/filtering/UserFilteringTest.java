@@ -77,6 +77,31 @@ public class UserFilteringTest extends AbstractScimEndpointTest
                             errorResponse.getDetail().get());
   }
 
+  @Test
+  public void test()
+  {
+    UserModel link = getKeycloakSession().users().addUser(getRealmModel(), "link");
+    link.setSingleAttribute(AttributeNames.RFC7643.LOCALE, "de");
+    link.setSingleAttribute(AttributeNames.RFC7643.DISPLAY, "Link");
+    UserModel mario = getKeycloakSession().users().addUser(getRealmModel(), "mario");
+    mario.setSingleAttribute(AttributeNames.RFC7643.LOCALE, "en");
+    mario.setAttribute(AttributeNames.RFC7643.DISPLAY, Arrays.asList("Super Mario", "Mario"));
+
+    // @formatter:off
+    final String jpqlQuery = "select u "
+                             + "from UserEntity u "
+                             + "left join UserAttributeEntity ua_locale on ua_locale.user.id = u.id "
+                             + "left join UserAttributeEntity ua_display on ua_display.user.id = u.id "
+                             + "where (ua_locale.name = 'locale' "
+                             + "  and ua_display.name = 'display') "
+                             + "  and (ua_display.value = 'Link' or ua_display.value = 'Super Mario' or ua_display.value = 'Mario') "
+      ;
+    // @formatter:on
+
+    List<Object[]> results = getEntityManager().createQuery(jpqlQuery).getResultList();
+    log.warn(results.toString());
+  }
+
   /**
    * verifies that an appropriate error is thrown if the user tries to sort for an attribute that is not part of
    * the selection

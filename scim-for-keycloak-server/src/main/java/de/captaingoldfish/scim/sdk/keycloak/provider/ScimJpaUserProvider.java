@@ -1,8 +1,12 @@
 package de.captaingoldfish.scim.sdk.keycloak.provider;
 
+import java.util.Arrays;
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 import org.keycloak.connections.jpa.JpaConnectionProvider;
 import org.keycloak.models.KeycloakSession;
@@ -12,6 +16,16 @@ import org.keycloak.models.jpa.JpaUserProvider;
 import org.keycloak.models.jpa.entities.UserEntity;
 
 import de.captaingoldfish.scim.sdk.common.exceptions.ResourceNotFoundException;
+import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertBusinessLineEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertCountriesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimAddressEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEntitlementEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimImsEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPersonRoleEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhonesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhotosEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,6 +41,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ScimJpaUserProvider extends JpaUserProvider
 {
+
+  /**
+   * the entity classes directly related to the {@link ScimUserAttributesEntity} that must be deleted first on a
+   * deletion process
+   */
+  private static final List<Class> SCIM_UA_RELATION_ENTITIES = Arrays.asList(ScimAddressEntity.class,
+                                                                             ScimCertificatesEntity.class,
+                                                                             ScimEmailsEntity.class,
+                                                                             ScimEntitlementEntity.class,
+                                                                             ScimImsEntity.class,
+                                                                             ScimPersonRoleEntity.class,
+                                                                             ScimPhonesEntity.class,
+                                                                             ScimPhotosEntity.class,
+                                                                             InfoCertCountriesEntity.class,
+                                                                             InfoCertBusinessLineEntity.class);
 
   private final KeycloakSession keycloakSession;
 
@@ -62,6 +91,41 @@ public class ScimJpaUserProvider extends JpaUserProvider
       // causes a 404 not found exception
       return null;
     }
+  }
+
+  /**
+   * before a realm can be deleted its users must also be deleted and this method overrides the default
+   * behaviour of keycloak by removing the additional SCIM tables first and then executes the default
+   * keycloak-procedure
+   * 
+   * @param realm the realm for which the users are about to be deleted
+   */
+  @Override
+  public void preRemove(RealmModel realm)
+  {
+    EntityManager entityManager = keycloakSession.getProvider(JpaConnectionProvider.class).getEntityManager();
+    TypedQuery<String> query = entityManager.createQuery("select ua.id from UserEntity u "
+                                                         + "join ScimUserAttributesEntity ua on u.id = ua.userEntity.id "
+                                                         + "where u.realmId = :realmId",
+                                                         String.class);
+    query.setParameter("realmId", realm.getId());
+    List<String> userAttributeIds = query.getResultList();
+
+
+    for ( Class<?> entityClass : SCIM_UA_RELATION_ENTITIES )
+    {
+      Query deleteQuery = entityManager.createQuery("delete from " + entityClass.getSimpleName()
+                                                    + " a where a.userAttributes.id in :uaIdList");
+      deleteQuery.setParameter("uaIdList", userAttributeIds);
+      deleteQuery.executeUpdate();
+    }
+
+    Query deleteQuery = entityManager.createQuery("delete from " + ScimUserAttributesEntity.class.getSimpleName()
+                                                  + " ua where ua.id in :uaIdList");
+    deleteQuery.setParameter("uaIdList", userAttributeIds);
+    deleteQuery.executeUpdate();
+
+    super.preRemove(realm);
   }
 
   /**
