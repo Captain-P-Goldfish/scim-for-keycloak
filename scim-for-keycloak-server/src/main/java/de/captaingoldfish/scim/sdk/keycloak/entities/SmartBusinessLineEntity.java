@@ -29,8 +29,8 @@ import lombok.Setter;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "USER_SCIM_COUNTRIES_EXT")
-public class InfoCertCountriesEntity
+@Table(name = "USER_SCIM_BUSINESS_LINE_EXT")
+public class SmartBusinessLineEntity
 {
 
   /**
@@ -52,16 +52,16 @@ public class InfoCertCountriesEntity
   private ScimUserAttributesEntity userAttributes;
 
   /**
-   * name of the country
+   * the value of the business line
    */
-  @Column(name = "COUNTRY")
-  private String country;
+  @Column(name = "BUSINESS_LINE")
+  private String businessLine;
 
   @Builder
-  public InfoCertCountriesEntity(String id, ScimUserAttributesEntity userAttributes, String country)
+  public SmartBusinessLineEntity(String id, ScimUserAttributesEntity userAttributes, String businessLine)
   {
     this.id = Optional.ofNullable(id).orElse(KeycloakModelUtils.generateId());
     this.userAttributes = userAttributes;
-    this.country = country;
+    this.businessLine = businessLine;
   }
 }

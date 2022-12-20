@@ -48,7 +48,7 @@ public class ScimConfigurationTest extends KeycloakScimManagementTest
     verifyInitialResourceTypeSetup(userResourceType, false, false);
     verifyInitialResourceTypeDatabaseSetup(userResourceType);
     ResourceType groupResourceType = resourceEndpoint.getResourceTypeByName(ResourceTypeNames.GROUPS).get();
-    verifyInitialResourceTypeSetup(groupResourceType, true, true);
+    verifyInitialResourceTypeSetup(groupResourceType, false, false);
     verifyInitialResourceTypeDatabaseSetup(groupResourceType);
   }
 

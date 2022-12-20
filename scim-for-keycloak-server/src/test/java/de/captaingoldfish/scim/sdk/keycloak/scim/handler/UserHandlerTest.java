@@ -42,8 +42,6 @@ import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PhoneNumber;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.ScimX509Certificate;
 import de.captaingoldfish.scim.sdk.common.utils.JsonHelper;
-import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertBusinessLineEntity;
-import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertCountriesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimAddressEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
@@ -52,6 +50,8 @@ import de.captaingoldfish.scim.sdk.keycloak.entities.ScimImsEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhonesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhotosEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.SmartBusinessLineEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.SmartCountriesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.provider.ScimJpaUserProvider;
 import de.captaingoldfish.scim.sdk.keycloak.scim.AbstractScimEndpointTest;
 import de.captaingoldfish.scim.sdk.keycloak.scim.ScimConfiguration;
@@ -472,16 +472,16 @@ public class UserHandlerTest extends AbstractScimEndpointTest
 
     Assertions.assertNotEquals(0, user.getCountryUserExtension().getBusinessLine().size());
     MatcherAssert.assertThat(user.getCountryUserExtension().getBusinessLine(),
-                             Matchers.containsInAnyOrder(userAttributes.getInfoCertBusinessLine()
+                             Matchers.containsInAnyOrder(userAttributes.getSmartBusinessLine()
                                                                        .stream()
-                                                                       .map(InfoCertBusinessLineEntity::getBusinessLine)
+                                                                       .map(SmartBusinessLineEntity::getBusinessLine)
                                                                        .map(Matchers::equalTo)
                                                                        .collect(Collectors.toList())));
     Assertions.assertNotEquals(0, user.getCountryUserExtension().getCountries().size());
     MatcherAssert.assertThat(user.getCountryUserExtension().getCountries(),
-                             Matchers.containsInAnyOrder(userAttributes.getInfoCertCountries()
+                             Matchers.containsInAnyOrder(userAttributes.getSmartCountries()
                                                                        .stream()
-                                                                       .map(InfoCertCountriesEntity::getCountry)
+                                                                       .map(SmartCountriesEntity::getCountry)
                                                                        .map(Matchers::equalTo)
                                                                        .collect(Collectors.toList())));
 

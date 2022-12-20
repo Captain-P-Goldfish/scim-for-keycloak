@@ -16,8 +16,6 @@ import org.keycloak.models.jpa.JpaUserProvider;
 import org.keycloak.models.jpa.entities.UserEntity;
 
 import de.captaingoldfish.scim.sdk.common.exceptions.ResourceNotFoundException;
-import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertBusinessLineEntity;
-import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertCountriesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimAddressEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
@@ -27,6 +25,8 @@ import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPersonRoleEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhonesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhotosEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.SmartBusinessLineEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.SmartCountriesEntity;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -54,8 +54,8 @@ public class ScimJpaUserProvider extends JpaUserProvider
                                                                              ScimPersonRoleEntity.class,
                                                                              ScimPhonesEntity.class,
                                                                              ScimPhotosEntity.class,
-                                                                             InfoCertCountriesEntity.class,
-                                                                             InfoCertBusinessLineEntity.class);
+                                                                             SmartCountriesEntity.class,
+                                                                             SmartBusinessLineEntity.class);
 
   private final KeycloakSession keycloakSession;
 

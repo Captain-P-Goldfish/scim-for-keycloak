@@ -4,8 +4,6 @@ import org.keycloak.models.jpa.entities.GroupEntity;
 import org.keycloak.models.jpa.entities.UserEntity;
 import org.keycloak.models.jpa.entities.UserGroupMembershipEntity;
 
-import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertBusinessLineEntity;
-import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertCountriesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimAddressEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
@@ -15,6 +13,8 @@ import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPersonRoleEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhonesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhotosEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.SmartBusinessLineEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.SmartCountriesEntity;
 import lombok.Getter;
 
 
@@ -40,8 +40,8 @@ public enum JpaEntityReferences
   SCIM_PERSON_ROLES("prole", ScimPersonRoleEntity.class),
   USER_GROUPS_MEMBERSHIP("ugm", UserGroupMembershipEntity.class),
   GROUPS_ENTITY("g", GroupEntity.class),
-  COUNTRIES("ic", InfoCertCountriesEntity.class),
-  BUSINESS_LINE("ib", InfoCertBusinessLineEntity.class),
+  COUNTRIES("ic", SmartCountriesEntity.class),
+  BUSINESS_LINE("ib", SmartBusinessLineEntity.class),
   //
   ;
 

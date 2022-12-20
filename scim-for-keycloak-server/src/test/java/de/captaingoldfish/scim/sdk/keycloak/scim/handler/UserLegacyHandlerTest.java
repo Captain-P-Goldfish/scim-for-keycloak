@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.keycloak.events.admin.AdminEvent;
 import org.keycloak.events.admin.OperationType;
@@ -57,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Pascal Knueppel
  * @since 18.08.2020
  */
+@Disabled("UserLegacy endpoint is no longer needed")
 @Slf4j
 public class UserLegacyHandlerTest extends AbstractScimEndpointTest
 {

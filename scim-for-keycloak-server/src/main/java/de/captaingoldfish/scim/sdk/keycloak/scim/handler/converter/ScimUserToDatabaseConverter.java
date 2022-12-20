@@ -11,8 +11,6 @@ import org.keycloak.models.UserModel;
 import de.captaingoldfish.scim.sdk.common.resources.EnterpriseUser;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Manager;
 import de.captaingoldfish.scim.sdk.common.resources.complex.Name;
-import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertBusinessLineEntity;
-import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertCountriesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimAddressEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
@@ -22,6 +20,8 @@ import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPersonRoleEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhonesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhotosEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.SmartBusinessLineEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.SmartCountriesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -100,11 +100,11 @@ public final class ScimUserToDatabaseConverter
     List<ScimPersonRoleEntity> personRoles = scimPersonRolesToDatabasePersonRoles(user, userAttributes);
     userAttributes.setPersonRoles(personRoles);
 
-    List<InfoCertBusinessLineEntity> businessLines = scimBusinessLinesToDatabaseBusinessLines(user, userAttributes);
-    userAttributes.setInfoCertBusinessLine(businessLines);
+    List<SmartBusinessLineEntity> businessLines = scimBusinessLinesToDatabaseBusinessLines(user, userAttributes);
+    userAttributes.setSmartBusinessLine(businessLines);
 
-    List<InfoCertCountriesEntity> countries = scimCountriesToDatabaseCountries(user, userAttributes);
-    userAttributes.setInfoCertCountries(countries);
+    List<SmartCountriesEntity> countries = scimCountriesToDatabaseCountries(user, userAttributes);
+    userAttributes.setSmartCountries(countries);
   }
 
   private static List<ScimAddressEntity> scimAddressToDatabaseAddress(CustomUser user,
@@ -250,30 +250,30 @@ public final class ScimUserToDatabaseConverter
     return photos;
   }
 
-  private static List<InfoCertCountriesEntity> scimCountriesToDatabaseCountries(CustomUser user,
-                                                                                ScimUserAttributesEntity userAttributes)
+  private static List<SmartCountriesEntity> scimCountriesToDatabaseCountries(CustomUser user,
+                                                                             ScimUserAttributesEntity userAttributes)
   {
     return Optional.ofNullable(user.getCountryUserExtension()).map(extension -> {
       return extension.getCountries()
                       .stream()
-                      .map(country -> InfoCertCountriesEntity.builder()
-                                                             .country(country)
-                                                             .userAttributes(userAttributes)
-                                                             .build())
+                      .map(country -> SmartCountriesEntity.builder()
+                                                          .country(country)
+                                                          .userAttributes(userAttributes)
+                                                          .build())
                       .collect(Collectors.toList());
     }).orElseGet(ArrayList::new);
   }
 
-  private static List<InfoCertBusinessLineEntity> scimBusinessLinesToDatabaseBusinessLines(CustomUser user,
-                                                                                           ScimUserAttributesEntity userAttributes)
+  private static List<SmartBusinessLineEntity> scimBusinessLinesToDatabaseBusinessLines(CustomUser user,
+                                                                                        ScimUserAttributesEntity userAttributes)
   {
     return Optional.ofNullable(user.getCountryUserExtension()).map(extension -> {
       return extension.getBusinessLine()
                       .stream()
-                      .map(businessLine -> InfoCertBusinessLineEntity.builder()
-                                                                     .businessLine(businessLine)
-                                                                     .userAttributes(userAttributes)
-                                                                     .build())
+                      .map(businessLine -> SmartBusinessLineEntity.builder()
+                                                                  .businessLine(businessLine)
+                                                                  .userAttributes(userAttributes)
+                                                                  .build())
                       .collect(Collectors.toList());
     }).orElseGet(ArrayList::new);
   }

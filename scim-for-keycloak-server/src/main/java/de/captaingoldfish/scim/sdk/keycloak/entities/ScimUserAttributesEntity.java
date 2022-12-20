@@ -255,13 +255,13 @@ public class ScimUserAttributesEntity
    * list of business line elements
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<InfoCertBusinessLineEntity> infoCertBusinessLine;
+  private List<SmartBusinessLineEntity> smartBusinessLine;
 
   /**
    * list of country elements
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<InfoCertCountriesEntity> infoCertCountries;
+  private List<SmartCountriesEntity> smartCountries;
 
   @Builder
   public ScimUserAttributesEntity(String id,
@@ -433,29 +433,29 @@ public class ScimUserAttributesEntity
     }
   }
 
-  public void setInfoCertBusinessLine(List<InfoCertBusinessLineEntity> infoCertBusinessLine)
+  public void setSmartBusinessLine(List<SmartBusinessLineEntity> smartBusinessLine)
   {
-    if (this.infoCertBusinessLine != null)
+    if (this.smartBusinessLine != null)
     {
-      this.infoCertBusinessLine.clear();
-      this.infoCertBusinessLine.addAll(Optional.ofNullable(infoCertBusinessLine).orElseGet(ArrayList::new));
+      this.smartBusinessLine.clear();
+      this.smartBusinessLine.addAll(Optional.ofNullable(smartBusinessLine).orElseGet(ArrayList::new));
     }
     else
     {
-      this.infoCertBusinessLine = Optional.ofNullable(infoCertBusinessLine).orElseGet(ArrayList::new);
+      this.smartBusinessLine = Optional.ofNullable(smartBusinessLine).orElseGet(ArrayList::new);
     }
   }
 
-  public void setInfoCertCountries(List<InfoCertCountriesEntity> infoCertCountries)
+  public void setSmartCountries(List<SmartCountriesEntity> smartCountries)
   {
-    if (this.infoCertCountries != null)
+    if (this.smartCountries != null)
     {
-      this.infoCertCountries.clear();
-      this.infoCertCountries.addAll(Optional.ofNullable(infoCertCountries).orElseGet(ArrayList::new));
+      this.smartCountries.clear();
+      this.smartCountries.addAll(Optional.ofNullable(smartCountries).orElseGet(ArrayList::new));
     }
     else
     {
-      this.infoCertCountries = Optional.ofNullable(infoCertCountries).orElseGet(ArrayList::new);
+      this.smartCountries = Optional.ofNullable(smartCountries).orElseGet(ArrayList::new);
     }
   }
 }

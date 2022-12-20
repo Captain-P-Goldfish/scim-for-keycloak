@@ -5,8 +5,6 @@ import java.util.List;
 
 import org.keycloak.connections.jpa.entityprovider.JpaEntityProvider;
 
-import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertBusinessLineEntity;
-import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertCountriesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimAddressEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimCertificatesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimEmailsEntity;
@@ -18,6 +16,8 @@ import de.captaingoldfish.scim.sdk.keycloak.entities.ScimPhotosEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimResourceTypeEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimServiceProviderEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.SmartBusinessLineEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.SmartCountriesEntity;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -43,8 +43,8 @@ public class ScimJpaEntityProvider implements JpaEntityProvider
                          ScimEntitlementEntity.class,
                          ScimCertificatesEntity.class,
                          ScimPersonRoleEntity.class,
-                         InfoCertBusinessLineEntity.class,
-                         InfoCertCountriesEntity.class
+                         SmartBusinessLineEntity.class,
+                         SmartCountriesEntity.class
 
     );
   }

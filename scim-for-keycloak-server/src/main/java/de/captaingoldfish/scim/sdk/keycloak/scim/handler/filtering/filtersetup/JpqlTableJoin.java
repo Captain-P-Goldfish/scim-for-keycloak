@@ -59,7 +59,7 @@ public class JpqlTableJoin
     this.joinTable = null;
     this.joinOnBase = null;
     this.joinOn = null;
-    this.joinIntoSelection = false;
+    this.joinIntoSelection = true;
     this.joinType = null;
   }
 

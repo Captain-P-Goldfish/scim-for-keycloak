@@ -25,9 +25,9 @@ import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PersonRole;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.PhoneNumber;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.Photo;
 import de.captaingoldfish.scim.sdk.common.resources.multicomplex.ScimX509Certificate;
-import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertBusinessLineEntity;
-import de.captaingoldfish.scim.sdk.keycloak.entities.InfoCertCountriesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.entities.ScimUserAttributesEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.SmartBusinessLineEntity;
+import de.captaingoldfish.scim.sdk.keycloak.entities.SmartCountriesEntity;
 import de.captaingoldfish.scim.sdk.keycloak.scim.handler.filtering.UserFiltering;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CountryUserExtension;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
@@ -106,15 +106,13 @@ public final class DatabaseUserToScimConverter
   {
     CountryUserExtension countryExtension = CountryUserExtension.builder().build();
 
-    Optional.ofNullable(userAttributes.getInfoCertBusinessLine()).filter(list -> !list.isEmpty()).ifPresent(list -> {
+    Optional.ofNullable(userAttributes.getSmartBusinessLine()).filter(list -> !list.isEmpty()).ifPresent(list -> {
       countryExtension.setBusinessLine(list.stream()
-                                           .map(InfoCertBusinessLineEntity::getBusinessLine)
+                                           .map(SmartBusinessLineEntity::getBusinessLine)
                                            .collect(Collectors.toList()));
     });
-    Optional.ofNullable(userAttributes.getInfoCertCountries()).filter(list -> !list.isEmpty()).ifPresent(list -> {
-      countryExtension.setCountries(list.stream()
-                                        .map(InfoCertCountriesEntity::getCountry)
-                                        .collect(Collectors.toList()));
+    Optional.ofNullable(userAttributes.getSmartCountries()).filter(list -> !list.isEmpty()).ifPresent(list -> {
+      countryExtension.setCountries(list.stream().map(SmartCountriesEntity::getCountry).collect(Collectors.toList()));
     });
 
     if (countryExtension.isEmpty())
