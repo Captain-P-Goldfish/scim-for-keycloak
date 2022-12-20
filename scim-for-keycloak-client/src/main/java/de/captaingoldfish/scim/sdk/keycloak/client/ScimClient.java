@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
@@ -61,16 +60,26 @@ public class ScimClient
 
   private static final String USER_ENDPOINT = EndpointPaths.USERS;
 
+  private static final String REALM = "scim";
+
+  private static final String CLIENT_ID = "scim-client";
+
+  private static final String CLIENT_SECRET = "kRWSMhSr7D3jQop1sKIgBjXRQd03LbHb";
+
   private static int START_INDEX = 0;
 
-  private static int NUMBER_OF_USERS = 50000;
+  private static int REPEAT_CREATE_USERS = 4;
+
+  private static int REPEAT_CREATE_GROUPS = 4;
+
+  private static int MAX_NUMBER_OF_USERS_TOTAL = 20000;
 
   /**
    * creates almost 5000 users and 5 groups with 10 random users as members for these groups
    */
   public static void main(String[] args)
   {
-    final String baseUrl = "http://localhost:8080/auth/realms/scim/scim/v2";
+    final String baseUrl = String.format("http://localhost:8080/auth/realms/%s/scim/v2", REALM);
     final String accessToken = getAccessToken();
     final Map<String, String> defaultHeaders = new HashMap<>();
     defaultHeaders.put(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
@@ -86,17 +95,17 @@ public class ScimClient
     deleteAllGroups(scimRequestBuilder);
     createUsers(scimRequestBuilder);
     createGroups(scimRequestBuilder);
-    updateGroups(scimRequestBuilder);
   }
 
   @SneakyThrows
   private static String getAccessToken()
   {
-    final String tokenEndpoint = "http://localhost:8080/auth/realms/scim/protocol/openid-connect/token";
+    final String tokenEndpoint = String.format("http://localhost:8080/auth/realms/%s/protocol/openid-connect/token",
+                                               REALM);
     ScimClientConfig scimClientConfig = ScimClientConfig.builder()
                                                         .socketTimeout(120)
                                                         .requestTimeout(120)
-                                                        .basic("scim-client", "k9xE62pv4BdyY2PghQpe8oP1hKdOJU5x")
+                                                        .basic(CLIENT_ID, CLIENT_SECRET)
                                                         .enableAutomaticBulkRequestSplitting(true)
                                                         .build();
     try (ScimHttpClient scimHttpClient = new ScimHttpClient(scimClientConfig))
@@ -126,6 +135,7 @@ public class ScimClient
   private static void createUsers(ScimRequestBuilder scimRequestBuilder)
   {
     List<User> bulkList = getUserList();
+    log.warn("Creating {} users", bulkList.size());
     BulkBuilder bulkBuilder = scimRequestBuilder.bulk();
     bulkList.parallelStream().forEach(user -> {
       bulkBuilder.bulkRequestOperation(USER_ENDPOINT)
@@ -159,21 +169,23 @@ public class ScimClient
 
     while (listResponse.getTotalResults() > 0)
     {
-      listResponse.getListedResources().stream().parallel().forEach(user -> {
-        final String username = StringUtils.lowerCase(user.get(AttributeNames.RFC7643.USER_NAME).textValue());
-        ServerResponse<User> deleteResponse = scimRequestBuilder.delete(User.class,
-                                                                        USER_ENDPOINT,
-                                                                        user.get(AttributeNames.RFC7643.ID).textValue())
-                                                                .sendRequest();
-        if (deleteResponse.isSuccess())
-        {
-          log.trace("user with name {} was successfully deleted", username);
-        }
-        else
-        {
-          log.error("user with name {} could not be deleted", username);
-        }
-      });
+      BulkBuilder bulkBuilder = scimRequestBuilder.bulk();
+      for ( User user : listResponse.getListedResources() )
+      {
+        final String userId = user.getId().get();
+        bulkBuilder.bulkRequestOperation(String.format("%s/%s", USER_ENDPOINT, userId))
+                   .bulkId(UUID.randomUUID().toString())
+                   .method(HttpMethod.DELETE)
+                   .next();
+      }
+
+      ServerResponse<BulkResponse> bulkResponse = bulkBuilder.sendRequest();
+      if (!bulkResponse.isSuccess())
+      {
+        throw new IllegalStateException(String.format("could not delete users:\n%s",
+                                                      bulkResponse.getErrorResponse().toPrettyString()));
+      }
+
       response = scimRequestBuilder.list(User.class, USER_ENDPOINT)
                                    .filter("username", Comparator.NE, "admin")
                                    .build()
@@ -196,63 +208,71 @@ public class ScimClient
       int counter = 0;
       Random random = new Random();
       String name;
-      while ((name = reader.readLine()) != null)
+
+      userCreation:
       {
-        name = name.toLowerCase();
-        Meta meta = Meta.builder().created(LocalDateTime.now()).lastModified(LocalDateTime.now()).build();
-        User user = User.builder()
-                        .userName(name)
-                        .name(Name.builder()
-                                  .givenName(name)
-                                  .middlename(UUID.randomUUID().toString())
-                                  .familyName("Mustermann")
-                                  .honorificPrefix(random.nextInt(20) == 0 ? "Mr." : "Ms.")
-                                  .honorificSuffix(random.nextInt(20) == 0 ? "sama" : null)
-                                  .formatted(name)
-                                  .build())
-                        .active(random.nextBoolean())
-                        .nickName(name)
-                        .title("Dr.")
-                        .displayName(name)
-                        .userType(random.nextInt(50) == 0 ? "admin" : "user")
-                        .locale(random.nextBoolean() ? "de-DE" : "en-US")
-                        .preferredLanguage(random.nextBoolean() ? "de" : "en")
-                        .timeZone(random.nextBoolean() ? "Europe/Berlin" : "America/Los_Angeles")
-                        .profileUrl("http://localhost/" + name)
-                        .emails(Arrays.asList(Email.builder()
-                                                   .value(name + "@test.de")
-                                                   .primary(random.nextInt(20) == 0)
-                                                   .build(),
-                                              Email.builder().value(name + "_the_second@test.de").build()))
-                        .phoneNumbers(Arrays.asList(PhoneNumber.builder()
-                                                               .value(String.valueOf(random.nextLong()
-                                                                                     + Integer.MAX_VALUE))
-                                                               .primary(random.nextInt(20) == 0)
-                                                               .build(),
-                                                    PhoneNumber.builder()
-                                                               .value(String.valueOf(random.nextLong()
-                                                                                     + Integer.MAX_VALUE))
-                                                               .build()))
-                        .addresses(Arrays.asList(Address.builder()
-                                                        .streetAddress(name + " street " + random.nextInt(500))
-                                                        .country(random.nextBoolean() ? "germany" : "united states")
-                                                        .postalCode(String.valueOf(random.nextLong()
-                                                                                   + Integer.MAX_VALUE))
-                                                        .primary(random.nextInt(20) == 0)
-                                                        .build(),
-                                                 Address.builder()
-                                                        .streetAddress(name + " second street " + random.nextInt(500))
-                                                        .country(random.nextBoolean() ? "germany" : "united states")
-                                                        .postalCode(String.valueOf(random.nextLong()
-                                                                                   + Integer.MAX_VALUE))
-                                                        .build()))
-                        .meta(meta)
-                        .build();
-        log.info(user.toString());
-        userList.add(user);
-        if (++counter == NUMBER_OF_USERS)
+        while ((name = reader.readLine()) != null)
         {
-          break;
+          for ( int i = 0 ; i < REPEAT_CREATE_USERS ; i++ )
+          {
+            String userName = name.toLowerCase() + (i == 0 ? "" : "-" + i);
+            Meta meta = Meta.builder().created(LocalDateTime.now()).lastModified(LocalDateTime.now()).build();
+            User user = User.builder()
+                            .userName(userName)
+                            .name(Name.builder()
+                                      .givenName(userName)
+                                      .middlename(UUID.randomUUID().toString())
+                                      .familyName("Mustermann")
+                                      .honorificPrefix(random.nextInt(20) == 0 ? "Mr." : "Ms.")
+                                      .honorificSuffix(random.nextInt(20) == 0 ? "sama" : null)
+                                      .formatted(userName)
+                                      .build())
+                            .active(random.nextBoolean())
+                            .nickName(userName)
+                            .title("Dr.")
+                            .displayName(userName)
+                            .userType(random.nextInt(50) == 0 ? "admin" : "user")
+                            .locale(random.nextBoolean() ? "de-DE" : "en-US")
+                            .preferredLanguage(random.nextBoolean() ? "de" : "en")
+                            .timeZone(random.nextBoolean() ? "Europe/Berlin" : "America/Los_Angeles")
+                            .profileUrl("http://localhost/" + userName)
+                            .emails(Arrays.asList(Email.builder()
+                                                       .value(userName + "@test.de")
+                                                       .primary(random.nextInt(20) == 0)
+                                                       .build(),
+                                                  Email.builder().value(userName + "_the_second@test.de").build()))
+                            .phoneNumbers(Arrays.asList(PhoneNumber.builder()
+                                                                   .value(String.valueOf(random.nextLong()
+                                                                                         + Integer.MAX_VALUE))
+                                                                   .primary(random.nextInt(20) == 0)
+                                                                   .build(),
+                                                        PhoneNumber.builder()
+                                                                   .value(String.valueOf(random.nextLong()
+                                                                                         + Integer.MAX_VALUE))
+                                                                   .build()))
+                            .addresses(Arrays.asList(Address.builder()
+                                                            .streetAddress(userName + " street " + random.nextInt(500))
+                                                            .country(random.nextBoolean() ? "germany" : "united states")
+                                                            .postalCode(String.valueOf(random.nextLong()
+                                                                                       + Integer.MAX_VALUE))
+                                                            .primary(random.nextInt(20) == 0)
+                                                            .build(),
+                                                     Address.builder()
+                                                            .streetAddress(userName + " second street "
+                                                                           + random.nextInt(500))
+                                                            .country(random.nextBoolean() ? "germany" : "united states")
+                                                            .postalCode(String.valueOf(random.nextLong()
+                                                                                       + Integer.MAX_VALUE))
+                                                            .build()))
+                            .meta(meta)
+                            .build();
+            log.info(user.toString());
+            userList.add(user);
+            if (++counter == MAX_NUMBER_OF_USERS_TOTAL)
+            {
+              break userCreation;
+            }
+          }
         }
       }
     }
@@ -264,59 +284,30 @@ public class ScimClient
   }
 
   /**
-   * creates some groups with 10 random members for each group
+   * creates some groups with random members for each group
    */
   private static void createGroups(ScimRequestBuilder scimRequestBuilder)
   {
     List<Group> groups = getGroupsList(scimRequestBuilder);
-    groups.stream().parallel().forEach(group -> {
-      List<Member> randomUsers = getRandomUsers(scimRequestBuilder).stream()
-                                                                   .map(user -> Member.builder()
-                                                                                      .type(ResourceTypeNames.USER)
-                                                                                      .value(user.getId().get())
-                                                                                      .build())
-                                                                   .collect(Collectors.toList());
-      group.setMembers(randomUsers);
-      ServerResponse<Group> response = scimRequestBuilder.create(Group.class, EndpointPaths.GROUPS)
-                                                         .setResource(group)
-                                                         .sendRequest();
-      if (response.isSuccess())
-      {
-        log.trace("group with name {} was successfully created", group.getDisplayName().get());
-      }
-      else
-      {
-        log.error("group with name {} could not be created", group.getDisplayName().get());
-      }
-    });
-  }
 
-  /**
-   * creates some groups with 10 random members for each group
-   */
-  private static void updateGroups(ScimRequestBuilder scimRequestBuilder)
-  {
-    List<Group> allGroups = getAllGroups(scimRequestBuilder);
-    allGroups.stream().parallel().forEach(group -> {
-      List<Member> randomUsers = getRandomUsers(scimRequestBuilder).stream()
-                                                                   .map(user -> Member.builder()
-                                                                                      .type(ResourceTypeNames.USER)
-                                                                                      .value(user.getId().get())
-                                                                                      .build())
-                                                                   .collect(Collectors.toList());
-      group.setMembers(randomUsers);
-      ServerResponse<Group> response = scimRequestBuilder.update(Group.class, EndpointPaths.GROUPS, group.getId().get())
-                                                         .setResource(group)
-                                                         .sendRequest();
-      if (response.isSuccess())
-      {
-        log.trace("group with name {} was successfully created", group.getDisplayName().get());
-      }
-      else
-      {
-        log.error("group with name {} could not be created", group.getDisplayName().get());
-      }
-    });
+    BulkBuilder bulkBuilder = scimRequestBuilder.bulk();
+
+    for ( Group group : groups )
+    {
+      bulkBuilder.bulkRequestOperation(EndpointPaths.GROUPS)
+                 .method(HttpMethod.POST)
+                 .bulkId(UUID.randomUUID().toString())
+                 .data(group)
+                 .next();
+    }
+
+    ServerResponse<BulkResponse> bulkResponse = bulkBuilder.sendRequest();
+
+    if (!bulkResponse.isSuccess())
+    {
+      throw new IllegalStateException(String.format("Failed to create groups:\n%s",
+                                                    bulkResponse.getErrorResponse().toPrettyString()));
+    }
   }
 
   /**
@@ -329,19 +320,22 @@ public class ScimClient
       InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
       BufferedReader reader = new BufferedReader(inputStreamReader))
     {
-
       String name;
       while ((name = reader.readLine()) != null)
       {
-        Meta meta = Meta.builder().created(LocalDateTime.now()).lastModified(LocalDateTime.now()).build();
-        List<User> randomUsers = getRandomUsers(scimRequestBuilder);
-        List<Member> userMember = randomUsers.stream()
-                                             .map(user -> Member.builder()
-                                                                .type(ResourceTypeNames.USER)
-                                                                .value(user.getId().get())
-                                                                .build())
-                                             .collect(Collectors.toList());
-        groupList.add(Group.builder().displayName(name).members(userMember).meta(meta).build());
+        for ( int i = 0 ; i < REPEAT_CREATE_GROUPS ; i++ )
+        {
+          name += (i == 0 ? "" : "-" + i);
+          Meta meta = Meta.builder().created(LocalDateTime.now()).lastModified(LocalDateTime.now()).build();
+          List<User> randomUsers = getRandomUsers(scimRequestBuilder);
+          List<Member> userMember = randomUsers.stream()
+                                               .map(user -> Member.builder()
+                                                                  .type(ResourceTypeNames.USER)
+                                                                  .value(user.getId().get())
+                                                                  .build())
+                                               .collect(Collectors.toList());
+          groupList.add(Group.builder().displayName(name).members(userMember).meta(meta).build());
+        }
       }
     }
     catch (IOException e)
@@ -356,31 +350,34 @@ public class ScimClient
    */
   private static void deleteAllGroups(ScimRequestBuilder scimRequestBuilder)
   {
-    List<Group> allGroups = getAllGroups(scimRequestBuilder);
-    allGroups.parallelStream().forEach(group -> {
-      ServerResponse<Group> deleteResponse = scimRequestBuilder.delete(Group.class,
-                                                                       EndpointPaths.GROUPS,
-                                                                       group.getId().get())
-                                                               .sendRequest();
+    ListResponse<Group> listResponse = getAllGroups(scimRequestBuilder);
 
-      if (deleteResponse.isSuccess())
+    BulkBuilder bulkBuilder = scimRequestBuilder.bulk();
+    while (listResponse.getTotalResults() > 0)
+    {
+      for ( Group group : listResponse.getListedResources() )
       {
-        log.trace("group with name {} was successfully deleted", group.getDisplayName().get());
+        final String groupId = group.getId().get();
+        bulkBuilder.bulkRequestOperation(String.format("%s/%s", EndpointPaths.GROUPS, groupId))
+                   .bulkId(UUID.randomUUID().toString())
+                   .method(HttpMethod.DELETE)
+                   .next();
       }
-      else
+
+      ServerResponse<BulkResponse> bulkResponse = bulkBuilder.sendRequest();
+      if (!bulkResponse.isSuccess())
       {
-        log.error("group with name {} could not be deleted", group.getDisplayName().get());
+        throw new IllegalStateException(String.format("Could not delete groups:\n%s",
+                                                      bulkResponse.getErrorResponse().toPrettyString()));
       }
-    });
+
+      listResponse = getAllGroups(scimRequestBuilder);
+    }
   }
 
-  private static List<Group> getAllGroups(ScimRequestBuilder scimRequestBuilder)
+  private static ListResponse<Group> getAllGroups(ScimRequestBuilder scimRequestBuilder)
   {
-    return scimRequestBuilder.list(Group.class, EndpointPaths.GROUPS)
-                             .get()
-                             .sendRequest()
-                             .getResource()
-                             .getListedResources();
+    return scimRequestBuilder.list(Group.class, EndpointPaths.GROUPS).get().sendRequest().getResource();
   }
 
   /**
