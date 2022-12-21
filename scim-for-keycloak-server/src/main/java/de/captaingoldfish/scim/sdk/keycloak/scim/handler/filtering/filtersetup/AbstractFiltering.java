@@ -28,6 +28,7 @@ import de.captaingoldfish.scim.sdk.common.exceptions.BadRequestException;
 import de.captaingoldfish.scim.sdk.common.schemas.SchemaAttribute;
 import de.captaingoldfish.scim.sdk.server.filter.AndExpressionNode;
 import de.captaingoldfish.scim.sdk.server.filter.AttributeExpressionLeaf;
+import de.captaingoldfish.scim.sdk.server.filter.AttributePathRoot;
 import de.captaingoldfish.scim.sdk.server.filter.FilterNode;
 import de.captaingoldfish.scim.sdk.server.filter.NotExpressionNode;
 import de.captaingoldfish.scim.sdk.server.filter.OrExpressionNode;
@@ -342,26 +343,33 @@ public abstract class AbstractFiltering<T>
       return "";
     }
 
-    if (filterNode instanceof AndExpressionNode)
+    FilterNode currentNode = filterNode;
+    if (filterNode instanceof AttributePathRoot)
     {
-      AndExpressionNode andExpressionNode = (AndExpressionNode)filterNode;
+      AttributePathRoot attributePathRoot = (AttributePathRoot)filterNode;
+      currentNode = attributePathRoot.getChild();
+    }
+
+    if (currentNode instanceof AndExpressionNode)
+    {
+      AndExpressionNode andExpressionNode = (AndExpressionNode)currentNode;
       return "(" + getFilterExpression(andExpressionNode.getLeftNode()) + " AND "
              + getFilterExpression(andExpressionNode.getRightNode()) + ")";
     }
-    else if (filterNode instanceof OrExpressionNode)
+    else if (currentNode instanceof OrExpressionNode)
     {
-      OrExpressionNode orExpressionNode = (OrExpressionNode)filterNode;
+      OrExpressionNode orExpressionNode = (OrExpressionNode)currentNode;
       return "(" + getFilterExpression(orExpressionNode.getLeftNode()) + " OR "
              + getFilterExpression(orExpressionNode.getRightNode()) + ")";
     }
-    else if (filterNode instanceof NotExpressionNode)
+    else if (currentNode instanceof NotExpressionNode)
     {
-      NotExpressionNode notExpressionNode = (NotExpressionNode)filterNode;
+      NotExpressionNode notExpressionNode = (NotExpressionNode)currentNode;
       return "NOT (" + getFilterExpression(notExpressionNode.getRightNode()) + ")";
     }
     else
     {
-      AttributeExpressionLeaf attributeExpressionLeaf = (AttributeExpressionLeaf)filterNode;
+      AttributeExpressionLeaf attributeExpressionLeaf = (AttributeExpressionLeaf)currentNode;
       boolean isCaseExact = attributeExpressionLeaf.getSchemaAttribute().isCaseExact();
       final String fullResourceName = attributeExpressionLeaf.getSchemaAttribute().getFullResourceName();
 
