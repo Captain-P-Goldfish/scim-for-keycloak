@@ -90,7 +90,7 @@ public class UserLegacyDataMigrationService extends AbstractService
       ScimUserAttributesEntity attributesEntity = findUserById(userEntity.getId());
       if (attributesEntity != null)
       {
-        log.debug("user '{}' does already have SCIM data and is omitted from migration", userEntity.getUsername());
+        log.info("user '{}' does already have SCIM data and is omitted from migration", userEntity.getUsername());
         omittedUserMigrations.add(userEntity.getUsername());
         continue;
       }
