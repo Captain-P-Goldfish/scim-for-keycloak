@@ -12,12 +12,14 @@ import de.captaingoldfish.scim.sdk.common.resources.complex.Name;
 import de.captaingoldfish.scim.sdk.keycloak.scim.resources.CustomUser;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
  * @author Pascal Knueppel
  * @since 18.12.2022
  */
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class UserComparator
 {
@@ -67,6 +69,7 @@ public final class UserComparator
   public static <T extends JsonNode> void checkMultivaluedComplexEquality(Supplier<List<T>> supplier1,
                                                                           Supplier<List<T>> supplier2)
   {
+    log.debug("\ncomparing: {}\n     with: {}", supplier1.get(), supplier2.get());
     Assertions.assertEquals(supplier1.get().size(),
                             supplier2.get().size(),
                             supplier2.get().stream().map(JsonNode::toPrettyString).collect(Collectors.joining("\n")));

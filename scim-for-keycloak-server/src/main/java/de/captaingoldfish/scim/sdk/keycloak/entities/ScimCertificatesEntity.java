@@ -36,6 +36,7 @@ public class ScimCertificatesEntity
   /**
    * primary key
    */
+  @EqualsAndHashCode.Exclude
   @Id
   @Column(name = "ID")
   @Access(AccessType.PROPERTY) // we do this because relationships often fetch id, but not entity. This avoids an extra

@@ -191,7 +191,8 @@ public final class DatabaseUserToScimConverter
                     .region(address.getRegion())
                     .postalCode(address.getPostalCode())
                     .country(address.getCountry())
-                    .primary(address.isPrimary())
+                    .primary(address.isPrimary() ? true : null)
+                    .type(address.getType())
                     .build();
     }).collect(Collectors.toList());
   }
@@ -207,7 +208,7 @@ public final class DatabaseUserToScimConverter
                                 .value(email.getValue())
                                 .display(email.getDisplay())
                                 .type(email.getType())
-                                .primary(email.isPrimary())
+                                .primary(email.isPrimary() ? true : null)
                                 .build();
     }).collect(Collectors.toList());
   }
@@ -225,7 +226,11 @@ public final class DatabaseUserToScimConverter
       return Collections.emptyList();
     }
     return userAttributes.getEmails().stream().map(email -> {
-      return Email.builder().value(email.getValue()).type(email.getType()).primary(email.isPrimary()).build();
+      return Email.builder()
+                  .value(email.getValue())
+                  .type(email.getType())
+                  .primary(email.isPrimary() ? true : null)
+                  .build();
     }).collect(Collectors.toList());
   }
 
@@ -240,7 +245,7 @@ public final class DatabaseUserToScimConverter
                         .value(entitlement.getValue())
                         .display(entitlement.getDisplay())
                         .type(entitlement.getType())
-                        .primary(entitlement.isPrimary())
+                        .primary(entitlement.isPrimary() ? true : null)
                         .build();
     }).collect(Collectors.toList());
   }
@@ -256,7 +261,7 @@ public final class DatabaseUserToScimConverter
                 .value(ims.getValue())
                 .display(ims.getDisplay())
                 .type(ims.getType())
-                .primary(ims.isPrimary())
+                .primary(ims.isPrimary() ? true : null)
                 .build();
     }).collect(Collectors.toList());
   }
@@ -272,7 +277,7 @@ public final class DatabaseUserToScimConverter
                         .value(phoneNumber.getValue())
                         .display(phoneNumber.getDisplay())
                         .type(phoneNumber.getType())
-                        .primary(phoneNumber.isPrimary())
+                        .primary(phoneNumber.isPrimary() ? true : null)
                         .build();
     }).collect(Collectors.toList());
   }
@@ -288,7 +293,7 @@ public final class DatabaseUserToScimConverter
                   .value(photo.getValue())
                   .display(photo.getDisplay())
                   .type(photo.getType())
-                  .primary(photo.isPrimary())
+                  .primary(photo.isPrimary() ? true : null)
                   .build();
     }).collect(Collectors.toList());
   }
@@ -304,7 +309,7 @@ public final class DatabaseUserToScimConverter
                        .value(personRole.getValue())
                        .display(personRole.getDisplay())
                        .type(personRole.getType())
-                       .primary(personRole.isPrimary())
+                       .primary(personRole.isPrimary() ? true : null)
                        .build();
     }).collect(Collectors.toList());
   }

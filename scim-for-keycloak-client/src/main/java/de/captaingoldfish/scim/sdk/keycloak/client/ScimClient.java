@@ -58,21 +58,22 @@ import lombok.extern.slf4j.Slf4j;
 public class ScimClient
 {
 
-  private static final String USER_ENDPOINT = EndpointPaths.USERS;
+  // private static final String USER_ENDPOINT = EndpointPaths.USERS;
+  private static final String USER_ENDPOINT = "/UsersLegacy";
 
   private static final String REALM = "scim";
 
   private static final String CLIENT_ID = "scim-client";
 
-  private static final String CLIENT_SECRET = "kRWSMhSr7D3jQop1sKIgBjXRQd03LbHb";
+  private static final String CLIENT_SECRET = "SiZaM8hK4K70N3lSUFQrxT7uOcMPCfZL";
 
   private static int START_INDEX = 0;
 
-  private static int REPEAT_CREATE_USERS = 4;
+  private static int REPEAT_CREATE_USERS = 1;
 
-  private static int REPEAT_CREATE_GROUPS = 4;
+  private static int REPEAT_CREATE_GROUPS = 1;
 
-  private static int MAX_NUMBER_OF_USERS_TOTAL = 20000;
+  private static int MAX_NUMBER_OF_USERS_TOTAL = 500;
 
   /**
    * creates almost 5000 users and 5 groups with 10 random users as members for these groups

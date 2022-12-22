@@ -44,4 +44,13 @@ public class AdminstrationResource extends AbstractEndpoint
   {
     return new ResourceTypeResource(getKeycloakSession());
   }
+
+  /**
+   * handles the resource type configuration
+   */
+  @Path("/userLegacyDataMigration")
+  public UserLegacyDataMigration migrateUserDataFromUserLegacyEndpoint()
+  {
+    return new UserLegacyDataMigration(getKeycloakSession());
+  }
 }

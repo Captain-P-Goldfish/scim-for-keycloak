@@ -25,6 +25,7 @@ import org.keycloak.models.utils.KeycloakModelUtils;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
@@ -51,6 +52,7 @@ public class ScimUserAttributesEntity
   /**
    * primary key
    */
+  @EqualsAndHashCode.Exclude
   @Id
   @Column(name = "ID")
   @Access(AccessType.PROPERTY) // we do this because relationships often fetch id, but not entity. This avoids an extra
@@ -61,6 +63,7 @@ public class ScimUserAttributesEntity
   /**
    * the owner of these SCIM attributes
    */
+  @EqualsAndHashCode.Exclude
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "USER_ID")
   private UserEntity userEntity;
@@ -200,6 +203,7 @@ public class ScimUserAttributesEntity
   /**
    * the moment the user was updated the last time
    */
+  @EqualsAndHashCode.Exclude
   @Column(name = "LAST_MODIFIED")
   private long lastModified;
 
@@ -207,61 +211,61 @@ public class ScimUserAttributesEntity
    * list of scim addresses
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ScimAddressEntity> addresses;
+  private List<ScimAddressEntity> addresses = new ArrayList<>();
 
   /**
    * list of scim emails
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ScimEmailsEntity> emails;
+  private List<ScimEmailsEntity> emails = new ArrayList<>();
 
   /**
    * list of scim phone numbers
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ScimPhonesEntity> phoneNumbers;
+  private List<ScimPhonesEntity> phoneNumbers = new ArrayList<>();
 
   /**
    * list of scim instant messaging addresses (ims)
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ScimImsEntity> instantMessagingAddresses;
+  private List<ScimImsEntity> instantMessagingAddresses = new ArrayList<>();
 
   /**
    * list of scim photos
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ScimPhotosEntity> photos;
+  private List<ScimPhotosEntity> photos = new ArrayList<>();
 
   /**
    * list of scim entitlements
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ScimEntitlementEntity> entitlements;
+  private List<ScimEntitlementEntity> entitlements = new ArrayList<>();
 
   /**
    * list of scim certificates
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ScimCertificatesEntity> certificates;
+  private List<ScimCertificatesEntity> certificates = new ArrayList<>();
 
   /**
    * list of scim person roles
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ScimPersonRoleEntity> personRoles;
+  private List<ScimPersonRoleEntity> personRoles = new ArrayList<>();
 
   /**
    * list of business line elements
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<SmartBusinessLineEntity> smartBusinessLine;
+  private List<SmartBusinessLineEntity> smartBusinessLine = new ArrayList<>();
 
   /**
    * list of country elements
    */
   @OneToMany(mappedBy = "userAttributes", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<SmartCountriesEntity> smartCountries;
+  private List<SmartCountriesEntity> smartCountries = new ArrayList<>();
 
   @Builder
   public ScimUserAttributesEntity(String id,

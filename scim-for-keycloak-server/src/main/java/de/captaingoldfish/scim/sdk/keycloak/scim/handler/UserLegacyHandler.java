@@ -327,7 +327,6 @@ public class UserLegacyHandler extends ResourceHandler<CustomUser>
    */
   private CustomUser modelToUser(UserModel userModel)
   {
-    log.info("Parsing user '{}' to SCIM representation: {}", userModel.getUsername(), Instant.now());
     List<Email> emails = getAttributeList(Email.class, AttributeNames.RFC7643.EMAILS, userModel);
 
     Optional.ofNullable(userModel.getEmail()).ifPresent(email -> {
