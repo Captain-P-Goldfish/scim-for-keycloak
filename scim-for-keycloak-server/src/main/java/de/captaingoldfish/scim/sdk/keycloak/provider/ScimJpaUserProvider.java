@@ -112,18 +112,21 @@ public class ScimJpaUserProvider extends JpaUserProvider
     List<String> userAttributeIds = query.getResultList();
 
 
-    for ( Class<?> entityClass : SCIM_UA_RELATION_ENTITIES )
+    if (!userAttributeIds.isEmpty())
     {
-      Query deleteQuery = entityManager.createQuery("delete from " + entityClass.getSimpleName()
-                                                    + " a where a.userAttributes.id in :uaIdList");
+      for ( Class<?> entityClass : SCIM_UA_RELATION_ENTITIES )
+      {
+        Query deleteQuery = entityManager.createQuery("delete from " + entityClass.getSimpleName()
+                                                      + " a where a.userAttributes.id in :uaIdList");
+        deleteQuery.setParameter("uaIdList", userAttributeIds);
+        deleteQuery.executeUpdate();
+      }
+
+      Query deleteQuery = entityManager.createQuery("delete from " + ScimUserAttributesEntity.class.getSimpleName()
+                                                    + " ua where ua.id in :uaIdList");
       deleteQuery.setParameter("uaIdList", userAttributeIds);
       deleteQuery.executeUpdate();
     }
-
-    Query deleteQuery = entityManager.createQuery("delete from " + ScimUserAttributesEntity.class.getSimpleName()
-                                                  + " ua where ua.id in :uaIdList");
-    deleteQuery.setParameter("uaIdList", userAttributeIds);
-    deleteQuery.executeUpdate();
 
     super.preRemove(realm);
   }
