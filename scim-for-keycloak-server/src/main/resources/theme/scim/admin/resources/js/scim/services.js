@@ -5,6 +5,10 @@ module.factory('ServiceProvider', function ($resource) {
     return $resource(authUrl + '/realms/:realm/scim/admin/serviceProviderConfig',
         {},
         {
+            migrateLegacyData: {
+                method: 'PUT',
+                url: authUrl + '/realms/:realm/scim/admin/userLegacyDataMigration'
+            },
             update: {
                 method: 'PUT',
                 url: authUrl + '/realms/:realm/scim/admin/serviceProviderConfig'

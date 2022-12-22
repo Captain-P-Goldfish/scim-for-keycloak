@@ -12,7 +12,8 @@
             <fieldset class="border-top">
                 <div class="form-group clearfix block">
                     <label class="col-md-2 control-label"
-                           for="enabled">{{:: 'service.provider.enabled' | translate }}</label>
+                           for="enabled">{{:: 'service.provider.enabled' | translate }}
+                    </label>
                     <div class="col-md-6">
                         <input data-ng-model="serviceProvider.enabled"
                                id="enabled"
@@ -47,7 +48,8 @@
             <fieldset class="border-top">
                 <div class="form-group clearfix block">
                     <label class="col-md-2 control-label"
-                           for="filterSupported">{{:: 'filter.supported' | translate }}</label>
+                           for="filterSupported">{{:: 'filter.supported' | translate }}
+                    </label>
                     <div class="col-md-6">
                         <input data-ng-disabled="disableSCIM"
                                data-ng-model="serviceProvider.filter.supported"
@@ -64,7 +66,8 @@
             <fieldset class="border-top">
                 <div class="form-group clearfix block">
                     <label class="col-md-2 control-label"
-                           for="sortSupported">{{:: 'sort.supported' | translate }}</label>
+                           for="sortSupported">{{:: 'sort.supported' | translate }}
+                    </label>
                     <div class="col-md-6">
                         <input data-ng-disabled="disableSCIM"
                                data-ng-model="serviceProvider.sort.supported"
@@ -81,7 +84,8 @@
             <fieldset class="border-top">
                 <div class="form-group clearfix block">
                     <label class="col-md-2 control-label"
-                           for="patchSupported">{{:: 'patch.supported' | translate }}</label>
+                           for="patchSupported">{{:: 'patch.supported' | translate }}
+                    </label>
                     <div class="col-md-6">
                         <input data-ng-disabled="disableSCIM"
                                data-ng-model="serviceProvider.patch.supported"
@@ -98,7 +102,8 @@
             <fieldset class="border-top">
                 <div class="form-group clearfix block">
                     <label class="col-md-2 control-label"
-                           for="etagSupported">{{:: 'etag.supported' | translate}}</label>
+                           for="etagSupported">{{:: 'etag.supported' | translate}}
+                    </label>
                     <div class="col-md-6">
                         <input data-ng-disabled="disableSCIM"
                                data-ng-model="serviceProvider.etag.supported"
@@ -199,7 +204,8 @@
 
             <div class="form-group">
                 <label class="col-md-2 control-label ng-binding"
-                       for="serviceProviderCreated">{{:: 'created' | translate}}</label>
+                       for="serviceProviderCreated">{{:: 'created' | translate}}
+                </label>
                 <div class="col-md-6">
                     <input autofocus=""
                            class="form-control ng-pristine ng-valid ng-not-empty ng-valid-required ng-touched"
@@ -214,7 +220,8 @@
 
             <div class="form-group">
                 <label class="col-md-2 control-label ng-binding"
-                       for="serviceProviderLastModified">{{:: 'last.modified' | translate}}</label>
+                       for="serviceProviderLastModified">{{:: 'last.modified' | translate}}
+                </label>
                 <div class="col-md-6">
                     <input autofocus=""
                            class="form-control ng-pristine ng-valid ng-not-empty ng-valid-required ng-touched"
@@ -230,8 +237,16 @@
             <div class="form-group">
                 <div class="col-md-10 col-md-offset-2" data-ng-show="access.viewScim">
                     <button data-ng-disabled="!changed" id="save" kc-save>{{:: 'save' | translate}}</button>
-                    <button data-ng-disabled="!changed" id="cancel" kc-reset>{{:: 'cancel' | translate}}
+                    <button data-ng-disabled="!changed" id="cancel" kc-reset>{{:: 'cancel' | translate}}</button>
+
+                    <button class="btn btn-default"
+                            data-ng-click="migrateLegacyData()"
+                            data-ng-if="realm.realm == 'master'"
+                            id="migrateUserLegacyData"
+                            style="margin-left: 250px">
+                        {{:: 'migrateLegacyData' | translate}}
                     </button>
+
                 </div>
             </div>
 

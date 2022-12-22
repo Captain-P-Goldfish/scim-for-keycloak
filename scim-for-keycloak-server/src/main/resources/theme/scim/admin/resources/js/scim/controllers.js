@@ -41,6 +41,19 @@ module.controller('ServiceProviderController', function ($modal, $scope, realm, 
         $scope.changed = false;
     };
 
+    $scope.migrateLegacyData = function () {
+        ServiceProvider.migrateLegacyData(
+            {
+                realm: realm.realm
+            },
+            $scope.serviceProvider,
+            function (response) {
+                $scope.changed = false;
+                Notifications.success(response.status);
+            }
+        );
+    };
+
 });
 
 module.controller('ServiceProviderAuthController', function ($modal, $scope, realm, ServiceProvider, serviceProvider,
