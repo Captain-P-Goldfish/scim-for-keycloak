@@ -241,7 +241,7 @@
 
                     <button class="btn btn-default"
                             data-ng-click="migrateLegacyData()"
-                            data-ng-if="realm.realm == 'master'"
+                            data-ng-if="realm.realm.toUpperCase() === 'MASTER'"
                             id="migrateUserLegacyData"
                             style="margin-left: 250px">
                         {{:: 'migrateLegacyData' | translate}}
