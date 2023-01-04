@@ -6,7 +6,7 @@
     <parent>
         <groupId>de.captaingoldfish</groupId>
         <artifactId>scim-for-keycloak</artifactId>
-        <version>kc-18-b3-SNAPSHOT</version>
+        <version>kc-19-b1-SNAPSHOT</version>
     </parent>
 
     <artifactId>scim-for-keycloak-server</artifactId>
@@ -40,6 +40,10 @@
                 <exclusion>
                     <artifactId>log4j</artifactId>
                     <groupId>log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.checkerframework</groupId>
+                    <artifactId>checker-qual</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -84,6 +88,12 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-themes</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-crypto-default</artifactId>
+            <version>${version.keycloak}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

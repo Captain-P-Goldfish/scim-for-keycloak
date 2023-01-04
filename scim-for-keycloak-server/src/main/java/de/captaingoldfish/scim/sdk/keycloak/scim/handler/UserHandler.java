@@ -14,7 +14,7 @@ import org.keycloak.events.admin.ResourceType;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ModelException;
 import org.keycloak.models.RealmModel;
-import org.keycloak.models.UserCredentialManager;
+import org.keycloak.models.SubjectCredentialManager;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 
@@ -76,7 +76,7 @@ public class UserHandler extends ResourceHandler<User>
     userModel = userToModel(user, userModel);
     if (isChangePasswordSupported() && user.getPassword().isPresent())
     {
-      setPassword(keycloakSession, user.getPassword().get(), userModel);
+      setPassword(user.getPassword().get(), userModel);
     }
     User newUser = modelToUser(userModel);
     {
@@ -146,7 +146,7 @@ public class UserHandler extends ResourceHandler<User>
     }
     if (isChangePasswordSupported() && userToUpdate.getPassword().isPresent())
     {
-      setPassword(keycloakSession, userToUpdate.getPassword().get(), userModel);
+      setPassword(userToUpdate.getPassword().get(), userModel);
     }
     userModel = userToModel(userToUpdate, userModel);
     userModel.setSingleAttribute(AttributeNames.RFC7643.LAST_MODIFIED, String.valueOf(Instant.now().toEpochMilli()));
@@ -191,18 +191,17 @@ public class UserHandler extends ResourceHandler<User>
    * @param password the password to set
    * @param userModel the model that should receive the password
    */
-  private void setPassword(KeycloakSession keycloakSession, String password, UserModel userModel)
+  private void setPassword(String password, UserModel userModel)
   {
     if (StringUtils.isEmpty(password))
     {
       return;
     }
     UserCredentialModel userCredential = UserCredentialModel.password(password);
-    UserCredentialManager credentialManager = keycloakSession.userCredentialManager();
-    RealmModel realm = keycloakSession.getContext().getRealm();
+    SubjectCredentialManager subjectCredentialManager = userModel.credentialManager();
     try
     {
-      credentialManager.updateCredential(realm, userModel, userCredential);
+      subjectCredentialManager.updateCredential(userCredential);
     }
     catch (ModelException ex)
     {

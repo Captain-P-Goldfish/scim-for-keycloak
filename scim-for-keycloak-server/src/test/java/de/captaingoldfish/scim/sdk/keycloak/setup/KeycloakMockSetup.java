@@ -5,16 +5,15 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.persistence.EntityManager;
-
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.keycloak.Config;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.credential.CredentialProvider;
 import org.keycloak.credential.PasswordCredentialProvider;
 import org.keycloak.credential.PasswordCredentialProviderFactory;
-import org.keycloak.credential.UserCredentialStoreManager;
 import org.keycloak.credential.hash.PasswordHashProvider;
 import org.keycloak.credential.hash.Pbkdf2PasswordHashProviderFactory;
 import org.keycloak.events.EventStoreProvider;
@@ -28,19 +27,22 @@ import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.PasswordPolicy;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserCredentialManager;
 import org.keycloak.models.UserModel;
+import org.keycloak.models.UserProvider;
 import org.keycloak.models.jpa.JpaRealmProvider;
+import org.keycloak.models.jpa.JpaUserProvider;
 import org.keycloak.policy.DefaultPasswordPolicyManagerProvider;
 import org.keycloak.policy.PasswordPolicyManagerProvider;
 import org.keycloak.services.DefaultKeycloakContext;
 import org.keycloak.services.DefaultKeycloakSessionFactory;
 import org.keycloak.services.DefaultKeycloakTransactionManager;
+import org.keycloak.storage.DatastoreProvider;
 import org.keycloak.storage.GroupStorageManager;
+import org.keycloak.storage.LegacyStoreManagers;
 import org.keycloak.storage.RoleStorageManager;
+import org.keycloak.storage.datastore.LegacyDatastoreProvider;
 import org.mockito.Mockito;
-
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -117,15 +119,9 @@ class KeycloakMockSetup
     Mockito.doReturn(keycloakTransactionManager).when(keycloakSession).getTransactionManager();
     Mockito.doReturn(keycloakSession).when(keycloakSessionFactory).create();
 
-    RoleStorageManager roleStorageManager = new RoleStorageManager(keycloakSession, 10000);
-    GroupStorageManager groupStorageManager = new GroupStorageManager(keycloakSession);
     JpaRealmProvider jpaRealmProvider = (JpaRealmProvider)keycloakSession.realms();
-    Mockito.doReturn(roleStorageManager).when(keycloakSession).roles();
-    Mockito.doReturn(roleStorageManager).when(keycloakSession).roleStorageManager();
-    Mockito.doReturn(jpaRealmProvider).when(keycloakSession).roleLocalStorage();
-    Mockito.doReturn(groupStorageManager).when(keycloakSession).groups();
-    Mockito.doReturn(groupStorageManager).when(keycloakSession).groupStorageManager();
-    Mockito.doReturn(jpaRealmProvider).when(keycloakSession).groupLocalStorage();
+    Mockito.doReturn(jpaRealmProvider).when(keycloakSession).roles();
+    Mockito.doReturn(jpaRealmProvider).when(keycloakSession).groups();
 
     ClientConnection clientConnection = Mockito.mock(ClientConnection.class);
     Mockito.doReturn(clientConnection).when(keycloakContext).getConnection();
@@ -154,7 +150,11 @@ class KeycloakMockSetup
    */
   protected void setupPasswordManagingSettings()
   {
-    Mockito.doReturn(new UserCredentialStoreManager(keycloakSession)).when(keycloakSession).userCredentialManager();
+    JpaUserProvider jpaUserProvider = new JpaUserProvider(keycloakSession, entityManager);
+    Mockito.doReturn(jpaUserProvider).when(this.keycloakSession).users();
+    LegacyStoreManagers legacyStoreManagers = new LegacyDatastoreProvider(null, keycloakSession);
+    Mockito.doReturn(legacyStoreManagers).when(this.keycloakSession).getProvider(DatastoreProvider.class);
+    Mockito.doReturn(jpaUserProvider).when(this.keycloakSession).getProvider(UserProvider.class);
     // provider password credential provider factory streams for password tests
     {
       List<Stream<PasswordCredentialProviderFactory>> passwordCredentialProviderStreams = new ArrayList<>();
@@ -178,7 +178,6 @@ class KeycloakMockSetup
            .when(keycloakSession)
            .getProvider(PasswordHashProvider.class, "pbkdf2-sha256");
     Mockito.doReturn(passwordHashProvider).when(keycloakSession).getProvider(PasswordHashProvider.class, "pbkdf2");
-    Mockito.doReturn(new UserCredentialStoreManager(keycloakSession)).when(keycloakSession).userCredentialManager();
   }
 
   /**

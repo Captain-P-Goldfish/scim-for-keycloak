@@ -14,6 +14,7 @@ import org.hibernate.internal.SessionImpl;
 import org.keycloak.connections.jpa.DefaultJpaConnectionProvider;
 import org.keycloak.connections.jpa.JpaConnectionProvider;
 import org.keycloak.connections.jpa.updater.liquibase.ThreadLocalSessionContext;
+import org.keycloak.connections.jpa.util.JpaUtils;
 import org.keycloak.models.ClientProvider;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.jpa.JpaRealmProvider;
@@ -44,14 +45,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class DatabaseSetup
 {
-
-  /**
-   * to create a new {@link EntityManager}
-   */
-  // @formatter:off
-  private static final EntityManagerFactory ENTITY_MANAGER_FACTORY =
-    Persistence.createEntityManagerFactory("keycloak-default", getH2DatabaseProperties());
-  // @formatter:on
 
   /**
    * the entitymanager that we and the keycloak tools will use to read and store entities within the database
@@ -122,7 +115,11 @@ class DatabaseSetup
    */
   private EntityManager buildEntityManager()
   {
-    EntityManager newEntityManager = ENTITY_MANAGER_FACTORY.createEntityManager();
+    EntityManager newEntityManager = JpaUtils.createEntityManagerFactory(keycloakSession,
+                                                                         "keycloak-default",
+                                                                         getH2DatabaseProperties(),
+                                                                         false)
+                                             .createEntityManager();
     JpaUserProvider jpaUserProvider = new JpaUserProvider(keycloakSession, newEntityManager);
     JpaRealmProvider jpaRealmProvider = new JpaRealmProvider(keycloakSession, newEntityManager, Collections.emptySet());
     Mockito.doReturn(new UserStorageManager(keycloakSession)).when(keycloakSession).users();
