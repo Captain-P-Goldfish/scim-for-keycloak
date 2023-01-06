@@ -40,7 +40,7 @@
 
         <version.lombok>1.18.24</version.lombok>
 
-        <version.keycloak>19.0.3</version.keycloak>
+        <version.keycloak>20.0.1</version.keycloak>
         <version.resteasy-core-spi>4.7.5.Final</version.resteasy-core-spi>
         <version.scim.sdk>1.13.4</version.scim.sdk>
 
