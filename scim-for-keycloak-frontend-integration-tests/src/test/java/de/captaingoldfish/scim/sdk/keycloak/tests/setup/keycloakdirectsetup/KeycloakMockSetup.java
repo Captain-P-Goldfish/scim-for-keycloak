@@ -9,7 +9,6 @@ import org.keycloak.connections.jpa.JpaConnectionProvider;
 import org.keycloak.credential.CredentialProvider;
 import org.keycloak.credential.PasswordCredentialProvider;
 import org.keycloak.credential.PasswordCredentialProviderFactory;
-import org.keycloak.credential.UserCredentialStoreManager;
 import org.keycloak.credential.hash.PasswordHashProvider;
 import org.keycloak.credential.hash.Pbkdf2PasswordHashProviderFactory;
 import org.keycloak.models.KeycloakContext;
@@ -17,6 +16,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.PasswordPolicy;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserCredentialManager;
 import org.keycloak.models.UserModel;
 import org.keycloak.policy.DefaultPasswordPolicyManagerProvider;
 import org.keycloak.policy.PasswordPolicyManagerProvider;
@@ -105,7 +105,6 @@ class KeycloakMockSetup
    */
   protected void setupPasswordManagingSettings()
   {
-    Mockito.doReturn(new UserCredentialStoreManager(keycloakSession)).when(keycloakSession).userCredentialManager();
     Mockito.doReturn(Stream.of(new PasswordCredentialProviderFactory()))
            .when(keycloakSessionFactory)
            .getProviderFactoriesStream(CredentialProvider.class);
@@ -120,6 +119,5 @@ class KeycloakMockSetup
            .when(keycloakSession)
            .getProvider(PasswordHashProvider.class, "pbkdf2-sha256");
     Mockito.doReturn(passwordHashProvider).when(keycloakSession).getProvider(PasswordHashProvider.class, "pbkdf2");
-    Mockito.doReturn(new UserCredentialStoreManager(keycloakSession)).when(keycloakSession).userCredentialManager();
   }
 }

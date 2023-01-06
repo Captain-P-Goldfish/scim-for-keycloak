@@ -7,7 +7,7 @@
     <parent>
         <groupId>de.captaingoldfish</groupId>
         <artifactId>scim-for-keycloak</artifactId>
-        <version>kc-18-b3-SNAPSHOT</version>
+        <version>kc-19-b1-SNAPSHOT</version>
     </parent>
 
     <artifactId>scim-for-keycloak-frontend-integration-tests</artifactId>
@@ -174,6 +174,10 @@
                 <exclusion>
                     <artifactId>log4j</artifactId>
                     <groupId>log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.checkerframework</groupId>
+                    <artifactId>checker-qual</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

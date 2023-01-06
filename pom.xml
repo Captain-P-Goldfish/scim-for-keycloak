@@ -6,7 +6,7 @@
 
     <groupId>de.captaingoldfish</groupId>
     <artifactId>scim-for-keycloak</artifactId>
-    <version>kc-18-b3-SNAPSHOT</version>
+    <version>kc-19-b1-SNAPSHOT</version>
 
     <name>SCIM for Keycloak</name>
     <description>A third party module that extends keycloak by SCIM functionality</description>
@@ -40,7 +40,7 @@
 
         <version.lombok>1.18.24</version.lombok>
 
-        <version.keycloak>18.0.2</version.keycloak>
+        <version.keycloak>19.0.3</version.keycloak>
         <version.resteasy-core-spi>4.7.5.Final</version.resteasy-core-spi>
         <version.scim.sdk>1.13.4</version.scim.sdk>
 

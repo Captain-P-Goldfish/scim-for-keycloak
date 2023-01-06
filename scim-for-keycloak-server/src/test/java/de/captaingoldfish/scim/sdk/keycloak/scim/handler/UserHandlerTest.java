@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.keycloak.events.admin.AdminEvent;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.models.GroupModel;
+import org.keycloak.models.SubjectCredentialManager;
 import org.keycloak.models.UserCredentialManager;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
@@ -71,16 +72,16 @@ public class UserHandlerTest extends AbstractScimEndpointTest
     ServiceProvider serviceProvider = resourceEndpoint.getServiceProvider();
     serviceProvider.setChangePasswordConfig(ChangePasswordConfig.builder().supported(true).build());
 
-    UserCredentialManager credentialManager = getKeycloakSession().userCredentialManager();
 
     UserModel superMario = getKeycloakSession().users().addUser(getRealmModel(), "SuperMario");
+    SubjectCredentialManager subjectCredentialManager = superMario.credentialManager();
     UserCredentialModel originalUserCredential = UserCredentialModel.password("Peach");
     {
-      Assertions.assertTrue(credentialManager.updateCredential(getRealmModel(), superMario, originalUserCredential));
+      Assertions.assertTrue(subjectCredentialManager.updateCredential(originalUserCredential));
 
       UserCredentialModel erroneousCredentialModel = UserCredentialModel.password("something-wrong");
-      Assertions.assertFalse(credentialManager.isValid(getRealmModel(), superMario, erroneousCredentialModel));
-      Assertions.assertTrue(credentialManager.isValid(getRealmModel(), superMario, originalUserCredential));
+      Assertions.assertFalse(subjectCredentialManager.isValid(erroneousCredentialModel));
+      Assertions.assertTrue(subjectCredentialManager.isValid(originalUserCredential));
     }
 
     final String newPassword = "newPassword";
@@ -97,8 +98,8 @@ public class UserHandlerTest extends AbstractScimEndpointTest
     // validate
     {
       UserCredentialModel newUserCredential = UserCredentialModel.password(newPassword);
-      Assertions.assertFalse(credentialManager.isValid(getRealmModel(), superMario, originalUserCredential));
-      Assertions.assertTrue(credentialManager.isValid(getRealmModel(), superMario, newUserCredential));
+      Assertions.assertFalse(subjectCredentialManager.isValid(originalUserCredential));
+      Assertions.assertTrue(subjectCredentialManager.isValid(newUserCredential));
     }
 
     User updateddUser = JsonHelper.readJsonDocument((String)response.getEntity(), User.class);
@@ -255,8 +256,6 @@ public class UserHandlerTest extends AbstractScimEndpointTest
     Response response = getScimEndpoint().handleScimRequest(user.toString());
     Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
 
-    UserCredentialManager credentialManager = getKeycloakSession().userCredentialManager();
-
     final String userId;
     User createdUser = JsonHelper.readJsonDocument((String)response.getEntity(), User.class);
     // validate
@@ -327,8 +326,8 @@ public class UserHandlerTest extends AbstractScimEndpointTest
       UserCredentialModel erroneousCredentialModel = UserCredentialModel.password("something-wrong");
       UserCredentialModel correctCredentialModel = UserCredentialModel.password(pw);
 
-      Assertions.assertFalse(credentialManager.isValid(getRealmModel(), userModel, erroneousCredentialModel));
-      Assertions.assertTrue(credentialManager.isValid(getRealmModel(), userModel, correctCredentialModel));
+      Assertions.assertFalse(userModel.credentialManager().isValid(erroneousCredentialModel));
+      Assertions.assertTrue(userModel.credentialManager().isValid(correctCredentialModel));
     }
 
     // check for created admin event

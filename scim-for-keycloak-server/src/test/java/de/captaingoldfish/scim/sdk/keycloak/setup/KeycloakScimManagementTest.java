@@ -7,6 +7,8 @@ import javax.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.keycloak.common.crypto.CryptoIntegration;
+import org.keycloak.common.crypto.CryptoProvider;
 import org.keycloak.events.EventStoreProvider;
 import org.keycloak.events.jpa.AdminEventEntity;
 import org.keycloak.models.ClientModel;
@@ -140,6 +142,7 @@ public abstract class KeycloakScimManagementTest
     KEYCLOAK_MOCK_SETUP.createRealm();
     beginTransaction();
     initializeEndpoint();
+    CryptoIntegration.init(CryptoProvider.class.getClassLoader());
   }
 
   /**
@@ -233,6 +236,8 @@ public abstract class KeycloakScimManagementTest
     deleteFromMappingTable("REDIRECT_URIS");
     deleteFromMappingTable("SCOPE_MAPPING");
     deleteFromMappingTable("PROTOCOL_MAPPER_CONFIG");
+    deleteFromMappingTable("REALM_EVENTS_LISTENERS");
+    deleteFromMappingTable("REALM_ATTRIBUTE");
 
     deleteFromTable(ScimServiceProviderEntity.class);
     deleteFromTable(ScimResourceTypeEntity.class);
