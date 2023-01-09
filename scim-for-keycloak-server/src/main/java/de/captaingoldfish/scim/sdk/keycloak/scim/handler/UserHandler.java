@@ -309,9 +309,23 @@ public class UserHandler extends ResourceHandler<User>
     List<Email> emails = getAttributeList(Email.class, AttributeNames.RFC7643.EMAILS, userModel);
 
     Optional.ofNullable(userModel.getEmail()).ifPresent(email -> {
-      // remove emails that are marked as primary in favor of the email property attribute of the user
-      emails.removeIf(MultiComplexNode::isPrimary);
-      emails.add(Email.builder().primary(true).value(email).build());
+      // we are replacing the original email here with the value that is set within the userModel.email field.
+      // why am I doing this?
+      // in some cases emails might be changed directly within the webAdmin interface and the admin would expect
+      // that the email changes accordingly. In order to support this usecase we try to get the original
+      // email build a new object from it and take other the parameters from the original one. And to prevent that
+      // the email is returned twice in the response we are removing it from the original list
+      Email originalPrimaryEmail = emails.stream().filter(Email::isPrimary).findAny().orElse(null);
+      if (originalPrimaryEmail != null)
+      {
+        emails.remove(originalPrimaryEmail);
+        emails.add(Email.builder()
+                        .primary(true)
+                        .display(originalPrimaryEmail.getDisplay().orElse(null))
+                        .value(email)
+                        .type(originalPrimaryEmail.getType().orElse(null))
+                        .build());
+      }
     });
     Name name = Name.builder()
                     .givenName(userModel.getFirstName())
