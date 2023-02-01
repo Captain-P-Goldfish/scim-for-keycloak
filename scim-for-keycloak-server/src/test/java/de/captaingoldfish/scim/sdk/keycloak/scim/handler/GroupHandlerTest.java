@@ -691,4 +691,59 @@ public class GroupHandlerTest extends AbstractScimEndpointTest
                               JsonHelper.readJsonDocument(adminEvent.getRepresentation(), Group.class));
     }
   }
+
+  /**
+   * will add a new user member to a group by using the patch add operation:
+   *
+   * <pre>
+   * {
+   *     "schemas": [
+   *         "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+   *     ],
+   *     "Operations": [
+   *         {
+   *             "op": "add",
+   *             "path": "members",
+   *             "value": [
+   *                 {
+   *                     "value": "${userId}"
+   *                 }
+   *             ]
+   *         }
+   *     ]
+   * }
+   * </pre>
+   */
+  @Test
+  public void testAddUserMemberToGroupWithPatch()
+  {
+    UserModel superMario = getKeycloakSession().users().addUser(getRealmModel(), "supermario");
+    UserModel bowser = getKeycloakSession().users().addUser(getRealmModel(), "bowser");
+
+    GroupModel marioClub = getKeycloakSession().groups().createGroup(getRealmModel(), "mario club");
+
+    superMario.joinGroup(marioClub);
+
+    List<PatchRequestOperation> operations = new ArrayList<>();
+    operations.add(PatchRequestOperation.builder()
+                                        .op(PatchOp.ADD)
+                                        .path("members")
+                                        .valueNode(Member.builder().value(bowser.getId()).build())
+                                        .build());
+    PatchOpRequest patchOpRequest = PatchOpRequest.builder().operations(operations).build();
+
+    log.warn(patchOpRequest.toPrettyString());
+
+    HttpServletRequest servletRequest = RequestBuilder.builder(getScimEndpoint())
+                                                      .method(HttpMethod.PATCH)
+                                                      .endpoint(EndpointPaths.GROUPS + "/" + marioClub.getId())
+                                                      .requestBody(patchOpRequest.toString())
+                                                      .build();
+    Response response = getScimEndpoint().handleScimRequest(servletRequest);
+    Assertions.assertEquals(HttpStatus.OK, response.getStatus());
+
+    Group group = JsonHelper.readJsonDocument((String)response.getEntity(), Group.class);
+
+    Assertions.assertEquals(2, group.getMembers().size());
+  }
 }

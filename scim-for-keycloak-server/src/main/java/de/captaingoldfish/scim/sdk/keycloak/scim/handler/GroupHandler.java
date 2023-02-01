@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.keycloak.events.admin.OperationType;
@@ -209,11 +210,19 @@ public class GroupHandler extends ResourceHandler<Group>
   {
     KeycloakSession keycloakSession = scimKeycloakContext.getKeycloakSession();
 
+    Function<Member, Boolean> isGroupId = groupMember -> {
+      GroupModel existingGroup = keycloakSession.groups()
+                                                .getGroupById(keycloakSession.getContext().getRealm(),
+                                                              groupMember.getValue().orElse(null));
+      return existingGroup != null;
+    };
+
     Set<String> expectedSubGroupMemberIds = group.getMembers().stream().filter(groupMember -> {
       return (groupMember.getType().map(type -> type.equals(ResourceTypeNames.GROUPS)).orElse(false)
               || groupMember.getRef()
                             .map(ref -> ref.matches(String.format(".*?%s/[\\w\\-]+", EndpointPaths.GROUPS)))
-                            .orElse(false));
+                            .orElse(false)
+              || isGroupId.apply(groupMember));
     }).map(groupMember -> groupMember.getValue().get()).collect(Collectors.toSet());
     Set<GroupModel> subGroupsToLeaveGroup = groupModel.getSubGroupsStream().collect(Collectors.toSet());
 
@@ -280,11 +289,19 @@ public class GroupHandler extends ResourceHandler<Group>
                                      RealmModel realmModel)
   {
     KeycloakSession keycloakSession = scimKeycloakContext.getKeycloakSession();
+
+    Function<Member, Boolean> isUserId = groupMember -> {
+      UserModel existingUser = keycloakSession.users()
+                                              .getUserById(keycloakSession.getContext().getRealm(),
+                                                           groupMember.getValue().orElse(null));
+      return existingUser != null;
+    };
     Set<String> expectedUserMemberIds = group.getMembers().stream().filter(groupMember -> {
       return (groupMember.getType().map(type -> type.equals(ResourceTypeNames.USER)).orElse(false)
               || groupMember.getRef()
                             .map(ref -> ref.matches(String.format(".*?%s/[\\w\\-]+", EndpointPaths.USERS)))
-                            .orElse(false));
+                            .orElse(false)
+              || isUserId.apply(groupMember));
     }).map(groupMember -> groupMember.getValue().get()).collect(Collectors.toSet());
     List<UserModel> usersToLeaveGroup = keycloakSession.users()
                                                        .getGroupMembersStream(realmModel, groupModel)
