@@ -17,7 +17,6 @@ import org.keycloak.events.admin.AdminEvent;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.SubjectCredentialManager;
-import org.keycloak.models.UserCredentialManager;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 
@@ -350,6 +349,56 @@ public class UserHandlerTest extends AbstractScimEndpointTest
       }
       Assertions.assertEquals(createdUser, JsonHelper.readJsonDocument(adminEvent.getRepresentation(), User.class));
     }
+  }
+
+  /**
+   * this issue recreates: https://github.com/Captain-P-Goldfish/scim-for-keycloak/issues/73 and will make sure
+   * that primary emails with types can be used for filtering
+   */
+  @Test
+  public void testPatchUserWithPrimaryEmailOnTypeFilterInExpression()
+  {
+    ResourceEndpoint resourceEndpoint = ScimConfigurationBridge.getScimResourceEndpoints()
+                                                               .get(getRealmModel().getName());
+    ServiceProvider serviceProvider = resourceEndpoint.getServiceProvider();
+    serviceProvider.setChangePasswordConfig(ChangePasswordConfig.builder().supported(true).build());
+
+    String name = "goldfish";
+
+    User user = User.builder()
+                    .userName(name)
+                    .emails(Arrays.asList(Email.builder().value(name + "@test.de").primary(true).type("work").build(),
+                                          Email.builder().value(name + "_the_second@test.de").type("home").build(),
+                                          Email.builder().value(name + "_the_third@test.de").type("unknown").build()))
+                    .build();
+
+    RequestMock.mockRequest(getScimEndpoint(), getKeycloakSession())
+               .method(HttpMethod.POST)
+               .endpoint(EndpointPaths.USERS);
+    Response response = getScimEndpoint().handleScimRequest(user.toString());
+    User createdUser = JsonHelper.readJsonDocument((String)response.getEntity(), User.class);
+
+    Assertions.assertEquals(HttpStatus.CREATED, response.getStatus());
+
+
+    final String newEmail = "pk@goldfish.de";
+    PatchOpRequest patchOpRequest = new PatchOpRequest();
+    patchOpRequest.setOperations(Arrays.asList(PatchRequestOperation.builder()
+                                                                    .op(PatchOp.REPLACE)
+                                                                    .path("emails[type eq \"work\"].value")
+                                                                    .value(newEmail)
+                                                                    .build()));
+    RequestMock.mockRequest(getScimEndpoint(), getKeycloakSession())
+               .method(HttpMethod.PATCH)
+               .endpoint(EndpointPaths.USERS + "/" + createdUser.getId().get());
+    Response patchResponse = getScimEndpoint().handleScimRequest(patchOpRequest.toString());
+    Assertions.assertEquals(HttpStatus.OK, patchResponse.getStatus());
+    User patchedUser = JsonHelper.readJsonDocument((String)patchResponse.getEntity(), User.class);
+
+    Assertions.assertEquals(3, patchedUser.getEmails().size());
+    Email primaryEmail = patchedUser.getEmails().stream().filter(Email::isPrimary).findAny().get();
+    Assertions.assertEquals(newEmail, primaryEmail.getValue().orElse(null));
+    Assertions.assertEquals("work", primaryEmail.getType().orElse(null));
   }
 
   /**
