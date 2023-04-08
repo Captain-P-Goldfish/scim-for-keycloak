@@ -1,5 +1,10 @@
 # Announcement
 
+## scim-for-keyclaok-enterprise delayed until end of April
+
+I am sorry to say that I am not able to keep the release date to mid of april. It will probably be delayed for
+approximately two weeks due to some organizational work.
+
 ## scim-for-keycloak goes enterprise (April 2023)
 
 I am currently working on a complete redevelopment of this project that has several benefits and a lot of fixes. The
