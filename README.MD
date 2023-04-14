@@ -1,6 +1,6 @@
 # Announcement
 
-## scim-for-keyclaok-enterprise delayed until end of April
+## scim-for-keycloak-enterprise delayed until end of April
 
 I am sorry to say that I am not able to keep the release date to mid of april. It will probably be delayed for
 approximately two weeks due to some organizational work.
