@@ -119,6 +119,7 @@ Thanks to *Raffael Grob* for providing this manual.
 | 17.0.x          | :x:                | :x:                                                                                     | :x:              |
 | 18.0.x          | :heavy_check_mark: | kc-18-b1                                                                                | 1.13.4           |
 | 18.0.x / 19.0.x | :heavy_check_mark: | kc-18-b2                                                                                | 1.13.4           |
+| 19.0.x          | :heavy_check_mark: | kc-19-b1                                                                                | 1.17.1           |
 
 ## Versioning
 
