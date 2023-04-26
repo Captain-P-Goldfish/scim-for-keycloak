@@ -14,8 +14,6 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.core.MediaType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.HttpPost;
@@ -101,7 +99,7 @@ public class ScimClient
     {
 
       HttpPost httpPost = new HttpPost(tokenEndpoint);
-      httpPost.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED);
+      httpPost.addHeader(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded");
       // httpPost.addHeader(HttpHeaders.AUTHORIZATION, "Basic scim:5810f85b-cedd-4cc3-84cc-ccbd89d4a54a=");
       URIBuilder uriBuilder = new URIBuilder("http://localhost").addParameter("grant_type", "client_credentials")
       /*
