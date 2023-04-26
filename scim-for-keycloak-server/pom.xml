@@ -6,7 +6,7 @@
     <parent>
         <groupId>de.captaingoldfish</groupId>
         <artifactId>scim-for-keycloak</artifactId>
-        <version>kc-19-b1</version>
+        <version>kc-20-b1-SNAPSHOT</version>
     </parent>
 
     <artifactId>scim-for-keycloak-server</artifactId>
