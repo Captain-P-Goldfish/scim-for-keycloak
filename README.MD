@@ -1,5 +1,12 @@
 # Announcement
 
+## SCIM for Keycloak website online in BETA
+
+The website to get access to the SCIM for Keycloak project is online in BETA mode. You can access it under:
+https://scim-for-keycloak.de/
+It is only possible to get the free-license at the current moment but the application will soon be updated
+to make the enterprise version also available.
+
 ## scim-for-keycloak-enterprise delayed until end of April
 
 I am sorry to say that I am not able to keep the release date to mid of april. It will probably be delayed for
