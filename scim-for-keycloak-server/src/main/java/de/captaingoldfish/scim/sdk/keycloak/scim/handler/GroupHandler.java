@@ -53,6 +53,7 @@ public class GroupHandler extends ResourceHandler<Group>
   public Group createResource(Group group, Context context)
   {
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
+    updateMembersType((ScimKeycloakContext)context, group);
     final String groupName = group.getDisplayName().get();
     if (new GroupService(keycloakSession).getGroupByName(groupName).isPresent())
     {
@@ -127,6 +128,7 @@ public class GroupHandler extends ResourceHandler<Group>
   public Group updateResource(Group groupToUpdate, Context context)
   {
     KeycloakSession keycloakSession = ((ScimKeycloakContext)context).getKeycloakSession();
+    updateMembersType((ScimKeycloakContext)context, groupToUpdate);
     GroupModel groupModel = keycloakSession.getContext().getRealm().getGroupById(groupToUpdate.getId().get());
     if (groupModel == null)
     {
@@ -387,5 +389,29 @@ public class GroupHandler extends ResourceHandler<Group>
               .forEach(members::add);
 
     return members;
+  }
+
+    /**
+   * When the request of group association does not have the type, try to detect if from the existing records
+   * 
+   * @param scimKeycloakContext
+   * @param group
+   */
+  private void updateMembersType(ScimKeycloakContext scimKeycloakContext, Group group)
+  {
+    KeycloakSession keycloakSession = scimKeycloakContext.getKeycloakSession();
+    RealmModel realm = keycloakSession.getContext().getRealm();
+    List<String> groupIds = keycloakSession.groups()
+                                           .getGroupsStream(realm)
+                                           .map(g -> g.getId())
+                                           .collect(Collectors.toList());
+
+    group.getMembers().forEach(groupMember -> {
+      if (!groupMember.getType().isPresent())
+      {
+        // the type is not set -> find the right type
+        groupMember.setType((groupIds.contains(groupMember.getValue().get()) ? "Group" : "User"));
+      }
+    });
   }
 }
